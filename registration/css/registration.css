@@ -1,0 +1,40 @@
+/* Fix spacing and layout issues */
+.form-group {
+    margin-bottom: 20px;
+}
+
+/* Standardize column widths */
+.col-sm-2, .col-sm-5, .col-sm-8, .col-sm-10 {
+    padding-right: 15px;
+    padding-left: 15px;
+}
+
+/* Fix overlapping elements */
+.input-group-addon {
+    min-width: 40px;
+}
+
+/* Error message styling */
+.text-danger {
+    display: block;
+    margin-top: 5px;
+}
+
+/* Section separation */
+hr {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .form-group > [class^="col-"] {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
+
+/* Button spacing */
+.btn-primary {
+    margin-top: 10px;
+}
