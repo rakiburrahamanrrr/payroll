@@ -1375,19 +1375,18 @@ function LoadingAllLeaves()
 	$totalData = mysqli_num_rows($query);
 	$totalFiltered = $totalData;
 
-	$sql  = "SELECT *";
-	$sql .= " FROM `" . DB_PREFIX . "leaves` WHERE 1=1";
+	$sql  = "SELECT `leaves`.*, `emp`.`first_name`, `emp`.`last_name`";
+	$sql .= " FROM `" . DB_PREFIX . "leaves` AS `leaves`";
+	$sql .= " LEFT JOIN `" . DB_PREFIX . "employees` AS `emp` ON `leaves`.`emp_code` = `emp`.`emp_code`";
 	if (!empty($requestData['search']['value'])) {
-		$sql .= " AND (`leave_id` LIKE '" . $requestData['search']['value'] . "%'";
-		$sql .= " OR `emp_code` LIKE '" . $requestData['search']['value'] . "%'";
-		$sql .= " OR `leave_subject` LIKE '" . $requestData['search']['value'] . "%'";
-		$sql .= " OR `leave_dates` LIKE '" . $requestData['search']['value'] . "%'";
-		$sql .= " OR `leave_message` LIKE '" . $requestData['search']['value'] . "%'";
-		$sql .= " OR `leave_type` LIKE '" . $requestData['search']['value'] . "%'";
-		$sql .= " OR `leave_status` LIKE '" . $requestData['search']['value'] . "%')";
+		$sql .= " WHERE (`leaves`.`leave_id` LIKE '" . $requestData['search']['value'] . "%'";
+		$sql .= " OR `leaves`.`emp_code` LIKE '" . $requestData['search']['value'] . "%'";
+		$sql .= " OR `leaves`.`leave_subject` LIKE '" . $requestData['search']['value'] . "%'";
+		$sql .= " OR `leaves`.`leave_dates` LIKE '" . $requestData['search']['value'] . "%'";
+		$sql .= " OR `leaves`.`leave_message` LIKE '" . $requestData['search']['value'] . "%'";
+		$sql .= " OR `leaves`.`leave_type` LIKE '" . $requestData['search']['value'] . "%'";
+		$sql .= " OR `leaves`.`leave_status` LIKE '" . $requestData['search']['value'] . "%')";
 	}
-	$query = mysqli_query($db, $sql);
-	$totalFiltered = mysqli_num_rows($query);
 	$sql .= " ORDER BY " . $columns[$requestData['order'][0]['column']] . " " . $requestData['order'][0]['dir'] . " LIMIT " . $requestData['start'] . " ," . $requestData['length'] . "";
 	$query = mysqli_query($db, $sql);
 
@@ -1396,7 +1395,7 @@ function LoadingAllLeaves()
 	while ($row = mysqli_fetch_assoc($query)) {
 		$nestedData = array();
 		$nestedData[] = $row["leave_id"];
-		$nestedData[] = '<a target="_blank" href="' . REG_URL . 'reports/' . $row["emp_code"] . '/">' . $row["emp_code"] . '</a>';
+		$nestedData[] = '<a target="_blank" href="' . REG_URL . 'reports/' . $row["emp_code"] . '/">' . $row["first_name"] . ' ' . $row["last_name"] . '</a>';
 		$nestedData[] = $row["leave_subject"];
 		$nestedData[] = $row["leave_dates"];
 		$nestedData[] = $row["leave_message"];
