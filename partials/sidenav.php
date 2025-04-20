@@ -80,7 +80,12 @@ if ( $attendanceSQL ) {
 						<i class="fa fa-sign-out"></i> <span>Leave Management</span>
 					</a>
 				</li>
-				<li></li>
+				
+				<li class="<?php echo $page_name == "loan" ? 'active' : ''; ?>">
+					<a href="<?php echo BASE_URL; ?>leaves/">
+						<i class="fa fa-sign-out"></i> <span>Loan Management System</span>
+					</a>
+				</li>
 				<li class="<?php echo $page_name == "payheads" ? 'active' : ''; ?>">
 					<a href="<?php echo BASE_URL; ?>payheads/">
 						<i class="fa fa-gratipay"></i> Pay Heads

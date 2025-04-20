@@ -118,6 +118,19 @@ $(document).ready(function() {
             }]
         });
     }
+    if ( $('#admin-payscale-grade').length > 0 ) {
+        var admin_sal_table = $('#admin-payscale-grade').DataTable({
+            "processing": true,
+            "serverSide": true,
+            "ajax": baseurl + "ajax/?case=LoadingPayscaleGrade",
+            "order": [0, 'desc'],
+            "columnDefs": [{
+                "targets": 0,
+                "className": "dt-center"
+            }]
+        });
+    }
+
     if ( $('#emp-salary').length > 0 ) {
         var emp_sal_table = $('#emp-salary').DataTable({
             "processing": true,

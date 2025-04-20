@@ -15,7 +15,11 @@ switch ($case) {
 	case 'LoadingSalaries':
 		LoadingSalaries();
 		break;
-	case 'LoadingEmployees':
+		case 'LoadingPayscaleGrade':
+		LoadingPayscaleGrade();
+		break;
+		
+		case 'LoadingEmployees':
 		LoadingEmployees();
 		break;
 	case 'AssignPayheadsToEmployee':
@@ -60,11 +64,11 @@ switch ($case) {
 	case 'EditEmployeeDetailsByID':
 		EditEmployeeDetailsByID();
 		break;
-	case 'GeneratePaySlip':
-		GeneratePaySlip();
-		break;
-	case 'SendPaySlipByMail':
-		SendPaySlipByMail();
+	// case 'GeneratePaySlip':
+	// 	GeneratePaySlip();
+	// 	break;
+	// case 'SendPaySlipByMail':
+	// 	SendPaySlipByMail();
 		break;
 	case 'EditProfileByID':
 		EditProfileByID();
@@ -345,6 +349,129 @@ function LoadingSalaries()
 
 	echo json_encode($json_data);
 }
+
+function LoadingPayscaleGrade()
+{
+	global $db;
+	$requestData = $_REQUEST;
+	$columns = array(
+		0 => 'id',
+		1 => 'emp_grade',
+		2 => 'empsal_grade',
+		3 => 'basic_salary',
+		4 => 'house_rent',
+		5 => 'conveyance_allowance',
+		6 => 'medical_allowance',
+		7 => 'driver_allowance',
+		8 => 'car_allowance'
+	);
+
+	// --- Total records ---
+	$sql = "SELECT `id` FROM `" . DB_PREFIX . "payscale_grade`";
+	$query = mysqli_query($db, $sql);
+	if (!$query) {
+		$response = array(
+			"draw"            => isset($requestData['draw']) ? intval($requestData['draw']) : 0,
+			"recordsTotal"    => 0,
+			"recordsFiltered" => 0,
+			"data"            => array(),
+			"error"           => "Database error in total records query: " . mysqli_error($db)
+		);
+		ob_clean();
+		echo json_encode($response);
+		exit;
+	}
+	$totalData = mysqli_num_rows($query);
+	$totalFiltered = $totalData;
+
+	// --- Build main query ---
+	$sql = "SELECT * FROM `" . DB_PREFIX . "payscale_grade` WHERE 1 = 1";
+	if (!empty($requestData['search']['value'])) {
+		$value = mysqli_real_escape_string($db, $requestData['search']['value']);
+		$sql .= " AND (";
+		$sql .= " `id` LIKE '" . $value . "%'";
+		$sql .= " OR `emp_grade` LIKE '" . $value . "%'";
+		$sql .= " OR `empsal_grade` LIKE '" . $value . "%'";
+		$sql .= " OR `basic_salary` LIKE '" . $value . "%'";
+		$sql .= " OR `house_rent` LIKE '" . $value . "%'";
+		$sql .= " OR `conveyance_allowance` LIKE '" . $value . "%'";
+		$sql .= " OR `medical_allowance` LIKE '" . $value . "%'";
+		$sql .= " OR `driver_allowance` LIKE '" . $value . "%'";
+		$sql .= " OR `car_allowance` LIKE '" . $value . "%'";
+		$sql .= " )";
+	}
+
+	$query = mysqli_query($db, $sql);
+	if (!$query) {
+		$response = array(
+			"draw"            => isset($requestData['draw']) ? intval($requestData['draw']) : 0,
+			"recordsTotal"    => 0,
+			"recordsFiltered" => 0,
+			"data"            => array(),
+			"error"           => "Database error in filtered records query: " . mysqli_error($db)
+		);
+		ob_clean();
+		echo json_encode($response);
+		exit;
+	}
+	$totalFiltered = mysqli_num_rows($query);
+
+	// --- Ordering and pagination ---
+	if (isset($requestData['order'][0]['column'])) {
+		$orderColumn = $columns[$requestData['order'][0]['column']];
+		$orderDir    = $requestData['order'][0]['dir'];
+	} else {
+		$orderColumn = 'id';
+		$orderDir    = 'asc';
+	}
+	$start  = isset($requestData['start']) ? (int)$requestData['start'] : 0;
+	$length = isset($requestData['length']) ? (int)$requestData['length'] : 10;
+	$sql .= " ORDER BY " . $orderColumn . " " . $orderDir;
+	$sql .= " LIMIT " . $start . ", " . $length;
+
+	$query = mysqli_query($db, $sql);
+	if (!$query) {
+		$response = array(
+			"draw"            => isset($requestData['draw']) ? intval($requestData['draw']) : 0,
+			"recordsTotal"    => 0,
+			"recordsFiltered" => 0,
+			"data"            => array(),
+			"error"           => "Database error in main query: " . mysqli_error($db)
+		);
+		ob_clean();
+		echo json_encode($response);
+		exit;
+	}
+
+	$data = array();
+	while ($row = mysqli_fetch_assoc($query)) {
+		$nestedData = array();
+		$nestedData[] = $row['id'];
+		$nestedData[] = $row['emp_grade'];
+		$nestedData[] = $row['empsal_grade'];
+		$nestedData[] = number_format($row['basic_salary'], 2, '.', ',');
+		$nestedData[] = number_format($row['house_rent'], 2, '.', ',');
+		$nestedData[] = number_format($row['conveyance_allowance'], 2, '.', ',');
+		$nestedData[] = number_format($row['medical_allowance'], 2, '.', ',');
+		$nestedData[] = number_format($row['driver_allowance'], 2, '.', ',');
+		$nestedData[] = number_format($row['car_allowance'], 2, '.', ',');
+		$data[] = $nestedData;
+	}
+
+	$json_data = array(
+		"draw"            => isset($requestData['draw']) ? intval($requestData['draw']) : 0,
+		"recordsTotal"    => intval($totalData),
+		"recordsFiltered" => intval($totalFiltered),
+		"data"            => $data
+	);
+
+	// Clear any stray output before echoing the JSON
+	ob_clean();
+	echo json_encode($json_data);
+	exit;
+}
+
+
 function LoadingEmployees()
 {
 	global $db;

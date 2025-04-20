@@ -36,7 +36,7 @@ if ( !isset($_SESSION['Admin_ID']) || !isset($_SESSION['Login_Type']) ) {
 				<h1>Salaries</h1>
 				<ol class="breadcrumb">
 					<li><a href="<?php echo BASE_URL; ?>"><i class="fa fa-dashboard"></i> Home</a></li>
-					<li class="active">Salaries</li>
+					<li class="active">Salary Payscale Grade</li>
 				</ol>
 			</section>
 
@@ -49,7 +49,7 @@ if ( !isset($_SESSION['Admin_ID']) || !isset($_SESSION['Login_Type']) ) {
 							</div>
 							<div class="box-body">
 								<?php if ( $_SESSION['Login_Type'] == 'admin' ) { ?>
-									<table id="admin-salary" class="table table-bordered table-stripe">
+									<table id="admin-payscale-grade" class="table table-bordered table-stripe" style="margin-top: 30px;">
 										<thead>
 											<tr>
 												<th>Id</th>
@@ -58,21 +58,17 @@ if ( !isset($_SESSION['Admin_ID']) || !isset($_SESSION['Login_Type']) ) {
 												<th>Basic Salary</th>
 												<th>House Rent</th>
 												<th>Conveyance Allowance</th>
-												<th>driver_allowance</th>	
 												<th>Medical Allowance</th>
-												<th>Other Allowance</th>
-												<th>car_allowance</th>	
+												<th>Driver Allowance</th>
+												<th>Car Allowance</th>
+												<th>ACTIONS</th>
 											</tr>
 										</thead>
 									</table>
 								<?php } else { ?>
-									<table id="emp-salary" class="table table-bordered table-stripe">
+									<table id="admin-payscale-grade" class="table table-bordered table-stripe">
 										<thead>
 											<tr>
-												<th>SALARY MONTH</th>
-												<th>EARNINGS</th>
-												<th>DEDUCTIONS</th>
-												<th>NET SALARY</th>
 												<th>ACTIONS</th>
 											</tr>
 										</thead>

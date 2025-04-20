@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 20, 2025 at 03:47 AM
+-- Generation Time: Apr 20, 2025 at 09:02 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -129,52 +129,6 @@ INSERT INTO `cdbl_employees` (`emp_code`, `first_name`, `last_name`, `dob`, `gen
 -- --------------------------------------------------------
 
 --
--- Table structure for table `cdbl_employees2`
---
-
-CREATE TABLE `cdbl_employees2` (
-  `emp_id` int(11) NOT NULL,
-  `emp_code` varchar(255) NOT NULL,
-  `emp_password` varchar(255) NOT NULL,
-  `first_name` varchar(255) NOT NULL,
-  `last_name` varchar(255) NOT NULL,
-  `dob` varchar(255) NOT NULL,
-  `gender` enum('male','female') NOT NULL DEFAULT 'male',
-  `merital_status` varchar(255) NOT NULL,
-  `nationality` varchar(255) NOT NULL,
-  `address` longtext NOT NULL,
-  `city` varchar(255) NOT NULL,
-  `state` varchar(255) NOT NULL,
-  `country` varchar(255) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `mobile` varchar(255) NOT NULL,
-  `telephone` varchar(255) NOT NULL,
-  `identity_doc` varchar(255) NOT NULL,
-  `identity_no` varchar(255) NOT NULL,
-  `emp_type` varchar(255) NOT NULL,
-  `joining_date` varchar(255) NOT NULL,
-  `blood_group` varchar(255) NOT NULL,
-  `photo` varchar(255) NOT NULL,
-  `designation` varchar(255) NOT NULL,
-  `department` varchar(255) NOT NULL,
-  `pan_no` varchar(255) NOT NULL,
-  `bank_name` varchar(255) NOT NULL,
-  `account_no` varchar(255) NOT NULL,
-  `ifsc_code` varchar(255) NOT NULL,
-  `pf_account` varchar(255) NOT NULL,
-  `created` datetime NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
-
---
--- Dumping data for table `cdbl_employees2`
---
-
-INSERT INTO `cdbl_employees2` (`emp_id`, `emp_code`, `emp_password`, `first_name`, `last_name`, `dob`, `gender`, `merital_status`, `nationality`, `address`, `city`, `state`, `country`, `email`, `mobile`, `telephone`, `identity_doc`, `identity_no`, `emp_type`, `joining_date`, `blood_group`, `photo`, `designation`, `department`, `pan_no`, `bank_name`, `account_no`, `ifsc_code`, `pf_account`, `created`) VALUES
-(89, 'cdbl89', '123456', 'rakibur', 'rahaman', '', 'male', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '2025-04-06 10:53:48');
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `cdbl_holidays`
 --
 
@@ -221,9 +175,7 @@ CREATE TABLE `cdbl_leaves` (
 --
 
 INSERT INTO `cdbl_leaves` (`leave_id`, `emp_code`, `leave_subject`, `leave_dates`, `leave_message`, `leave_type`, `leave_status`, `apply_date`) VALUES
-(1, 'WY01', 'Requesting for leave days', '04/13/2021', 'this is a demo leave message', 'Sick Leave', 'approve', '2021-04-13 10:09:02'),
-(3, 'WY03', 'Leave for 2 days', '04/15/2021,04/17/2021', 'Dear admin, i\'d like to apply leave for 2 days as i\'ve been a regular employee since my first day at office. And now, i finally got to rest and spend some time with my family too!', 'Casual Leave', 'reject', '2021-04-14 15:47:06'),
-(4, 'WY05', 'Leave for a week', '04/15/2021,04/23/2021', 'i wont be able to join office as i\'ve been suffering from a rough common cold and fever. so, i\'d like to request a leave for week', 'Sick Leave', 'approve', '2021-04-14 19:15:11');
+(1, 'cdbl90', 'going hometown', '04/21/2025', 'Going hometown for personal reason', 'Casual Leave', 'pending', '2025-04-20 09:40:04');
 
 -- --------------------------------------------------------
 
@@ -260,6 +212,34 @@ INSERT INTO `cdbl_payheads` (`payhead_id`, `payhead_name`, `payhead_desc`, `payh
 (16, 'Arrear Salary', 'Arrear Salary', 'earnings'),
 (17, 'Leave without Pay', 'Leave without Pay', 'deductions'),
 (18, 'Driver\'s Allowance', 'Driver\'s Allowance', 'earnings');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cdbl_payscale_grade`
+--
+
+CREATE TABLE `cdbl_payscale_grade` (
+  `id` int(255) NOT NULL,
+  `emp_grade` int(10) NOT NULL,
+  `empsal_grade` int(10) NOT NULL,
+  `basic_salary` int(50) NOT NULL,
+  `house_rent` int(50) NOT NULL,
+  `conveyance_allowance` int(50) DEFAULT NULL,
+  `medical_allowance` int(50) NOT NULL,
+  `driver_allowance` int(50) DEFAULT NULL,
+  `car_allowance` int(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+--
+-- Dumping data for table `cdbl_payscale_grade`
+--
+
+INSERT INTO `cdbl_payscale_grade` (`id`, `emp_grade`, `empsal_grade`, `basic_salary`, `house_rent`, `conveyance_allowance`, `medical_allowance`, `driver_allowance`, `car_allowance`) VALUES
+(1, 12, 10, 17000, 7650, 850, 850, 0, 0),
+(2, 12, 15, 37400, 16830, 1870, 1870, 0, 0),
+(3, 12, 11, 17850, 8033, 893, 893, 0, 0),
+(4, 12, 14, 36550, 16448, 1828, 1828, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -340,19 +320,61 @@ INSERT INTO `cdbl_salaries` (`salary_id`, `emp_code`, `payhead_name`, `pay_amoun
 -- --------------------------------------------------------
 
 --
--- Table structure for table `payscale_grade`
+-- Table structure for table `loan_categories`
 --
 
-CREATE TABLE `payscale_grade` (
-  `id` int(255) NOT NULL,
-  `emp_grade` int(10) NOT NULL,
-  `empsal_grade` int(10) NOT NULL,
-  `basic_salary` int(50) NOT NULL,
-  `house_rent` int(50) NOT NULL,
-  `conveyance_allowance` int(50) NOT NULL,
-  `medical_allowance` int(50) NOT NULL,
-  `driver_allowance` int(50) NOT NULL,
-  `car_allowance` int(50) NOT NULL
+CREATE TABLE `loan_categories` (
+  `category_id` int(11) NOT NULL,
+  `category_name` varchar(255) DEFAULT NULL,
+  `description` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `loan_certificates`
+--
+
+CREATE TABLE `loan_certificates` (
+  `certificate_id` int(11) NOT NULL,
+  `loan_id` int(11) DEFAULT NULL,
+  `employee_id` int(11) DEFAULT NULL,
+  `certificate_date` date DEFAULT NULL,
+  `outstanding_balance` decimal(10,2) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `loan_history`
+--
+
+CREATE TABLE `loan_history` (
+  `history_id` int(11) NOT NULL,
+  `loan_id` int(11) DEFAULT NULL,
+  `action` varchar(255) DEFAULT NULL,
+  `action_date` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `loan_requests`
+--
+
+CREATE TABLE `loan_requests` (
+  `loan_id` int(11) NOT NULL,
+  `employee_id` int(11) DEFAULT NULL,
+  `category_id` int(11) DEFAULT NULL,
+  `loan_amount` decimal(10,2) DEFAULT NULL,
+  `installment` decimal(10,2) DEFAULT NULL,
+  `loan_payment_amount` decimal(10,2) DEFAULT NULL,
+  `interest_amount` decimal(10,2) DEFAULT NULL,
+  `loan_status` enum('pending','approved','completed') DEFAULT 'pending',
+  `loan_approved_date` date DEFAULT NULL,
+  `effective_date` date DEFAULT NULL,
+  `performance_bonus_deduction` decimal(10,2) DEFAULT 0.00,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --
@@ -385,13 +407,6 @@ ALTER TABLE `cdbl_employees`
   ADD UNIQUE KEY `national_id` (`national_id`);
 
 --
--- Indexes for table `cdbl_employees2`
---
-ALTER TABLE `cdbl_employees2`
-  ADD PRIMARY KEY (`emp_id`),
-  ADD UNIQUE KEY `emp_code` (`emp_code`);
-
---
 -- Indexes for table `cdbl_holidays`
 --
 ALTER TABLE `cdbl_holidays`
@@ -410,6 +425,12 @@ ALTER TABLE `cdbl_payheads`
   ADD PRIMARY KEY (`payhead_id`);
 
 --
+-- Indexes for table `cdbl_payscale_grade`
+--
+ALTER TABLE `cdbl_payscale_grade`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `cdbl_pay_structure`
 --
 ALTER TABLE `cdbl_pay_structure`
@@ -425,10 +446,33 @@ ALTER TABLE `cdbl_salaries`
   ADD KEY `emp_code` (`emp_code`);
 
 --
--- Indexes for table `payscale_grade`
+-- Indexes for table `loan_categories`
 --
-ALTER TABLE `payscale_grade`
-  ADD PRIMARY KEY (`id`);
+ALTER TABLE `loan_categories`
+  ADD PRIMARY KEY (`category_id`);
+
+--
+-- Indexes for table `loan_certificates`
+--
+ALTER TABLE `loan_certificates`
+  ADD PRIMARY KEY (`certificate_id`),
+  ADD KEY `loan_id` (`loan_id`),
+  ADD KEY `employee_id` (`employee_id`);
+
+--
+-- Indexes for table `loan_history`
+--
+ALTER TABLE `loan_history`
+  ADD PRIMARY KEY (`history_id`),
+  ADD KEY `loan_id` (`loan_id`);
+
+--
+-- Indexes for table `loan_requests`
+--
+ALTER TABLE `loan_requests`
+  ADD PRIMARY KEY (`loan_id`),
+  ADD KEY `employee_id` (`employee_id`),
+  ADD KEY `category_id` (`category_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -447,12 +491,6 @@ ALTER TABLE `cdbl_attendance`
   MODIFY `attendance_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
--- AUTO_INCREMENT for table `cdbl_employees2`
---
-ALTER TABLE `cdbl_employees2`
-  MODIFY `emp_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=90;
-
---
 -- AUTO_INCREMENT for table `cdbl_holidays`
 --
 ALTER TABLE `cdbl_holidays`
@@ -462,13 +500,19 @@ ALTER TABLE `cdbl_holidays`
 -- AUTO_INCREMENT for table `cdbl_leaves`
 --
 ALTER TABLE `cdbl_leaves`
-  MODIFY `leave_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `leave_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `cdbl_payheads`
 --
 ALTER TABLE `cdbl_payheads`
   MODIFY `payhead_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+
+--
+-- AUTO_INCREMENT for table `cdbl_payscale_grade`
+--
+ALTER TABLE `cdbl_payscale_grade`
+  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `cdbl_pay_structure`
@@ -483,10 +527,52 @@ ALTER TABLE `cdbl_salaries`
   MODIFY `salary_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=260;
 
 --
--- AUTO_INCREMENT for table `payscale_grade`
+-- AUTO_INCREMENT for table `loan_categories`
 --
-ALTER TABLE `payscale_grade`
-  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `loan_categories`
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `loan_certificates`
+--
+ALTER TABLE `loan_certificates`
+  MODIFY `certificate_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `loan_history`
+--
+ALTER TABLE `loan_history`
+  MODIFY `history_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `loan_requests`
+--
+ALTER TABLE `loan_requests`
+  MODIFY `loan_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `loan_certificates`
+--
+ALTER TABLE `loan_certificates`
+  ADD CONSTRAINT `loan_certificates_ibfk_1` FOREIGN KEY (`loan_id`) REFERENCES `loan_requests` (`loan_id`),
+  ADD CONSTRAINT `loan_certificates_ibfk_2` FOREIGN KEY (`employee_id`) REFERENCES `cdbl_employees` (`employee_id`);
+
+--
+-- Constraints for table `loan_history`
+--
+ALTER TABLE `loan_history`
+  ADD CONSTRAINT `loan_history_ibfk_1` FOREIGN KEY (`loan_id`) REFERENCES `loan_requests` (`loan_id`);
+
+--
+-- Constraints for table `loan_requests`
+--
+ALTER TABLE `loan_requests`
+  ADD CONSTRAINT `loan_requests_ibfk_1` FOREIGN KEY (`employee_id`) REFERENCES `cdbl_employees` (`employee_id`),
+  ADD CONSTRAINT `loan_requests_ibfk_2` FOREIGN KEY (`category_id`) REFERENCES `loan_categories` (`category_id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
