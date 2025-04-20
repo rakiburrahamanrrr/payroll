@@ -123,7 +123,7 @@ $(document).ready(function() {
             "processing": true,
             "serverSide": true,
             "ajax": baseurl + "ajax/?case=LoadingPayscaleGrade",
-            "order": [0, 'desc'],
+            "order": [0, 'asc'],
             "columnDefs": [{
                 "targets": 0,
                 "className": "dt-center"
