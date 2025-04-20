@@ -15,9 +15,13 @@ switch ($case) {
 	case 'LoadingSalaries':
 		LoadingSalaries();
 		break;
-		case 'LoadingPayscaleGrade':
+	case 'LoadingPayscaleGrade':
 		LoadingPayscaleGrade();
 		break;
+	case 'UpdatePayscaleGrade':
+		UpdatePayscaleGrade();
+		break;
+		
 		
 		case 'LoadingEmployees':
 		LoadingEmployees();
@@ -91,9 +95,97 @@ switch ($case) {
 	case 'RejectLeaveApplication':
 		RejectLeaveApplication();
 		break;
-	default:
+default:
 		echo '404! Page Not Found.';
 		break;
+}
+
+function InsertPayscaleGrade()
+{
+	global $db;
+	$result = array();
+
+	$emp_grade = isset($_POST['emp_grade']) ? trim($_POST['emp_grade']) : '';
+	$empsal_grade = isset($_POST['empsal_grade']) ? trim($_POST['empsal_grade']) : '';
+	$basic_salary = isset($_POST['basic_salary']) ? floatval($_POST['basic_salary']) : 0;
+	$house_rent = isset($_POST['house_rent']) ? floatval($_POST['house_rent']) : 0;
+	$conveyance_allowance = isset($_POST['conveyance_allowance']) ? floatval($_POST['conveyance_allowance']) : 0;
+	$medical_allowance = isset($_POST['medical_allowance']) ? floatval($_POST['medical_allowance']) : 0;
+	$driver_allowance = isset($_POST['driver_allowance']) ? floatval($_POST['driver_allowance']) : 0;
+	$car_allowance = isset($_POST['car_allowance']) ? floatval($_POST['car_allowance']) : 0;
+
+	if ($emp_grade !== '' && $empsal_grade !== '') {
+		$insertSQL = "INSERT INTO `" . DB_PREFIX . "payscale_grade` 
+			(`emp_grade`, `empsal_grade`, `basic_salary`, `house_rent`, `conveyance_allowance`, `medical_allowance`, `driver_allowance`, `car_allowance`) VALUES (
+			'" . mysqli_real_escape_string($db, $emp_grade) . "',
+			'" . mysqli_real_escape_string($db, $empsal_grade) . "',
+			$basic_salary,
+			$house_rent,
+			$conveyance_allowance,
+			$medical_allowance,
+			$driver_allowance,
+			$car_allowance
+		)";
+
+		$insertResult = mysqli_query($db, $insertSQL);
+		if ($insertResult) {
+			$result['code'] = 0;
+			$result['result'] = 'Payscale grade record has been successfully added.';
+		} else {
+			$result['code'] = 1;
+			$result['result'] = 'Database error: ' . mysqli_error($db);
+		}
+	} else {
+		$result['code'] = 2;
+		$result['result'] = 'Invalid input data. Please fill all required fields.';
+	}
+
+	echo json_encode($result);
+	exit;
+}
+
+function UpdatePayscaleGrade()
+{
+	global $db;
+	$result = array();
+
+	$id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+	$emp_grade = isset($_POST['emp_grade']) ? trim($_POST['emp_grade']) : '';
+	$empsal_grade = isset($_POST['empsal_grade']) ? trim($_POST['empsal_grade']) : '';
+	$basic_salary = isset($_POST['basic_salary']) ? floatval($_POST['basic_salary']) : 0;
+	$house_rent = isset($_POST['house_rent']) ? floatval($_POST['house_rent']) : 0;
+	$conveyance_allowance = isset($_POST['conveyance_allowance']) ? floatval($_POST['conveyance_allowance']) : 0;
+	$medical_allowance = isset($_POST['medical_allowance']) ? floatval($_POST['medical_allowance']) : 0;
+	$driver_allowance = isset($_POST['driver_allowance']) ? floatval($_POST['driver_allowance']) : 0;
+	$car_allowance = isset($_POST['car_allowance']) ? floatval($_POST['car_allowance']) : 0;
+
+	if ($id > 0 && $emp_grade !== '' && $empsal_grade !== '') {
+		$updateSQL = "UPDATE `" . DB_PREFIX . "payscale_grade` SET 
+			`emp_grade` = '" . mysqli_real_escape_string($db, $emp_grade) . "',
+			`empsal_grade` = '" . mysqli_real_escape_string($db, $empsal_grade) . "',
+			`basic_salary` = $basic_salary,
+			`house_rent` = $house_rent,
+			`conveyance_allowance` = $conveyance_allowance,
+			`medical_allowance` = $medical_allowance,
+			`driver_allowance` = $driver_allowance,
+			`car_allowance` = $car_allowance
+			WHERE `id` = $id";
+
+		$updateResult = mysqli_query($db, $updateSQL);
+		if ($updateResult) {
+			$result['code'] = 0;
+			$result['result'] = 'Payscale grade record has been successfully updated.';
+		} else {
+			$result['code'] = 1;
+			$result['result'] = 'Database error: ' . mysqli_error($db);
+		}
+	} else {
+		$result['code'] = 2;
+		$result['result'] = 'Invalid input data. Please fill all required fields.';
+	}
+
+	echo json_encode($result);
+	exit;
 }
 
 function LoginProcessHandler()

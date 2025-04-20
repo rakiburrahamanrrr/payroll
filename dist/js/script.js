@@ -119,7 +119,7 @@ $(document).ready(function() {
         });
     }
     if ( $('#admin-payscale-grade').length > 0 ) {
-        var admin_sal_table = $('#admin-payscale-grade').DataTable({
+        var admin_payscale_table = $('#admin-payscale-grade').DataTable({
             "processing": true,
             "serverSide": true,
             "ajax": baseurl + "ajax/?case=LoadingPayscaleGrade",
@@ -127,7 +127,146 @@ $(document).ready(function() {
             "columnDefs": [{
                 "targets": 0,
                 "className": "dt-center"
+            }, {
+                "targets": -1,
+                "data": null,
+                "className": "dt-center",
+                "defaultContent": '<button class="btn btn-primary btn-xs editPayscale"><i class="fa fa-edit"></i></button>'
             }]
+        });
+
+        $('#admin-payscale-grade tbody').on('click', '.editPayscale', function() {
+            var data = admin_payscale_table.row($(this).parents('tr')).data();
+            // Populate modal fields
+            $('#payscale_id').val(data[0]);
+            $('#emp_grade').val(data[1]);
+            $('#empsal_grade').val(data[2]);
+            $('#basic_salary').val(data[3].replace(/,/g, ''));
+            $('#house_rent').val(data[4].replace(/,/g, ''));
+            $('#conveyance_allowance').val(data[5].replace(/,/g, ''));
+            $('#medical_allowance').val(data[6].replace(/,/g, ''));
+            $('#driver_allowance').val(data[7].replace(/,/g, ''));
+            $('#car_allowance').val(data[8].replace(/,/g, ''));
+            $('#EditPayscaleModal').modal('show');
+        });
+
+        $('#edit-payscale-form').on('submit', function(e) {
+            e.preventDefault();
+            var form = $(this);
+            $.ajax({
+                type: "POST",
+                url: baseurl + "ajax/?case=UpdatePayscaleGrade",
+                data: form.serialize(),
+                dataType: "json",
+                success: function(result) {
+                    if (result.code === 0) {
+                        $.notify({
+                            icon: 'glyphicon glyphicon-ok-circle',
+                            message: result.result,
+                        }, {
+                            allow_dismiss: false,
+                            type: "success",
+                            placement: {
+                                from: "top",
+                                align: "right"
+                            },
+                            z_index: 9999,
+                        });
+                        $('#EditPayscaleModal').modal('hide');
+                        admin_payscale_table.ajax.reload(null, false);
+                    } else {
+                        $.notify({
+                            icon: 'glyphicon glyphicon-remove-circle',
+                            message: result.result,
+                        }, {
+                            allow_dismiss: false,
+                            type: "danger",
+                            placement: {
+                                from: "top",
+                                align: "right"
+                            },
+                            z_index: 9999,
+                        });
+                    }
+                },
+                error: function() {
+                    $.notify({
+                        icon: 'glyphicon glyphicon-remove-circle',
+                        message: 'An error occurred while updating the record.',
+                    }, {
+                        allow_dismiss: false,
+                        type: "danger",
+                        placement: {
+                            from: "top",
+                            align: "right"
+                        },
+                        z_index: 9999,
+                    });
+                }
+            });
+        });
+
+        // Add Payscale Grade button click handler
+        $('#add-payscale-btn').on('click', function() {
+            $('#AddPayscaleModal').modal('show');
+        });
+
+        // Add Payscale Grade form submission
+        $('#add-payscale-form').on('submit', function(e) {
+            e.preventDefault();
+            var form = $(this);
+            $.ajax({
+                type: "POST",
+                url: baseurl + "ajax/?case=InsertPayscaleGrade",
+                data: form.serialize(),
+                dataType: "json",
+                success: function(result) {
+                    if (result.code === 0) {
+                        $.notify({
+                            icon: 'glyphicon glyphicon-ok-circle',
+                            message: result.result,
+                        }, {
+                            allow_dismiss: false,
+                            type: "success",
+                            placement: {
+                                from: "top",
+                                align: "right"
+                            },
+                            z_index: 9999,
+                        });
+                        $('#AddPayscaleModal').modal('hide');
+                        admin_payscale_table.ajax.reload(null, false);
+                        form[0].reset();
+                    } else {
+                        $.notify({
+                            icon: 'glyphicon glyphicon-remove-circle',
+                            message: result.result,
+                        }, {
+                            allow_dismiss: false,
+                            type: "danger",
+                            placement: {
+                                from: "top",
+                                align: "right"
+                            },
+                            z_index: 9999,
+                        });
+                    }
+                },
+                error: function() {
+                    $.notify({
+                        icon: 'glyphicon glyphicon-remove-circle',
+                        message: 'An error occurred while adding the record.',
+                    }, {
+                        allow_dismiss: false,
+                        type: "danger",
+                        placement: {
+                            from: "top",
+                            align: "right"
+                        },
+                        z_index: 9999,
+                    });
+                }
+            });
         });
     }
 
