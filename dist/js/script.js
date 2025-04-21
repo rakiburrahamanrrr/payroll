@@ -215,6 +215,7 @@ $(document).ready(function() {
         $('#add-payscale-form').on('submit', function(e) {
             e.preventDefault();
             var form = $(this);
+            console.log("Submitting add-payscale-form with data:", form.serialize());
             $.ajax({
                 type: "POST",
                 url: baseurl + "ajax/?case=InsertPayscaleGrade",
@@ -252,7 +253,8 @@ $(document).ready(function() {
                         });
                     }
                 },
-                error: function() {
+                error: function(xhr, status, error) {
+                    console.error("AJAX error:", xhr.responseText);
                     $.notify({
                         icon: 'glyphicon glyphicon-remove-circle',
                         message: 'An error occurred while adding the record.',
