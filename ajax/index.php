@@ -102,6 +102,27 @@ default:
 		echo '404! Page Not Found.';
 		break;
 }
+function getOutstandingBalance($loan_id) {
+    global $db;
+
+    // Get the loan amount from the loan_requests table
+    $query = "SELECT loan_amount FROM loan_requests WHERE loan_id = '$loan_id'";
+    $result = mysqli_query($db, $query);
+    $loan = mysqli_fetch_assoc($result);
+    $loan_amount = $loan['loan_amount'];
+
+    // Get the total payments made towards the loan from the loan_payments table
+    $query = "SELECT SUM(payment_amount) AS total_paid FROM loan_payments WHERE loan_id = '$loan_id'";
+    $result = mysqli_query($db, $query);
+    $payment = mysqli_fetch_assoc($result);
+    $total_paid = $payment['total_paid'];
+
+    // Calculate the outstanding balance
+    $outstanding_balance = $loan_amount - $total_paid;
+
+    return $outstanding_balance;
+}
+
 
 function InsertPayscaleGrade()
 {

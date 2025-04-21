@@ -84,10 +84,9 @@ if (isset($userData['emp_code'])) {
 						<i class="fa fa-sign-out"></i> <span>Leave Management</span>
 					</a>
 				</li>
-				
-				<li class="<?php echo $page_name == "loan" ? 'active' : ''; ?>">
-					<a href="<?php echo BASE_URL; ?>leaves/">
-						<i class="fa fa-sign-out"></i> <span>Loan Management System</span>
+				<li class="<?php echo $page_name == "admin_loan_approval" ? 'active' : ''; ?>">
+					<a href="<?php echo BASE_URL; ?>admin_loan_approval.php">
+						<i class="fa fa-money"></i> <span>Loan Approval</span>
 					</a>
 				</li>
 				<li class="<?php echo $page_name == "payheads" ? 'active' : ''; ?>">
@@ -113,6 +112,16 @@ if (isset($userData['emp_code'])) {
 				<li class="<?php echo $page_name == "leaves" ? 'active' : ''; ?>">
 					<a href="<?php echo BASE_URL; ?>leaves/">
 						<i class="fa fa-sign-out"></i> <span>Leaves</span>
+					</a>
+				</li>
+				<li class="<?php echo $page_name == "loan_request" ? 'active' : ''; ?>">
+					<a href="<?php echo BASE_URL; ?>loan_request.php">
+						<i class="fa fa-money"></i> <span>Loan Request</span>
+					</a>
+				</li>
+				<li class="<?php echo $page_name == "loan_balance" ? 'active' : ''; ?>">
+					<a href="<?php echo BASE_URL; ?>loan_balance.php">
+						<i class="fa fa-money"></i> <span>Loan Balance</span>
 					</a>
 				</li>
 				<li class="<?php echo $page_name == "holidays" ? 'active' : ''; ?>">
