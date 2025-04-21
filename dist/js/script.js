@@ -218,7 +218,7 @@ $(document).ready(function() {
             console.log("Submitting add-payscale-form with data:", form.serialize());
             $.ajax({
                 type: "POST",
-                url: baseurl + "ajax/?case=InsertPayscaleGrade",
+                url: baseurl + "ajax/index.php?case=InsertPayscaleGrade",
                 data: form.serialize(),
                 dataType: "json",
                 success: function(result) {

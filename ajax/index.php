@@ -18,6 +18,9 @@ switch ($case) {
 	case 'LoadingPayscaleGrade':
 		LoadingPayscaleGrade();
 		break;
+	case 'InsertPayscaleGrade':
+		InsertPayscaleGrade();
+		break;
 	case 'UpdatePayscaleGrade':
 		UpdatePayscaleGrade();
 		break;
@@ -118,8 +121,7 @@ function InsertPayscaleGrade()
 		$insertSQL = "INSERT INTO `" . DB_PREFIX . "payscale_grade` 
 			(`emp_grade`, `empsal_grade`, `basic_salary`, `house_rent`, `conveyance_allowance`, `medical_allowance`, `driver_allowance`, `car_allowance`) VALUES (
 			'" . mysqli_real_escape_string($db, $emp_grade) . "',
-			'" . mysqli_real_escape_string($db, $empsal_grade) . "',
-			$basic_salary,
+			'" . mysqli_real_escape_string($db, $empsal_grade) . "', $basic_salary,
 			$house_rent,
 			$conveyance_allowance,
 			$medical_allowance,
@@ -305,11 +307,17 @@ function LoadingAttendance()
 
 	$query = mysqli_query($db, $sql);
 	$totalFiltered = mysqli_num_rows($query);
-	$sql .= " ORDER BY " . $columns[$requestData['order'][0]['column']] . " " . $requestData['order'][0]['dir'] . " LIMIT " . $requestData['start'] . " ," . $requestData['length'] . "";
+
+	$orderColumn = isset($requestData['order'][0]['column']) ? $columns[$requestData['order'][0]['column']] : 'attendance_date';
+	$orderDir = isset($requestData['order'][0]['dir']) ? $requestData['order'][0]['dir'] : 'desc';
+	$start = isset($requestData['start']) ? (int)$requestData['start'] : 0;
+	$length = isset($requestData['length']) ? (int)$requestData['length'] : 10;
+
+	$sql .= " ORDER BY " . $orderColumn . " " . $orderDir . " LIMIT " . $start . " ," . $length;
 	$query = mysqli_query($db, $sql);
 
 	$data = array();
-	$i = 1 + $requestData['start'];
+	$i = 1 + $start;
 	while ($row = mysqli_fetch_assoc($query)) {
 		$nestedData = array();
 		$nestedData[] = date('d-m-Y', strtotime($row['attendance_date']));
@@ -331,7 +339,7 @@ function LoadingAttendance()
 		$i++;
 	}
 	$json_data = array(
-		"draw"            => intval($requestData['draw']),
+		"draw"            => isset($requestData['draw']) ? intval($requestData['draw']) : 0,
 		"recordsTotal"    => intval($totalData),
 		"recordsFiltered" => intval($totalFiltered),
 		"data"            => $data
