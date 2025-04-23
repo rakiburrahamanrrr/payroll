@@ -1385,7 +1385,7 @@ function EditEmployeeDetailsByID()
 
 // 		$html .= '<div class="div_half">';
 // 			$html .= '<h3 class="net_payable">';
-// 				$html .= 'Net Salary Payable: Rs.' . number_format(($totalEarnings - $totalDeductions), 2, '.', ',');
+// 				$html .= 'Net Salary Payable: Bdt.' . number_format(($totalEarnings - $totalDeductions), 2, '.', ',');
 // 			$html .= '</h3>';
 // 		$html .= '</div>';
 // 		$html .= '<div class="div_half">';
