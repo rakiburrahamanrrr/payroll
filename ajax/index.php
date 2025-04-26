@@ -944,12 +944,27 @@ function GetEmployeePayheadsByID()
 	global $db;
 
 	$emp_code = $_POST['emp_code'];
+	$salGrade = $_POST['salary_grade'];
+	$empGrade = $_POST['emp_grade'];
 	$salarySQL = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "pay_structure` AS `pay`, `" . DB_PREFIX . "payheads` AS `head` WHERE `head`.`payhead_id` = `pay`.`payhead_id` AND `pay`.`emp_code` = '$emp_code'");
+
+	$gradeSalarySQL = mysqli_query($db, "SELECT * 
+        FROM `cdbl_payscale_grade` 
+        WHERE `emp_grade` = '$empGrade' AND `empsal_grade` = '$salGrade'");
+
 	if ($salarySQL) {
 		if (mysqli_num_rows($salarySQL) > 0) {
 			while ($data = mysqli_fetch_assoc($salarySQL)) {
 				$result['result'][] = $data;
+				
 			}
+			if ($gradeSalarySQL && mysqli_num_rows($gradeSalarySQL) > 0) {
+                $result['gradeResult'] = mysqli_fetch_assoc($gradeSalarySQL);
+            }else {
+				$result['gradeResult']=null;
+			}
+			$result['empGrade'] = $empGrade;
+			$result['salGrade'] = $salGrade;
 			$result['code'] = 0;
 		} else {
 			$result['result'] = 'Salary record is not found.';

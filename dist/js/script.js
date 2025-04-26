@@ -184,6 +184,8 @@ $(document).ready(function() {
             e.preventDefault();
 
             var data = emp_table.row($(this).parents('tr')).data();
+            
+            console.log( data)
             $('#empcode').val(data[0]);
             $.ajax({
                 type     : "POST",
@@ -214,9 +216,10 @@ $(document).ready(function() {
                 async    : true,
                 cache    : false,
                 url      : baseurl + "ajax/?case=GetEmployeePayheadsByID",
-                data     : 'emp_code=' + data[0],
+                data     : 'emp_code=' + data[0] + '&emp_grade=' + data[6] + '&salary_grade=' + data[7],
                 success  : function(result) {
                     $('#selected_payheads, #selected_payamount').html('');
+                    console.log( result,'emp_grade'+data[6],'salary_grade'+data[7],data[6],data[7])
                     if ( result.code == 0 ) {
                         for ( var i in result.result ) {
                             $('#selected_payheads').append($("<option></option>")
@@ -756,7 +759,11 @@ $(document).ready(function() {
                 url      : baseurl + "ajax/?case=GetPayheadByID",
                 data     : 'id=' + data[0],
                 success  : function(result) {
+                    console.log(result)
                     if ( result.code == 0 ) {
+                        if (result.gradeResult!==null) {
+                            $("#payhead_name").val(result.gradeResult.basic_salary); 
+                        }
                         $("#payhead_id").val(result.result.payhead_id);
                         $("#payhead_name").val(result.result.payhead_name);
                         $("#payhead_desc").val(result.result.payhead_desc);
