@@ -64,9 +64,9 @@ switch ($case) {
 	case 'EditEmployeeDetailsByID':
 		EditEmployeeDetailsByID();
 		break;
-	// case 'GeneratePaySlip':
-	// 	GeneratePaySlip();
-	// 	break;
+	case 'GeneratePaySlip':
+	 	GeneratePaySlip();
+	 	break;
 	// case 'SendPaySlipByMail':
 	// 	SendPaySlipByMail();
 		break;
@@ -1071,8 +1071,8 @@ function EditEmployeeDetailsByID()
 	echo json_encode($result);
 }
 
-//Payslip Genaration code 
-//function GeneratePaySlip() {
+// Payslip Genaration code 
+// function GeneratePaySlip() {
 // 	global $mpdf, $db;
 // 	$result = array();
 

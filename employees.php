@@ -73,8 +73,8 @@ if (!isset($_SESSION['Admin_ID']) || $_SESSION['Login_Type'] != 'admin') {
     </section>
   </div>
 
-  <!-- Salary Month Modal (unchanged) -->
-  <div class="modal fade in" id="SalaryMonthModal" tabindex="-1">
+  <!-- Salary Month Modal -->
+  <div class="modal fade in" id="SalaryMonthModal" tabindex="-1" data-empcode="">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -95,12 +95,11 @@ if (!isset($_SESSION['Admin_ID']) || $_SESSION['Login_Type'] != 'admin') {
             }
             foreach ($months as $key => $month) { ?>
               <div class="col-sm-3 <?php echo ($month == date('F') && $years[$key] == date('Y')) ? 'bg-danger' : ''; ?>">
-              <a data-month="<?php echo $month; ?>" data-year="<?php echo $years[$key]; ?>" href="">
+              <a href="#" class="salary-month-link" data-month="<?php echo $month; ?>" data-year="<?php echo $years[$key]; ?>">
                 <?php echo strtoupper($month); ?><br /><?php echo $years[$key]; ?>
                 </a>
               </div>
             <?php } ?>
-
           </div>
         </div>
       </div>

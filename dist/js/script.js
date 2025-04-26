@@ -311,23 +311,33 @@ $('#employees tbody').on('click', '.manageSalary', function(e) {
     // Get the data for the clicked row (employee data)
     var data = emp_table.row($(this).parents('tr')).data();
 
-    // Build the pay salary link for the specific employee
-    var paylink = baseurl + 'pay-salary/' + data[0] + '/';  // Assuming data[0] is the employee ID
-
-    // Update the modal's link with the paylink, including month and year data attributes
-    $('#SalaryMonthModal').each(function() {
-        var month = $(this).data('month');  // Get month from data attribute of modal
-        var year = $(this).data('year');  // Get year from data attribute of modal
-
-        // Set the href of the modal to the paylink with month and year
-        $(this).attr('href', paylink + month + '/' + year + '/');
-    });
+    // Store employee code in the modal data attribute
+    $('#SalaryMonthModal').data('empcode', data[0]);
 
     // Show the modal for selecting the salary month
     $('#SalaryMonthModal').modal('show');
 });
 
-        /* End of Script */
+// Handle click on month links inside the SalaryMonthModal
+$(document).on('click', '#SalaryMonthModal .salary-month-link', function(e) {
+    e.preventDefault();
+
+    var month = $(this).data('month');
+    var year = $(this).data('year');
+    var empcode = $('#SalaryMonthModal').data('empcode');
+
+    if (!empcode) {
+        alert('Employee code not found.');
+        return;
+    }
+
+    // Build the pay salary link for the specific employee, month, and year
+    var paylink = baseurl + 'pay-salary/' + empcode + '/' + month + '/' + year + '/';
+
+    // Navigate to the pay salary page
+    window.location.href = paylink;
+});
+/* End of Script */
 
         /* Add Salary Script Start */
         $('#employees tbody').on('click', '.addSalary', function(e) {

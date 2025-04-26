@@ -162,7 +162,7 @@ function GetEmployeePayheadsByEmpCode($EmpCode) {
   global $db;
 
 	$payData = array();
-	$query = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "pay_structure` AS `pay`, `" . DB_PREFIX . "payheads` AS `head` WHERE `pay`.`payhead_id` = `head`.`payhead_id` AND `pay`.`employee_id` = '$EmpCode'");
+	$query = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "pay_structure` AS `pay`, `" . DB_PREFIX . "payheads` AS `head` WHERE `pay`.`payhead_id` = `head`.`payhead_id` AND `pay`.`emp_code` = '$EmpCode'");
 	if ( $query instanceof mysqli_result && mysqli_num_rows($query) > 0 ) {
 		while ( $headData = mysqli_fetch_assoc($query) ) {
 			$payData[] = $headData;
