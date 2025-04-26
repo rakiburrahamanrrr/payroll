@@ -77,7 +77,7 @@ $checkSalarySQL = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "salaries` W
 							<div class="box-body">
 								<?php if ($flag == 0) { ?>
 									<form method="POST" role="form" id="payslip-form">
-										<input type="hidden" name="employee_id" value="<?php echo $empData['employee_id']; ?>" />
+										<input type="hidden" name="employee_id" id="employee_id" value="<?php echo $empData['employee_id']; ?>" />
 										<input type="hidden" name="pay_month" value="<?php echo $month; ?>" />
 										<div class="table-responsive">
 											<table class="table table-bordered">
@@ -124,46 +124,46 @@ $checkSalarySQL = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "salaries` W
 													</tr>
 												</thead>
 												<tbody>
-													<?php if (!empty($empHeads)) { ?>
-														<tr>
-															<td colspan="2" style="padding:0">
-																<table class="table table-bordered table-striped" style="margin:0">
-																	<?php foreach ($empHeads as $head) { ?>
-																		<?php if ($head['payhead_type'] == 'earnings') { ?>
-																			<?php $totalEarnings += $head['default_salary']; ?>
-																			<tr>
-																				<td width="70%">
-																					<?php echo $head['payhead_name']; ?>
-																				</td>
-																				<td width="30%" class="text-right">
-																					<input type="hidden" name="earnings_heads[]" value="<?php echo $head['payhead_name']; ?>" />
-																					<input type="text" name="earnings_amounts[]" value="<?php echo number_format($head['default_salary'], 2, '.', ''); ?>" class="form-control text-right" />
-																				</td>
-																			</tr>
-																		<?php } ?>
-																	<?php } ?>
-																</table>
-															</td>
-															<td colspan="2" style="padding:0">
-																<table class="table table-bordered table-striped" style="margin:0">
-																	<?php foreach ($empHeads as $head) { ?>
-																		<?php if ($head['payhead_type'] == 'deductions') { ?>
-																			<?php $totalDeductions += $head['default_salary']; ?>
-																			<tr>
-																				<td width="70%">
-																					<?php echo $head['payhead_name']; ?>
-																				</td>
-																				<td width="30%" class="text-right">
-																					<input type="hidden" name="deductions_heads[]" value="<?php echo $head['payhead_name']; ?>" />
-																					<input type="text" name="deductions_amounts[]" value="<?php echo number_format($head['default_salary'], 2, '.', ''); ?>" class="form-control text-right" />
-																				</td>
-																			</tr>
-																		<?php } ?>
-																	<?php } ?>
-																</table>
-															</td>
-														</tr>
-													<?php } else { ?>
+										<?php if (!empty($empHeads)) { ?>
+											<tr>
+												<td colspan="2" style="padding:0">
+													<table class="table table-bordered table-striped" style="margin:0">
+														<?php foreach ($empHeads as $head) { ?>
+															<?php if ($head['payhead_type'] == 'earnings') { ?>
+																<?php $totalEarnings += $head['default_salary']; ?>
+																<tr>
+																	<td width="70%">
+																		<?php echo $head['payhead_name']; ?>
+																	</td>
+																	<td width="30%" class="text-right">
+																		<input type="hidden" name="earnings_heads[]" value="<?php echo $head['payhead_name']; ?>" />
+																		<input type="text" name="earnings_amounts[]" value="<?php echo number_format($head['default_salary'], 2, '.', ''); ?>" class="form-control text-right" data-payhead-name="<?php echo $head['payhead_name']; ?>" />
+																	</td>
+																</tr>
+															<?php } ?>
+														<?php } ?>
+													</table>
+												</td>
+												<td colspan="2" style="padding:0">
+													<table class="table table-bordered table-striped" style="margin:0">
+														<?php foreach ($empHeads as $head) { ?>
+															<?php if ($head['payhead_type'] == 'deductions') { ?>
+																<?php $totalDeductions += $head['default_salary']; ?>
+																<tr>
+																	<td width="70%">
+																		<?php echo $head['payhead_name']; ?>
+																	</td>
+																	<td width="30%" class="text-right">
+																		<input type="hidden" name="deductions_heads[]" value="<?php echo $head['payhead_name']; ?>" />
+																		<input type="text" name="deductions_amounts[]" value="<?php echo number_format($head['default_salary'], 2, '.', ''); ?>" class="form-control text-right" data-payhead-name="<?php echo $head['payhead_name']; ?>" />
+																	</td>
+																</tr>
+															<?php } ?>
+														<?php } ?>
+													</table>
+												</td>
+											</tr>
+										<?php } else { ?>
 														<tr>
 															<td colspan="4">No payheads are assigned for this employee</td>
 														</tr>
