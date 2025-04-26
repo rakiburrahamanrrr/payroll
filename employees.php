@@ -42,15 +42,15 @@ if (!isset($_SESSION['Admin_ID']) || $_SESSION['Login_Type'] != 'admin') {
         <div class="col-xs-12">
           <div class="box">
             <div class="box-header">
-              <h3 class="box-title">All Employee List</h3>
-			  <button><a href="../registration/newreg.php"> create employee</button>
+              <h3 class="box-title">All Employee List</h3><br>
+              <a href="../registration/newreg.php" class="btn btn-primary btn-sm pull-right" style="margin-top: -25px;">Create Employee</a>
             </div>
             <div class="box-body">
               <div class="table-responsiove">
                 <table id="employees" class="table table-bordered table-striped">
                   <thead>
                     <tr>
-                      <th>EMPLOYEE ID</th>
+                      <th>EMPLOYEE CODE</th>
                       <th>IMAGE</th>
                       <th>NAME</th>
                       <th>DOB</th>
@@ -85,7 +85,7 @@ if (!isset($_SESSION['Admin_ID']) || $_SESSION['Login_Type'] != 'admin') {
         </div>
         <div class="modal-body">
           <div class="row">
-            <?php 
+          <?php 
             $months = array(); 
             $years = array();
             $before2Month = (int)date('m') - 2;
@@ -95,11 +95,12 @@ if (!isset($_SESSION['Admin_ID']) || $_SESSION['Login_Type'] != 'admin') {
             }
             foreach ($months as $key => $month) { ?>
               <div class="col-sm-3 <?php echo ($month == date('F') && $years[$key] == date('Y')) ? 'bg-danger' : ''; ?>">
-                <a data-month="<?php echo $month; ?>" data-year="<?php echo $years[$key]; ?>" href="#">
-                  <?php echo strtoupper($month); ?><br /><?php echo $years[$key]; ?>
+              <a data-month="<?php echo $month; ?>" data-year="<?php echo $years[$key]; ?>" href="">
+                <?php echo strtoupper($month); ?><br /><?php echo $years[$key]; ?>
                 </a>
               </div>
             <?php } ?>
+
           </div>
         </div>
       </div>

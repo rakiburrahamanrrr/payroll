@@ -215,7 +215,7 @@ $(document).ready(function() {
         $('#add-payscale-form').on('submit', function(e) {
             e.preventDefault();
             var form = $(this);
-            console.log("Submitting add-payscale-form with data:", form.serialize());
+            // console.log("Submitting add-payscale-form with data:", form.serialize());
             $.ajax({
                 type: "POST",
                 url: baseurl + "ajax/index.php?case=InsertPayscaleGrade",
@@ -254,7 +254,7 @@ $(document).ready(function() {
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.error("AJAX error:", xhr.responseText);
+                    // console.error("AJAX error:", xhr.responseText);
                     $.notify({
                         icon: 'glyphicon glyphicon-remove-circle',
                         message: 'An error occurred while adding the record.',
@@ -304,20 +304,29 @@ $(document).ready(function() {
             }]
         });
         /* End of Script */
+/* Pay Salary Script Start */
+$('#employees tbody').on('click', '.manageSalary', function(e) {
+    e.preventDefault();  // Prevent the default action of the element (e.g., following a link)
 
-        /* Pay Salary Script Start */
-        $('#employees tbody').on('click', '.manageSalary', function(e) {
-            e.preventDefault();
+    // Get the data for the clicked row (employee data)
+    var data = emp_table.row($(this).parents('tr')).data();
 
-            var data = emp_table.row($(this).parents('tr')).data();
-            var paylink = baseurl + 'pay-salary/' + data[0] + '/';
-            $('#SalaryMonthModal a').each(function() {
-                var month = $(this).data('month');
-                var year = $(this).data('year');
-                $(this).attr('href', paylink + month + '/' + year + '/');
-            });
-            $('#SalaryMonthModal').modal('show');
-        });
+    // Build the pay salary link for the specific employee
+    var paylink = baseurl + 'pay-salary/' + data[0] + '/';  // Assuming data[0] is the employee ID
+
+    // Update the modal's link with the paylink, including month and year data attributes
+    $('#SalaryMonthModal').each(function() {
+        var month = $(this).data('month');  // Get month from data attribute of modal
+        var year = $(this).data('year');  // Get year from data attribute of modal
+
+        // Set the href of the modal to the paylink with month and year
+        $(this).attr('href', paylink + month + '/' + year + '/');
+    });
+
+    // Show the modal for selecting the salary month
+    $('#SalaryMonthModal').modal('show');
+});
+
         /* End of Script */
 
         /* Add Salary Script Start */
@@ -326,7 +335,7 @@ $(document).ready(function() {
 
             var data = emp_table.row($(this).parents('tr')).data();
             
-            console.log( data)
+            // console.log( data);
             $('#empcode').val(data[0]);
             $.ajax({
                 type     : "POST",
@@ -902,7 +911,7 @@ $(document).ready(function() {
                 url      : baseurl + "ajax/?case=GetPayheadByID",
                 data     : 'id=' + data[0],
                 success  : function(result) {
-                    console.log(result)
+                    // console.log(result)
                     if ( result.code == 0 ) {
                         if (result.gradeResult!==null) {
                             $("#payhead_name").val(result.gradeResult.basic_salary); 
@@ -1355,7 +1364,7 @@ function jsUcfirst(string) {
 }
 
 function openInNewTab(url) {
-    console.log(url);
+    // console.log(url);
     var win = window.open(url, '_blank');
     win.focus();
 }
