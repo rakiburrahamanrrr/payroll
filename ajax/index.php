@@ -15,16 +15,9 @@ switch ($case) {
 	case 'LoadingSalaries':
 		LoadingSalaries();
 		break;
-	case 'LoadingPayscaleGrade':
+		case 'LoadingPayscaleGrade':
 		LoadingPayscaleGrade();
 		break;
-	case 'InsertPayscaleGrade':
-		InsertPayscaleGrade();
-		break;
-	case 'UpdatePayscaleGrade':
-		UpdatePayscaleGrade();
-		break;
-		
 		
 		case 'LoadingEmployees':
 		LoadingEmployees();
@@ -98,117 +91,9 @@ switch ($case) {
 	case 'RejectLeaveApplication':
 		RejectLeaveApplication();
 		break;
-default:
+	default:
 		echo '404! Page Not Found.';
 		break;
-}
-function getOutstandingBalance($loan_id) {
-    global $db;
-
-    // Get the loan amount from the loan_requests table
-    $query = "SELECT loan_amount FROM loan_requests WHERE loan_id = '$loan_id'";
-    $result = mysqli_query($db, $query);
-    $loan = mysqli_fetch_assoc($result);
-    $loan_amount = $loan['loan_amount'];
-
-    // Get the total payments made towards the loan from the loan_payments table
-    $query = "SELECT SUM(payment_amount) AS total_paid FROM loan_payments WHERE loan_id = '$loan_id'";
-    $result = mysqli_query($db, $query);
-    $payment = mysqli_fetch_assoc($result);
-    $total_paid = $payment['total_paid'];
-
-    // Calculate the outstanding balance
-    $outstanding_balance = $loan_amount - $total_paid;
-
-    return $outstanding_balance;
-}
-
-
-function InsertPayscaleGrade()
-{
-	global $db;
-	$result = array();
-
-	$emp_grade = isset($_POST['emp_grade']) ? trim($_POST['emp_grade']) : '';
-	$empsal_grade = isset($_POST['empsal_grade']) ? trim($_POST['empsal_grade']) : '';
-	$basic_salary = isset($_POST['basic_salary']) ? floatval($_POST['basic_salary']) : 0;
-	$house_rent = isset($_POST['house_rent']) ? floatval($_POST['house_rent']) : 0;
-	$conveyance_allowance = isset($_POST['conveyance_allowance']) ? floatval($_POST['conveyance_allowance']) : 0;
-	$medical_allowance = isset($_POST['medical_allowance']) ? floatval($_POST['medical_allowance']) : 0;
-	$driver_allowance = isset($_POST['driver_allowance']) ? floatval($_POST['driver_allowance']) : 0;
-	$car_allowance = isset($_POST['car_allowance']) ? floatval($_POST['car_allowance']) : 0;
-
-	if ($emp_grade !== '' && $empsal_grade !== '') {
-		$insertSQL = "INSERT INTO `" . DB_PREFIX . "payscale_grade` 
-			(`emp_grade`, `empsal_grade`, `basic_salary`, `house_rent`, `conveyance_allowance`, `medical_allowance`, `driver_allowance`, `car_allowance`) VALUES (
-			'" . mysqli_real_escape_string($db, $emp_grade) . "',
-			'" . mysqli_real_escape_string($db, $empsal_grade) . "', $basic_salary,
-			$house_rent,
-			$conveyance_allowance,
-			$medical_allowance,
-			$driver_allowance,
-			$car_allowance
-		)";
-
-		$insertResult = mysqli_query($db, $insertSQL);
-		if ($insertResult) {
-			$result['code'] = 0;
-			$result['result'] = 'Payscale grade record has been successfully added.';
-		} else {
-			$result['code'] = 1;
-			$result['result'] = 'Database error: ' . mysqli_error($db);
-		}
-	} else {
-		$result['code'] = 2;
-		$result['result'] = 'Invalid input data. Please fill all required fields.';
-	}
-
-	echo json_encode($result);
-	exit;
-}
-
-function UpdatePayscaleGrade()
-{
-	global $db;
-	$result = array();
-
-	$id = isset($_POST['id']) ? intval($_POST['id']) : 0;
-	$emp_grade = isset($_POST['emp_grade']) ? trim($_POST['emp_grade']) : '';
-	$empsal_grade = isset($_POST['empsal_grade']) ? trim($_POST['empsal_grade']) : '';
-	$basic_salary = isset($_POST['basic_salary']) ? floatval($_POST['basic_salary']) : 0;
-	$house_rent = isset($_POST['house_rent']) ? floatval($_POST['house_rent']) : 0;
-	$conveyance_allowance = isset($_POST['conveyance_allowance']) ? floatval($_POST['conveyance_allowance']) : 0;
-	$medical_allowance = isset($_POST['medical_allowance']) ? floatval($_POST['medical_allowance']) : 0;
-	$driver_allowance = isset($_POST['driver_allowance']) ? floatval($_POST['driver_allowance']) : 0;
-	$car_allowance = isset($_POST['car_allowance']) ? floatval($_POST['car_allowance']) : 0;
-
-	if ($id > 0 && $emp_grade !== '' && $empsal_grade !== '') {
-		$updateSQL = "UPDATE `" . DB_PREFIX . "payscale_grade` SET 
-			`emp_grade` = '" . mysqli_real_escape_string($db, $emp_grade) . "',
-			`empsal_grade` = '" . mysqli_real_escape_string($db, $empsal_grade) . "',
-			`basic_salary` = $basic_salary,
-			`house_rent` = $house_rent,
-			`conveyance_allowance` = $conveyance_allowance,
-			`medical_allowance` = $medical_allowance,
-			`driver_allowance` = $driver_allowance,
-			`car_allowance` = $car_allowance
-			WHERE `id` = $id";
-
-		$updateResult = mysqli_query($db, $updateSQL);
-		if ($updateResult) {
-			$result['code'] = 0;
-			$result['result'] = 'Payscale grade record has been successfully updated.';
-		} else {
-			$result['code'] = 1;
-			$result['result'] = 'Database error: ' . mysqli_error($db);
-		}
-	} else {
-		$result['code'] = 2;
-		$result['result'] = 'Invalid input data. Please fill all required fields.';
-	}
-
-	echo json_encode($result);
-	exit;
 }
 
 function LoginProcessHandler()
@@ -328,17 +213,11 @@ function LoadingAttendance()
 
 	$query = mysqli_query($db, $sql);
 	$totalFiltered = mysqli_num_rows($query);
-
-	$orderColumn = isset($requestData['order'][0]['column']) ? $columns[$requestData['order'][0]['column']] : 'attendance_date';
-	$orderDir = isset($requestData['order'][0]['dir']) ? $requestData['order'][0]['dir'] : 'desc';
-	$start = isset($requestData['start']) ? (int)$requestData['start'] : 0;
-	$length = isset($requestData['length']) ? (int)$requestData['length'] : 10;
-
-	$sql .= " ORDER BY " . $orderColumn . " " . $orderDir . " LIMIT " . $start . " ," . $length;
+	$sql .= " ORDER BY " . $columns[$requestData['order'][0]['column']] . " " . $requestData['order'][0]['dir'] . " LIMIT " . $requestData['start'] . " ," . $requestData['length'] . "";
 	$query = mysqli_query($db, $sql);
 
 	$data = array();
-	$i = 1 + $start;
+	$i = 1 + $requestData['start'];
 	while ($row = mysqli_fetch_assoc($query)) {
 		$nestedData = array();
 		$nestedData[] = date('d-m-Y', strtotime($row['attendance_date']));
@@ -360,7 +239,7 @@ function LoadingAttendance()
 		$i++;
 	}
 	$json_data = array(
-		"draw"            => isset($requestData['draw']) ? intval($requestData['draw']) : 0,
+		"draw"            => intval($requestData['draw']),
 		"recordsTotal"    => intval($totalData),
 		"recordsFiltered" => intval($totalFiltered),
 		"data"            => $data
@@ -1040,11 +919,24 @@ function GetAllPayheadsExceptEmployeeHave()
 	global $db;
 
 	$emp_code = $_POST['emp_code'];
+	$salGrade = $_POST['salary_grade'];
+	$empGrade = $_POST['emp_grade'];
+
 	$salarySQL = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "payheads` WHERE `payhead_id` NOT IN (SELECT `payhead_id` FROM `" . DB_PREFIX . "pay_structure` WHERE `emp_code` = '$emp_code')");
+	
+	$gradeSalarySQL = mysqli_query($db, "SELECT * 
+        FROM `cdbl_payscale_grade` 
+        WHERE `emp_grade` = '$empGrade' AND `empsal_grade` = '$salGrade'");
+
 	if ($salarySQL) {
 		if (mysqli_num_rows($salarySQL) > 0) {
 			while ($data = mysqli_fetch_assoc($salarySQL)) {
 				$result['result'][] = $data;
+			}
+			if ($gradeSalarySQL && mysqli_num_rows($gradeSalarySQL) > 0) {
+                $result['gradeResult'] = mysqli_fetch_assoc($gradeSalarySQL);
+            }else {
+				$result['gradeResult']=null;
 			}
 			$result['code'] = 0;
 		} else {
@@ -1066,6 +958,7 @@ function GetEmployeePayheadsByID()
 
 	$emp_code = $_POST['emp_code'];
 	$salarySQL = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "pay_structure` AS `pay`, `" . DB_PREFIX . "payheads` AS `head` WHERE `head`.`payhead_id` = `pay`.`payhead_id` AND `pay`.`emp_code` = '$emp_code'");
+
 	if ($salarySQL) {
 		if (mysqli_num_rows($salarySQL) > 0) {
 			while ($data = mysqli_fetch_assoc($salarySQL)) {
@@ -1385,7 +1278,7 @@ function EditEmployeeDetailsByID()
 
 // 		$html .= '<div class="div_half">';
 // 			$html .= '<h3 class="net_payable">';
-// 				$html .= 'Net Salary Payable: Bdt.' . number_format(($totalEarnings - $totalDeductions), 2, '.', ',');
+// 				$html .= 'Net Salary Payable: Rs.' . number_format(($totalEarnings - $totalDeductions), 2, '.', ',');
 // 			$html .= '</h3>';
 // 		$html .= '</div>';
 // 		$html .= '<div class="div_half">';

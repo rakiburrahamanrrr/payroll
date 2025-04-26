@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.2.0
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 21, 2025 at 02:55 AM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.0.30
+-- Generation Time: Apr 26, 2025 at 08:28 AM
+-- Server version: 10.4.27-MariaDB
+-- PHP Version: 8.1.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -197,7 +197,7 @@ CREATE TABLE `cdbl_payheads` (
 INSERT INTO `cdbl_payheads` (`payhead_id`, `payhead_name`, `payhead_desc`, `payhead_type`) VALUES
 (1, 'Basic Salary', 'Basic Salary', 'earnings'),
 (2, 'Car Allowance', 'Car Allowance', 'earnings'),
-(3, 'House Rent Allowance', 'House Rent Allowance', 'earnings'),
+(3, 'House Rent', 'House Rent', 'earnings'),
 (4, 'Conveyance Allowance', 'Conveyance Allowance', 'earnings'),
 (5, 'Medical Allowance', 'Medical Allowance', 'earnings'),
 (7, 'Overtime', 'Overtime', 'earnings'),
@@ -211,7 +211,7 @@ INSERT INTO `cdbl_payheads` (`payhead_id`, `payhead_name`, `payhead_desc`, `payh
 (15, 'Other Deductions', 'Other Deductions', 'deductions'),
 (16, 'Arrear Salary', 'Arrear Salary', 'earnings'),
 (17, 'Leave without Pay', 'Leave without Pay', 'deductions'),
-(18, 'Driver\'s Allowance', 'Driver\'s Allowance', 'earnings');
+(18, 'Driver Allowance', 'Driver Allowance', 'earnings');
 
 -- --------------------------------------------------------
 
@@ -237,9 +237,9 @@ CREATE TABLE `cdbl_payscale_grade` (
 
 INSERT INTO `cdbl_payscale_grade` (`id`, `emp_grade`, `empsal_grade`, `basic_salary`, `house_rent`, `conveyance_allowance`, `medical_allowance`, `driver_allowance`, `car_allowance`) VALUES
 (1, 12, 10, 17000, 7650, 850, 850, 0, 0),
-(2, 12, 11, 17850, 8033, 893, 893, 0, 0),
-(3, 12, 14, 36550, 16448, 1828, 1828, 0, 0),
-(4, 12, 15, 37400, 16830, 1870, 1870, 0, 0);
+(2, 12, 15, 37400, 16830, 1870, 1870, 0, 0),
+(3, 12, 11, 17850, 8033, 893, 893, 0, 0),
+(4, 12, 14, 36550, 16448, 1828, 1828, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -271,9 +271,12 @@ INSERT INTO `cdbl_pay_structure` (`salary_id`, `emp_code`, `payhead_id`, `defaul
 (138, 'WY04', 12, 4250.00),
 (139, 'WY02', 1, 21000.00),
 (140, 'WY02', 7, 6500.00),
-(287, 'cdbl01', 4, 978.00),
-(288, 'cdbl01', 1, 170000.00),
-(289, 'cdbl01', 3, 12000.00);
+(179, 'cdbl90', 1, 19500.00),
+(212, 'cdbl01', 4, 850.00),
+(213, 'cdbl01', 10, 0.00),
+(214, 'cdbl01', 1, 17000.00),
+(215, 'cdbl01', 7, 0.00),
+(216, 'cdbl01', 8, 0.00);
 
 -- --------------------------------------------------------
 
@@ -376,29 +379,6 @@ CREATE TABLE `loan_requests` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `pf_balance`
---
-
-CREATE TABLE `pf_balance` (
-  `id` int(11) NOT NULL,
-  `employee_id` int(11) DEFAULT NULL,
-  `month` date DEFAULT NULL,
-  `employee_contribution` decimal(10,2) DEFAULT NULL,
-  `company_contribution` decimal(10,2) DEFAULT NULL,
-  `total_contribution` decimal(10,2) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-
---
--- Dumping data for table `pf_balance`
---
-
-INSERT INTO `pf_balance` (`id`, `employee_id`, `month`, `employee_contribution`, `company_contribution`, `total_contribution`, `created_at`) VALUES
-(1, 89, '0000-00-00', 1700.00, 1700.00, 112200.00, '2025-04-20 11:17:11');
-
 --
 -- Indexes for dumped tables
 --
@@ -497,13 +477,6 @@ ALTER TABLE `loan_requests`
   ADD KEY `category_id` (`category_id`);
 
 --
--- Indexes for table `pf_balance`
---
-ALTER TABLE `pf_balance`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `employee_id` (`employee_id`);
-
---
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -541,13 +514,13 @@ ALTER TABLE `cdbl_payheads`
 -- AUTO_INCREMENT for table `cdbl_payscale_grade`
 --
 ALTER TABLE `cdbl_payscale_grade`
-  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `cdbl_pay_structure`
 --
 ALTER TABLE `cdbl_pay_structure`
-  MODIFY `salary_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=290;
+  MODIFY `salary_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=217;
 
 --
 -- AUTO_INCREMENT for table `cdbl_salaries`
@@ -580,12 +553,6 @@ ALTER TABLE `loan_requests`
   MODIFY `loan_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `pf_balance`
---
-ALTER TABLE `pf_balance`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
 -- Constraints for dumped tables
 --
 
@@ -608,12 +575,6 @@ ALTER TABLE `loan_history`
 ALTER TABLE `loan_requests`
   ADD CONSTRAINT `loan_requests_ibfk_1` FOREIGN KEY (`employee_id`) REFERENCES `cdbl_employees` (`employee_id`),
   ADD CONSTRAINT `loan_requests_ibfk_2` FOREIGN KEY (`category_id`) REFERENCES `loan_categories` (`category_id`);
-
---
--- Constraints for table `pf_balance`
---
-ALTER TABLE `pf_balance`
-  ADD CONSTRAINT `pf_balance_ibfk_1` FOREIGN KEY (`employee_id`) REFERENCES `cdbl_employees` (`employee_id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

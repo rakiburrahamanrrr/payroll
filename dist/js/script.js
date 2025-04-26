@@ -325,6 +325,8 @@ $(document).ready(function() {
             e.preventDefault();
 
             var data = emp_table.row($(this).parents('tr')).data();
+            
+            console.log( data)
             $('#empcode').val(data[0]);
             $.ajax({
                 type     : "POST",
@@ -332,14 +334,15 @@ $(document).ready(function() {
                 async    : true,
                 cache    : false,
                 url      : baseurl + "ajax/?case=GetAllPayheadsExceptEmployeeHave",
-                data     : 'emp_code=' + data[0],
+                data     : 'emp_code=' + data[0] + '&emp_grade=' + data[6] + '&salary_grade=' + data[7],
                 success  : function(result) {
                     $('#all_payheads').html('');
                     if ( result.code == 0 ) {
                         for ( var i in result.result ) {
                             $('#all_payheads').append($("<option></option>")
                                 .attr({
-                                    "value": result.result[i].payhead_id
+                                    "value": result.result[i].payhead_id,
+                                    "alt":result.gradeResult[result.result[i].payhead_name.toLowerCase().replace(/\s+/g, '_')]
                                 })
                                 .text(
                                     result.result[i].payhead_name + ' (' + jsUcfirst(result.result[i].payhead_type) + ')')
@@ -503,12 +506,14 @@ $(document).ready(function() {
             $('#all_payheads').find(':selected').each(function() {
                 var val = $(this).val();
                 var name = $(this).text();
+                var alt = $(this).attr('alt');
                 $('#selected_payamount').append($("<input />")
                     .attr({
                         "type": "text",
                         "name": "pay_amounts[" + val + "]",
                         "id": "pay_amounts_" + val,
-                        "placeholder": name
+                        "placeholder": name,
+                        "value":alt
                     })
                     .addClass('form-control')
                 );
@@ -897,7 +902,11 @@ $(document).ready(function() {
                 url      : baseurl + "ajax/?case=GetPayheadByID",
                 data     : 'id=' + data[0],
                 success  : function(result) {
+                    console.log(result)
                     if ( result.code == 0 ) {
+                        if (result.gradeResult!==null) {
+                            $("#payhead_name").val(result.gradeResult.basic_salary); 
+                        }
                         $("#payhead_id").val(result.result.payhead_id);
                         $("#payhead_name").val(result.result.payhead_name);
                         $("#payhead_desc").val(result.result.payhead_desc);
