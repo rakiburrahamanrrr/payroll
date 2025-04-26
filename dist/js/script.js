@@ -334,14 +334,15 @@ $(document).ready(function() {
                 async    : true,
                 cache    : false,
                 url      : baseurl + "ajax/?case=GetAllPayheadsExceptEmployeeHave",
-                data     : 'emp_code=' + data[0],
+                data     : 'emp_code=' + data[0] + '&emp_grade=' + data[6] + '&salary_grade=' + data[7],
                 success  : function(result) {
                     $('#all_payheads').html('');
                     if ( result.code == 0 ) {
                         for ( var i in result.result ) {
                             $('#all_payheads').append($("<option></option>")
                                 .attr({
-                                    "value": result.result[i].payhead_id
+                                    "value": result.result[i].payhead_id,
+                                    "alt":result.gradeResult[result.result[i].payhead_name.toLowerCase().replace(/\s+/g, '_')]
                                 })
                                 .text(
                                     result.result[i].payhead_name + ' (' + jsUcfirst(result.result[i].payhead_type) + ')')
@@ -357,10 +358,9 @@ $(document).ready(function() {
                 async    : true,
                 cache    : false,
                 url      : baseurl + "ajax/?case=GetEmployeePayheadsByID",
-                data     : 'emp_code=' + data[0] + '&emp_grade=' + data[6] + '&salary_grade=' + data[7],
+                data     : 'emp_code=' + data[0],
                 success  : function(result) {
                     $('#selected_payheads, #selected_payamount').html('');
-                    console.log( result,'emp_grade'+data[6],'salary_grade'+data[7],data[6],data[7])
                     if ( result.code == 0 ) {
                         for ( var i in result.result ) {
                             $('#selected_payheads').append($("<option></option>")
@@ -506,12 +506,14 @@ $(document).ready(function() {
             $('#all_payheads').find(':selected').each(function() {
                 var val = $(this).val();
                 var name = $(this).text();
+                var alt = $(this).attr('alt');
                 $('#selected_payamount').append($("<input />")
                     .attr({
                         "type": "text",
                         "name": "pay_amounts[" + val + "]",
                         "id": "pay_amounts_" + val,
-                        "placeholder": name
+                        "placeholder": name,
+                        "value":alt
                     })
                     .addClass('form-control')
                 );
