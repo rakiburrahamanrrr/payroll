@@ -46,6 +46,9 @@ if ( !isset($_SESSION['Admin_ID']) || !isset($_SESSION['Login_Type']) ) {
 						<div class="box">
 							<div class="box-header">
 								<h3 class="box-title">Pay Scale Grade</h3>
+								<?php if ( $_SESSION['Login_Type'] == 'admin' ) { ?>
+									<button type="button" class="btn btn-success btn-sm pull-right" id="add-payscale-btn" style="margin-top: -25px;">Add Payscale Grade</button>
+								<?php } ?>
 							</div>
 							<div class="box-body">
 								<?php if ( $_SESSION['Login_Type'] == 'admin' ) { ?>
@@ -61,7 +64,7 @@ if ( !isset($_SESSION['Admin_ID']) || !isset($_SESSION['Login_Type']) ) {
 												<th>Medical Allowance</th>
 												<th>Driver Allowance</th>
 												<th>Car Allowance</th>
-												<th>ACTIONS</th>
+												<th>Actions</th>
 											</tr>
 										</thead>
 									</table>
@@ -76,6 +79,115 @@ if ( !isset($_SESSION['Admin_ID']) || !isset($_SESSION['Login_Type']) ) {
 								<?php } ?>
 							</div>
 						</div>
+					</div>
+				</div>
+
+				<!-- Payscale Grade Edit Modal -->
+				<div class="modal fade" id="EditPayscaleModal" tabindex="-1" role="dialog" aria-labelledby="EditPayscaleModalLabel" aria-hidden="true">
+					<div class="modal-dialog" role="document">
+						<form id="edit-payscale-form">
+							<div class="modal-content">
+								<div class="modal-header">
+									<h5 class="modal-title" id="EditPayscaleModalLabel">Edit Payscale Grade</h5>
+									<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+										<span aria-hidden="true">&times;</span>
+									</button>
+								</div>
+								<div class="modal-body">
+									<input type="hidden" id="payscale_id" name="id" />
+									<div class="form-group">
+										<label for="emp_grade">Employee Grade</label>
+										<input type="text" class="form-control" id="emp_grade" name="emp_grade" required />
+									</div>
+									<div class="form-group">
+										<label for="empsal_grade">Employee Salary Grade</label>
+										<input type="text" class="form-control" id="empsal_grade" name="empsal_grade" required />
+									</div>
+									<div class="form-group">
+										<label for="basic_salary">Basic Salary</label>
+										<input type="number" step="0.01" class="form-control" id="basic_salary" name="basic_salary" required />
+									</div>
+									<div class="form-group">
+										<label for="house_rent">House Rent</label>
+										<input type="number" step="0.01" class="form-control" id="house_rent" name="house_rent" required />
+									</div>
+									<div class="form-group">
+										<label for="conveyance_allowance">Conveyance Allowance</label>
+										<input type="number" step="0.01" class="form-control" id="conveyance_allowance" name="conveyance_allowance" required />
+									</div>
+									<div class="form-group">
+										<label for="medical_allowance">Medical Allowance</label>
+										<input type="number" step="0.01" class="form-control" id="medical_allowance" name="medical_allowance" required />
+									</div>
+									<div class="form-group">
+										<label for="driver_allowance">Driver Allowance</label>
+										<input type="number" step="0.01" class="form-control" id="driver_allowance" name="driver_allowance" required />
+									</div>
+									<div class="form-group">
+										<label for="car_allowance">Car Allowance</label>
+										<input type="number" step="0.01" class="form-control" id="car_allowance" name="car_allowance" required />
+									</div>
+								</div>
+								<div class="modal-footer">
+									<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+									<button type="submit" class="btn btn-primary">Save changes</button>
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+
+				<!-- Payscale Grade Add Modal -->
+				<div class="modal fade" id="AddPayscaleModal" tabindex="-1" role="dialog" aria-labelledby="AddPayscaleModalLabel" aria-hidden="true">
+					<div class="modal-dialog" role="document">
+						<form id="add-payscale-form">
+							<div class="modal-content">
+								<div class="modal-header">
+									<h5 class="modal-title" id="AddPayscaleModalLabel">Add Payscale Grade</h5>
+									<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+										<span aria-hidden="true">&times;</span>
+									</button>
+								</div>
+								<div class="modal-body">
+									<div class="form-group">
+										<label for="emp_grade_add">Employee Grade</label>
+										<input type="text" class="form-control" id="emp_grade_add" name="emp_grade" required />
+									</div>
+									<div class="form-group">
+										<label for="empsal_grade_add">Employee Salary Grade</label>
+										<input type="text" class="form-control" id="empsal_grade_add" name="empsal_grade" required />
+									</div>
+									<div class="form-group">
+										<label for="basic_salary_add">Basic Salary</label>
+										<input type="number" step="0.01" class="form-control" id="basic_salary_add" name="basic_salary" required />
+									</div>
+									<div class="form-group">
+										<label for="house_rent_add">House Rent</label>
+										<input type="number" step="0.01" class="form-control" id="house_rent_add" name="house_rent" required />
+									</div>
+									<div class="form-group">
+										<label for="conveyance_allowance_add">Conveyance Allowance</label>
+										<input type="number" step="0.01" class="form-control" id="conveyance_allowance_add" name="conveyance_allowance" required />
+									</div>
+									<div class="form-group">
+										<label for="medical_allowance_add">Medical Allowance</label>
+										<input type="number" step="0.01" class="form-control" id="medical_allowance_add" name="medical_allowance" required />
+									</div>
+									<div class="form-group">
+										<label for="driver_allowance_add">Driver Allowance</label>
+										<input type="number" step="0.01" class="form-control" id="driver_allowance_add" name="driver_allowance" required />
+									</div>
+									<div class="form-group">
+										<label for="car_allowance_add">Car Allowance</label>
+										<input type="number" step="0.01" class="form-control" id="car_allowance_add" name="car_allowance" required />
+									</div>
+								</div>
+								<div class="modal-footer">
+									<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+									<button type="submit" class="btn btn-primary">Add Payscale Grade</button>
+								</div>
+							</div>
+						</form>
 					</div>
 				</div>
 			</section>

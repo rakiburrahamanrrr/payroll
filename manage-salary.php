@@ -1,6 +1,6 @@
 <?php require_once(dirname(__FILE__) . '/config.php');
-if ( !isset($_SESSION['Admin_ID']) || $_SESSION['Login_Type'] != 'admin' ) {
-   	header('location:' . BASE_URL);
+if (!isset($_SESSION['Admin_ID']) || $_SESSION['Login_Type'] != 'admin') {
+	header('location:' . BASE_URL);
 }
 // if ( !isset($_GET['emp_code']) || empty($_GET['emp_code']) || !isset($_GET['month']) || empty($_GET['month']) || !isset($_GET['year']) || empty($_GET['year']) ) {
 // 	header('location:' . BASE_URL);
@@ -13,8 +13,6 @@ $emp_year    = $segments[4] ?? '';  // 89
 
 
 $empData = GetEmployeeDataByEmpCode($emp_id);
- echo $empData['employee_id'];
-print_r ($empData);
 $month = $emp_month . ', ' . $emp_year;
 $empLeave = GetEmployeeLWPDataByEmpCodeAndMonth($emp_id, $month);
 $flag = 0;
@@ -22,19 +20,20 @@ $totalEarnings = 0;
 $totalDeductions = 0;
 $checkSalarySQL = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "salaries` WHERE `emp_code` = '" . $empData['emp_code'] . "' AND `pay_month` = '$month'");
 
-if ( $checkSalarySQL ) {
-	$checkSalaryROW = mysqli_num_rows($checkSalarySQL);
-	print_r($checkSalaryROW);
-	if ( $checkSalaryROW > 0 ) {
-		$flag = 1;
-		$empSalary = GetEmployeeSalaryByEmpCodeAndMonth($empData['emp_code'], $month);
-	} else {
-		$empHeads = GetEmployeePayheadsByEmpCode($empData['emp_code']);
+	if ($checkSalarySQL) {
+		$checkSalaryROW = mysqli_num_rows($checkSalarySQL);
+		if ($checkSalaryROW > 0) {
+			$flag = 1;
+			$empSalary = GetEmployeeSalaryByEmpCodeAndMonth($empData['emp_code'], $month);
+		} else {
+			$empHeads = GetEmployeePayheadsByEmpCode($empData['emp_code']);
+		}
 	}
-} ?>
+?>
 
 <!DOCTYPE html>
 <html>
+
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -54,6 +53,7 @@ if ( $checkSalarySQL ) {
 		<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
 	<![endif]-->
 </head>
+
 <body class="hold-transition skin-blue sidebar-mini">
 	<div class="wrapper">
 
@@ -72,57 +72,48 @@ if ( $checkSalarySQL ) {
 
 			<section class="content">
 				<div class="row">
-        			<div class="col-xs-12">
+					<div class="col-xs-12">
 						<div class="box">
 							<div class="box-body">
-								<?php if ( $flag == 0 ) { ?>
+								<?php if ($flag == 0) { ?>
 									<form method="POST" role="form" id="payslip-form">
 										<input type="hidden" name="employee_id" value="<?php echo $empData['employee_id']; ?>" />
 										<input type="hidden" name="pay_month" value="<?php echo $month; ?>" />
 										<div class="table-responsive">
 											<table class="table table-bordered">
-										    	<tr>
-										    		<td width="20%">Employee Code</td>
-										    		<td width="30%"><?php echo strtoupper($empData['employee_id']); ?></td>
-										    		<td width="20%">Bank Name</td>
-										    		<td width="30%"><?php echo ucwords($empData['bank_name']); ?></td>
-										    	</tr>
-											    <tr>
-										    		<td>Employee Name</td>
-										    		<td><?php echo ucwords($empData['first_name'] . ' ' . $empData['last_name']); ?></td>
-										    		<td>Bank Account</td>
-										    		<td><?php echo $empData['account_no']; ?></td>
-										    	</tr>
-											    <tr>
-												    <td>Designation</td>
-												    <td><?php echo ucwords($empData['designation']); ?></td>
-												    
-											    </tr>
-											    <tr>
-												    <td>Gender</td>
-												    <td><?php echo ucwords($empData['gender']); ?></td>
-												    <td>PAN</td>
-												    <td><?php echo strtoupper($empData['pan_no']); ?></td>
-											    </tr>
-											    <tr>
-												    <td>Location</td>
-												    <td><?php echo ucwords($empData['city']); ?></td>
-												    <td>PF Account</td>
-												    <td><?php echo strtoupper($empData['pf_account']); ?></td>
-											    </tr>
-											    <tr>
-												    <td>Department</td>
-												    <td><?php echo ucwords($empData['department']); ?></td>
-												    <td>Payable/Working Days</td>
-												    <td><?php echo ($empLeave['workingDays'] - $empLeave['withoutPay']); ?>/<?php echo $empLeave['workingDays']; ?> Days</td>
-											    </tr>
-											    <tr>
-												    <td>Date of Joining</td>
-												    <td><?php echo date('d-m-Y', strtotime($empData['joining_date'])); ?></td>
-												    <td>Taken/Remaining Leaves</td>
-												    <td><?php echo $empLeave['payLeaves']; ?>/<?php echo ($empLeave['totalLeaves'] - $empLeave['payLeaves']); ?> Days</td>
-											    </tr>
-										    </table>
+												<tr>
+													<td width="20%">Employee ID</td>
+													<td width="30%"><?php echo strtoupper($empData['employee_id']); ?></td>
+												</tr>
+												<tr>
+													<td>Employee Name</td>
+													<td><?php echo ucwords($empData['first_name'] . ' ' . $empData['last_name']); ?></td>
+													<td>Bank Account</td>
+													<td><?php echo $empData['account_no']; ?></td>
+												</tr>
+												<tr>
+													<td>Designation</td>
+													<td><?php echo ucwords($empData['designation']); ?></td>
+
+												</tr>
+												<tr>
+													<td>Gender</td>
+													<td><?php echo ucwords($empData['gender']); ?></td>
+												</tr>
+												
+												<tr>
+													<td>Department</td>
+													<td><?php echo ucwords($empData['department']); ?></td>
+													<td>Payable/Working Days</td>
+													<td><?php echo ($empLeave['workingDays'] - $empLeave['withoutPay']); ?>/<?php echo $empLeave['workingDays']; ?> Days</td>
+												</tr>
+												<tr>
+													<td>Date of Joining</td>
+													<td><?php echo date('d-m-Y', strtotime($empData['joining_date'])); ?></td>
+													<td>Taken/Remaining Leaves</td>
+													<td><?php echo $empLeave['payLeaves']; ?>/<?php echo ((isset($empLeave['totalLeaves']) ? $empLeave['totalLeaves'] : 0) - $empLeave['payLeaves']); ?> Days</td>
+												</tr>
+											</table>
 											<table class="table table-bordered">
 												<thead>
 													<tr>
@@ -133,12 +124,12 @@ if ( $checkSalarySQL ) {
 													</tr>
 												</thead>
 												<tbody>
-													<?php if ( !empty($empHeads) ) { ?>
+													<?php if (!empty($empHeads)) { ?>
 														<tr>
 															<td colspan="2" style="padding:0">
 																<table class="table table-bordered table-striped" style="margin:0">
-																	<?php foreach ( $empHeads as $head ) { ?>
-																		<?php if ( $head['payhead_type'] == 'earnings' ) { ?>
+																	<?php foreach ($empHeads as $head) { ?>
+																		<?php if ($head['payhead_type'] == 'earnings') { ?>
 																			<?php $totalEarnings += $head['default_salary']; ?>
 																			<tr>
 																				<td width="70%">
@@ -155,8 +146,8 @@ if ( $checkSalarySQL ) {
 															</td>
 															<td colspan="2" style="padding:0">
 																<table class="table table-bordered table-striped" style="margin:0">
-																	<?php foreach ( $empHeads as $head ) { ?>
-																		<?php if ( $head['payhead_type'] == 'deductions' ) { ?>
+																	<?php foreach ($empHeads as $head) { ?>
+																		<?php if ($head['payhead_type'] == 'deductions') { ?>
 																			<?php $totalDeductions += $head['default_salary']; ?>
 																			<tr>
 																				<td width="70%">
@@ -204,9 +195,9 @@ if ( $checkSalarySQL ) {
 												</h3>
 											</div>
 											<div class="col-sm-6 text-right">
-												<?php if ( !empty($empHeads) ) { ?>
+												<?php if (!empty($empHeads)) { ?>
 													<button type="submit" class="btn btn-info">
-													 	<i class="fa fa-plus"></i> Generate PaySlip
+														<i class="fa fa-plus"></i> Generate PaySlip
 													</button>
 												<?php } ?>
 											</div>
@@ -218,18 +209,18 @@ if ( $checkSalarySQL ) {
 											<thead>
 												<tr>
 													<th width="35%">Earnings</th>
-													<th width="15%" class="text-right">Amount (Rs.)</th>
+													<th width="15%" class="text-right">Amount (Bdt.)</th>
 													<th width="35%">Deductions</th>
-													<th width="15%" class="text-right">Amount (Rs.)</th>
+													<th width="15%" class="text-right">Amount (Bdt.)</th>
 												</tr>
 											</thead>
 											<tbody>
-												<?php if ( !empty($empSalary) ) { ?>
+												<?php if (!empty($empSalary)) { ?>
 													<tr>
 														<td colspan="2" style="padding:0">
 															<table class="table table-bordered table-striped" style="margin:0">
-																<?php foreach ( $empSalary as $salary ) { ?>
-																	<?php if ( $salary['pay_type'] == 'earnings' ) { ?>
+																<?php foreach ($empSalary as $salary) { ?>
+																	<?php if ($salary['pay_type'] == 'earnings') { ?>
 																		<?php $totalEarnings += $salary['pay_amount']; ?>
 																		<tr>
 																			<td width="70%">
@@ -245,8 +236,8 @@ if ( $checkSalarySQL ) {
 														</td>
 														<td colspan="2" style="padding:0">
 															<table class="table table-bordered table-striped" style="margin:0">
-																<?php foreach ( $empSalary as $salary ) { ?>
-																	<?php if ( $salary['pay_type'] == 'deductions' ) { ?>
+																<?php foreach ($empSalary as $salary) { ?>
+																	<?php if ($salary['pay_type'] == 'deductions') { ?>
 																		<?php $totalDeductions += $salary['pay_amount']; ?>
 																		<tr>
 																			<td width="70%">
@@ -289,7 +280,7 @@ if ( $checkSalarySQL ) {
 										<div class="col-sm-6">
 											<h3 class="text-success" style="margin-top:0">
 												Net Salary Payable:
-												Rs.<?php echo number_format(($totalEarnings - $totalDeductions), 2, '.', ','); ?>
+												Bdt.<?php echo number_format(($totalEarnings - $totalDeductions), 2, '.', ','); ?>
 												<small>(In words: <?php echo ucfirst(ConvertNumberToWords(($totalEarnings - $totalDeductions))); ?>)</small>
 											</h3>
 										</div>
@@ -311,7 +302,7 @@ if ( $checkSalarySQL ) {
 		</div>
 
 		<footer class="main-footer">
-		<strong> &copy; CDBL Payroll Management System | </strong> Developed By CDBL VAS Team 2025
+			<strong> &copy; CDBL Payroll Management System | </strong> Developed By CDBL VAS Team 2025
 		</footer>
 	</div>
 
@@ -322,24 +313,27 @@ if ( $checkSalarySQL ) {
 	<script src="<?php echo BASE_URL; ?>plugins/jquery-validator/validator.min.js"></script>
 	<script src="<?php echo BASE_URL; ?>plugins/bootstrap-notify/bootstrap-notify.min.js"></script>
 	<script src="<?php echo BASE_URL; ?>dist/js/app.min.js"></script>
-	<script type="text/javascript">var baseurl = '<?php echo BASE_URL; ?>';</script>
+	<script type="text/javascript">
+		var baseurl = '<?php echo BASE_URL; ?>';
+	</script>
 	<script src="<?php echo BASE_URL; ?>dist/js/script.js?rand=<?php echo rand(); ?>"></script>
-	<?php if ( isset($_SESSION['PaySlipMsg']) ) { ?>
+	<?php if (isset($_SESSION['PaySlipMsg'])) { ?>
 		<script type="text/javascript">
-		$.notify({
-            icon: 'glyphicon glyphicon-ok-circle',
-            message: '<?php echo $_SESSION['PaySlipMsg']; ?>',
-        },{
-            allow_dismiss: false,
-            type: "success",
-            placement: {
-                from: "top",
-                align: "right"
-            },
-            z_index: 9999,
-        });
+			$.notify({
+				icon: 'glyphicon glyphicon-ok-circle',
+				message: '<?php echo $_SESSION['PaySlipMsg']; ?>',
+			}, {
+				allow_dismiss: false,
+				type: "success",
+				placement: {
+					from: "top",
+					align: "right"
+				},
+				z_index: 9999,
+			});
 		</script>
 	<?php } ?>
 </body>
+
 </html>
 <?php unset($_SESSION['PaySlipMsg']); ?>
