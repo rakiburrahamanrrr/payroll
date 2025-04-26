@@ -906,9 +906,7 @@ $(document).on('click', '#SalaryMonthModal .salary-month-link', function(e) {
                 "defaultContent": '<button class="btn btn-success btn-xs editPayheads"><i class="fa fa-edit"></i></button> <button class="btn btn-danger btn-xs deletePayheads"><i class="fa fa-trash"></i></button>'
             }]
         });
-        /* End of Script */
 
-        /* Edit Payhead Script Start */
         $('#payheads tbody').on('click', '.editPayheads', function(e) {
             e.preventDefault();
 

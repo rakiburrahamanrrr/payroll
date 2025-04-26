@@ -1070,298 +1070,278 @@ function EditEmployeeDetailsByID()
 
 	echo json_encode($result);
 }
+function GeneratePaySlip() {
+	global $mpdf, $db;
+	$result = array();
 
-// Payslip Genaration code 
-// function GeneratePaySlip() {
-// 	global $mpdf, $db;
-// 	$result = array();
+	$employee_id = isset($_POST['emp_code']) ? $_POST['emp_code'] : '';
+    $pay_month = isset($_POST['pay_month']) ? $_POST['pay_month'] : '';
+    $earnings_heads = isset($_POST['earnings_heads']) ? $_POST['earnings_heads'] : array();
+    $earnings_amounts = isset($_POST['earnings_amounts']) ? $_POST['earnings_amounts'] : array();
+    $deductions_heads = isset($_POST['deductions_heads']) ? $_POST['deductions_heads'] : array();
+    $deductions_amounts = isset($_POST['deductions_amounts']) ? $_POST['deductions_amounts'] : array();
 
-// 	$employee_id = $_POST['employee_id'];
-//     $pay_month = $_POST['pay_month'];
-//     $earnings_heads = $_POST['earnings_heads'];
-//     $earnings_amounts = $_POST['earnings_amounts'];
-//     $deductions_heads = $_POST['deductions_heads'];
-//     $deductions_amounts = $_POST['deductions_amounts'];
-//     if ( !empty($employee_id) && !empty($pay_month) ) {
-// 	    for ( $i = 0; $i < count($earnings_heads); $i++ ) {
-// 	    	$checkSalSQL = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "salaries` WHERE `employee_id` = '$employee_id' AND `payhead_name` = '" . $earnings_heads[$i] . "' AND `pay_month` = '$pay_month' AND `pay_type` = 'earnings' LIMIT 0, 1");
-// 	    	if ( $checkSalSQL ) {
-// 	    		if ( mysqli_num_rows($checkSalSQL) == 0 ) {
-// 	    			mysqli_query($db, "INSERT INTO `" . DB_PREFIX . "salaries`(`employee_id`, `payhead_name`, `pay_amount`, `earning_total`, `deduction_total`, `net_salary`, `pay_type`, `pay_month`, `generate_date`) VALUES ('$employee_id', '" . $earnings_heads[$i] . "', " . number_format($earnings_amounts[$i], 2, '.', '') . ", " . number_format(array_sum($earnings_amounts), 2, '.', '') . ", " . number_format(array_sum($deductions_amounts), 2, '.', '') . ", " . number_format((array_sum($earnings_amounts) - array_sum($deductions_amounts)), 2, '.', '') . ", 'earnings', '$pay_month', '" . date('Y-m-d H:i:s') . "')");
-// 	    		}
-// 	    	}
-// 	    }
-// 	    for ( $i = 0; $i < count($deductions_heads); $i++ ) {
-// 	    	$checkSalSQL = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "salaries` WHERE `employee_id` = '$employee_id' AND `payhead_name` = '" . $deductions_heads[$i] . "' AND `pay_month` = '$pay_month' AND `pay_type` = 'deductions' LIMIT 0, 1");
-// 	    	if ( $checkSalSQL ) {
-// 	    		if ( mysqli_num_rows($checkSalSQL) == 0 ) {
-// 	    			mysqli_query($db, "INSERT INTO `" . DB_PREFIX . "salaries`(`employee_id`, `payhead_name`, `pay_amount`, `earning_total`, `deduction_total`, `net_salary`, `pay_type`, `pay_month`, `generate_date`) VALUES ('$employee_id', '" . $deductions_heads[$i] . "', " . number_format($deductions_amounts[$i], 2, '.', '') . ", " . number_format(array_sum($earnings_amounts), 2, '.', '') . ", " . number_format(array_sum($deductions_amounts), 2, '.', '') . ", " . number_format((array_sum($earnings_amounts) - array_sum($deductions_amounts)), 2, '.', '') . ", 'deductions', '$pay_month', '" . date('Y-m-d H:i:s') . "')");
-// 	    		}
-// 	    	}
-// 	    }
-// 	    $empData = GetEmployeeDataByEmpCode($emp_code);
-// 	    $empSalary = GetEmployeeSalaryByEmpCodeAndMonth($emp_code, $pay_month);
-// 	    $empLeave = GetEmployeeLWPDataByEmpCodeAndMonth($emp_code, $pay_month);
-// 	    $totalEarnings = 0;
-// 		$totalDeductions = 0;
-// 		$html = '<style>
-// 		@page{margin:20px 20px;font-family:Arial;font-size:14px;}
-//     	.div_half{float:left;margin:0 0 30px 0;width:50%;}
-//     	.logo{width:250px;padding:0;}
-//     	.com_title{text-align:center;font-size:16px;margin:0;}
-//     	.reg_no{text-align:center;font-size:12px;margin:5px 0;}
-//     	.subject{text-align:center;font-size:20px;font-weight:bold;}
-//     	.emp_info{width:100%;margin:0 0 30px 0;}
-//     	.table{border:1px solid #ccc;margin:0 0 30px 0;}
-//     	.salary_info{width:100%;margin:0;}
-//     	.salary_info th,.salary_info td{border:1px solid #ccc;margin:0;padding:5px;vertical-align:middle;}
-//     	.net_payable{margin:0;color:#050;}
-//     	.in_word{text-align:right;font-size:12px;margin:5px 0;}
-//     	.signature{margin:0 0 30px 0;}
-//     	.signature strong{font-size:12px;padding:5px 0 0 0;border-top:1px solid #000;}
-//     	.com_info{font-size:12px;text-align:center;margin:0 0 30px 0;}
-//     	.noseal{text-align:center;font-size:11px;}
-// 	    </style>';
-// 	    $html .= '<div class="div_half">';
-// 	    $html .= '<img class="logo" src="' . BASE_URL . 'dist/img/logo.png" alt="Central Depository Bangladesh Limited" />';
-// 	    $html .= '</div>';
-// 	    $html .= '<div class="div_half">';
-// 	    $html .= '<h2 class="com_title">Central Depository Bangladesh Limited</h2>';
-// 	    $html .= '</div>';
+    if ( !empty($employee_id) && !empty($pay_month) ) {
+	    for ( $i = 0; $i < count($earnings_heads); $i++ ) {
+	    	$checkSalSQL = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "salaries` WHERE `employee_id` = '$employee_id' AND `payhead_name` = '" . $earnings_heads[$i] . "' AND `pay_month` = '$pay_month' AND `pay_type` = 'earnings' LIMIT 0, 1");
+	    	if ( $checkSalSQL ) {
+	    		if ( mysqli_num_rows($checkSalSQL) == 0 ) {
+	    			mysqli_query($db, "INSERT INTO `" . DB_PREFIX . "salaries`(`emp_code`, `payhead_name`, `pay_amount`, `earning_total`, `deduction_total`, `net_salary`, `pay_type`, `pay_month`, `generate_date`) VALUES ('$employee_id', '" . $earnings_heads[$i] . "', " . number_format($earnings_amounts[$i], 2, '.', '') . ", " . number_format(array_sum($earnings_amounts), 2, '.', '') . ", " . number_format(array_sum($deductions_amounts), 2, '.', '') . ", " . number_format((array_sum($earnings_amounts) - array_sum($deductions_amounts)), 2, '.', '') . ", 'earnings', '$pay_month', '" . date('Y-m-d H:i:s') . "')");
+	    		}
+	    	}
+	    }
+	    for ( $i = 0; $i < count($deductions_heads); $i++ ) {
+	    	$checkSalSQL = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "salaries` WHERE `emp_code` = '$employee_id' AND `payhead_name` = '" . $deductions_heads[$i] . "' AND `pay_month` = '$pay_month' AND `pay_type` = 'deductions' LIMIT 0, 1");
+	    	if ( $checkSalSQL ) {
+	    		if ( mysqli_num_rows($checkSalSQL) == 0 ) {
+	    			mysqli_query($db, "INSERT INTO `" . DB_PREFIX . "salaries`(`emp_code`, `payhead_name`, `pay_amount`, `earning_total`, `deduction_total`, `net_salary`, `pay_type`, `pay_month`, `generate_date`) VALUES ('$employee_id', '" . $deductions_heads[$i] . "', " . number_format($deductions_amounts[$i], 2, '.', '') . ", " . number_format(array_sum($earnings_amounts), 2, '.', '') . ", " . number_format(array_sum($deductions_amounts), 2, '.', '') . ", " . number_format((array_sum($earnings_amounts) - array_sum($deductions_amounts)), 2, '.', '') . ", 'deductions', '$pay_month', '" . date('Y-m-d H:i:s') . "')");
+	    		}
+	    	}
+	    }
+	    $empData = GetEmployeeDataByEmpCode($employee_id);
+	    $empSalary = GetEmployeeSalaryByEmpCodeAndMonth($employee_id, $pay_month);
+	    $empLeave = GetEmployeeLWPDataByEmpCodeAndMonth($employee_id, $pay_month);
+	    $totalEarnings = 0;
+		$totalDeductions = 0;
+		$html = '<style>
+		@page{margin:20px 20px;font-family:Arial;font-size:14px;}
+    	.div_half{float:left;margin:0 0 30px 0;width:50%;}
+    	.logo{width:250px;padding:0;}
+    	.com_title{text-align:center;font-size:16px;margin:0;}
+    	.reg_no{text-align:center;font-size:12px;margin:5px 0;}
+    	.subject{text-align:center;font-size:20px;font-weight:bold;}
+    	.emp_info{width:100%;margin:0 0 30px 0;}
+    	.table{border:1px solid #ccc;margin:0 0 30px 0;}
+    	.salary_info{width:100%;margin:0;}
+    	.salary_info th,.salary_info td{border:1px solid #ccc;margin:0;padding:5px;vertical-align:middle;}
+    	.net_payable{margin:0;color:#050;}
+    	.in_word{text-align:right;font-size:12px;margin:5px 0;}
+    	.signature{margin:0 0 30px 0;}
+    	.signature strong{font-size:12px;padding:5px 0 0 0;border-top:1px solid #000;}
+    	.com_info{font-size:12px;text-align:center;margin:0 0 30px 0;}
+    	.noseal{text-align:center;font-size:11px;}
+	    </style>';
+	    $html .= '<div class="div_half">';
+	    $html .= '<img class="logo" src="' . BASE_URL . 'dist/img/logo.png" alt="Central Depository Bangladesh Limited" />';
+	    $html .= '</div>';
+	    $html .= '<div class="div_half">';
+	    $html .= '<h2 class="com_title">Central Depository Bangladesh Limited</h2>';
+	    $html .= '</div>';
 
-// 	    $html .= '<p class="subject">Salary Slip for ' . $pay_month . '</p>';
+	    $html .= '<p class="subject">Salary Slip for ' . $pay_month . '</p>';
 
-// 	    $html .= '<table class="emp_info">';
-// 	    $html .= '<tr>';
-// 	    $html .= '<td width="25%">Employee Code</td>';
-// 	    $html .= '<td width="25%">: ' . strtoupper($emp_code) . '</td>';
-// 	    $html .= '<td width="25%">Bank Name</td>';
-// 	    $html .= '<td width="25%">: ' . ucwords($empData['bank_name']) . '</td>';
-// 	    $html .= '</tr>';
+	    $html .= '<table class="emp_info">';
+	    $html .= '<tr>';
+	    $html .= '<td width="25%">Employee Code</td>';
+	    $html .= '<td width="25%">: ' . strtoupper($employee_id) . '</td>';
+	    $html .= '<td width="25%">Employee id</td>';
+	    $html .= '<td width="25%">: ' .$empData['employee_id']. '</td>';
+	    $html .= '</tr>';
 
-// 	    $html .= '<tr>';
-// 	    $html .= '<td>Employee Name</td>';
-// 	    $html .= '<td>: ' . ucwords($empData['first_name'] . ' ' . $empData['last_name']) . '</td>';
-// 	    $html .= '<td>Bank Account</td>';
-// 	    $html .= '<td>: ' . $empData['account_no'] . '</td>';
-// 	    $html .= '</tr>';
+	    $html .= '<tr>';
+	    $html .= '<td>Employee Name</td>';
+	    $html .= '<td>: ' . ucwords($empData['first_name'] . ' ' . $empData['last_name']) . '</td>';
+	    $html .= '<td>Bank Account</td>';
+	    $html .= '<td>: ' . $empData['account_no'] . '</td>';
+	    $html .= '</tr>';
 
-// 	    $html .= '<tr>';
-// 	    $html .= '<td>Designation</td>';
-// 	    $html .= '<td>: ' . ucwords($empData['designation']) . '</td>';
-// 	    $html .= '<td>IFSC Code</td>';
-// 	    $html .= '<td>: ' . strtoupper($empData['ifsc_code']) . '</td>';
-// 	    $html .= '</tr>';
+	    $html .= '<tr>';
+	    $html .= '<td>Designation</td>';
+	    $html .= '<td>: ' . ucwords($empData['designation']) . '</td>';
+	    $html .= '</tr>';
 
-// 	    $html .= '<tr>';
-// 	    $html .= '<td>Gender</td>';
-// 	    $html .= '<td>: ' . ucwords($empData['gender']) . '</td>';
-// 	    $html .= '<td>PAN</td>';
-// 	    $html .= '<td>: ' . strtoupper($empData['pan_no']) . '</td>';
-// 	    $html .= '</tr>';
+	    $html .= '<tr>';
+	    $html .= '<td>Department</td>';
+	    $html .= '<td>: ' . ucwords($empData['department']) . '</td>';
+	    $html .= '<td>Payable/Working Days</td>';
+	    $html .= '<td>: ' . ($empLeave['workingDays'] - $empLeave['withoutPay']) . '/' . $empLeave['workingDays'] . ' Days</td>';
+	    $html .= '</tr>';
 
-// 	    $html .= '<tr>';
-// 	    $html .= '<td>Location</td>';
-// 	    $html .= '<td>: ' . ucwords($empData['city']) . '</td>';
-// 	    $html .= '<td>PF Account</td>';
-// 	    $html .= '<td>: ' . strtoupper($empData['pf_account']) . '</td>';
-// 	    $html .= '</tr>';
+	    $html .= '<tr>';
+	    $html .= '<td>Date of Joining</td>';
+	    $html .= '<td>: ' . date('d-m-Y', strtotime($empData['joining_date'])) . '</td>';
+	    $html .= '</tr>';
+	    $html .= '</table>';
 
-// 	    $html .= '<tr>';
-// 	    $html .= '<td>Department</td>';
-// 	    $html .= '<td>: ' . ucwords($empData['department']) . '</td>';
-// 	    $html .= '<td>Payable/Working Days</td>';
-// 	    $html .= '<td>: ' . ($empLeave['workingDays'] - $empLeave['withoutPay']) . '/' . $empLeave['workingDays'] . ' Days</td>';
-// 	    $html .= '</tr>';
+		$html .= '<table class="table" cellspacing="0" cellpadding="0" width="100%">';
+			$html .= '<thead>';
+				$html .= '<tr>';
+					$html .= '<th width="50%" valign="top">';
+						$html .= '<table class="salary_info" cellspacing="0">';
+							$html .= '<tr>';
+								$html .= '<th align="left">Earnings</th>';
+								$html .= '<th width="110" align="right">Amount (Bdt.)</th>';
+							$html .= '</tr>';
+						$html .= '</table>';
+					$html .= '</th>';
+					$html .= '<th width="50%" valign="top">';
+						$html .= '<table class="salary_info" cellspacing="0">';
+							$html .= '<tr>';
+								$html .= '<th align="left">Deductions</th>';
+								$html .= '<th width="110" align="right">Amount (Bdt.)</th>';
+							$html .= '</tr>';
+						$html .= '</table>';
+					$html .= '</th>';
+				$html .= '</tr>';
+			$html .= '</thead>';
 
-// 	    $html .= '<tr>';
-// 	    $html .= '<td>Date of Joining</td>';
-// 	    $html .= '<td>: ' . date('d-m-Y', strtotime($empData['joining_date'])) . '</td>';
-// 	    $html .= '<td>Taken/Remaining Leaves</td>';
-// 	    $html .= '<td>: ' . $empLeave['payLeaves'] . '/' . ($empLeave['totalLeaves'] - $empLeave['payLeaves']) . ' Days</td>';
-// 	    $html .= '</tr>';
-// 	    $html .= '</table>';
+			if ( !empty($empSalary) ) {
+				$html .= '<tr>';
+					$html .= '<td width="50%" valign="top">';
+						$html .= '<table class="salary_info" cellspacing="0">';
+						foreach ( $empSalary as $salary ) {
+							if ( $salary['pay_type'] == 'earnings' ) {
+								$totalEarnings += $salary['pay_amount'];
+								$html .= '<tr>';
+									$html .= '<td align="left">';
+										$html .= $salary['payhead_name'];
+									$html .= '</td>';
+									$html .= '<td width="110" align="right">';
+										$html .= number_format($salary['pay_amount'], 2, '.', ',');
+									$html .= '</td>';
+								$html .= '</tr>';
+							}
+						}
+						$html .= '</table>';
+					$html .= '</td>';
 
-// 		$html .= '<table class="table" cellspacing="0" cellpadding="0" width="100%">';
-// 			$html .= '<thead>';
-// 				$html .= '<tr>';
-// 					$html .= '<th width="50%" valign="top">';
-// 						$html .= '<table class="salary_info" cellspacing="0">';
-// 							$html .= '<tr>';
-// 								$html .= '<th align="left">Earnings</th>';
-// 								$html .= '<th width="110" align="right">Amount (Rs.)</th>';
-// 							$html .= '</tr>';
-// 						$html .= '</table>';
-// 					$html .= '</th>';
-// 					$html .= '<th width="50%" valign="top">';
-// 						$html .= '<table class="salary_info" cellspacing="0">';
-// 							$html .= '<tr>';
-// 								$html .= '<th align="left">Deductions</th>';
-// 								$html .= '<th width="110" align="right">Amount (Rs.)</th>';
-// 							$html .= '</tr>';
-// 						$html .= '</table>';
-// 					$html .= '</th>';
-// 				$html .= '</tr>';
-// 			$html .= '</thead>';
+					$html .= '<td width="50%" valign="top">';
+						$html .= '<table class="salary_info" cellspacing="0">';
+						foreach ( $empSalary as $salary ) {
+							if ( $salary['pay_type'] == 'deductions' ) {
+								$totalDeductions += $salary['pay_amount'];
+								$html .= '<tr>';
+									$html .= '<td align="left">';
+										$html .= $salary['payhead_name'];
+									$html .= '</td>';
+									$html .= '<td width="110" align="right">';
+										$html .= number_format($salary['pay_amount'], 2, '.', ',');
+									$html .= '</td>';
+								$html .= '</tr>';
+							}
+						}
+						$html .= '</table>';
+					$html .= '</td>';
+				$html .= '</tr>';
+			} else {
+				$html .= '<tr>';
+					$html .= '<td colspan="2" width="100%">No payheads are assigned for this employee</td>';
+				$html .= '</tr>';
+			}
 
-// 			if ( !empty($empSalary) ) {
-// 				$html .= '<tr>';
-// 					$html .= '<td width="50%" valign="top">';
-// 						$html .= '<table class="salary_info" cellspacing="0">';
-// 						foreach ( $empSalary as $salary ) {
-// 							if ( $salary['pay_type'] == 'earnings' ) {
-// 								$totalEarnings += $salary['pay_amount'];
-// 								$html .= '<tr>';
-// 									$html .= '<td align="left">';
-// 										$html .= $salary['payhead_name'];
-// 									$html .= '</td>';
-// 									$html .= '<td width="110" align="right">';
-// 										$html .= number_format($salary['pay_amount'], 2, '.', ',');
-// 									$html .= '</td>';
-// 								$html .= '</tr>';
-// 							}
-// 						}
-// 						$html .= '</table>';
-// 					$html .= '</td>';
+			$html .= '<tr>';
+				$html .= '<td width="50%" valign="top">';
+					$html .= '<table class="salary_info" cellspacing="0">';
+						$html .= '<tr>';
+							$html .= '<td align="left">';
+								$html .= '<strong>Total Earnings</strong>';
+							$html .= '</td>';
+							$html .= '<td width="110" align="right">';
+								$html .= '<strong>' . number_format($totalEarnings, 2, '.', ',') . '</strong>';
+							$html .= '</td>';
+						$html .= '</tr>';
+					$html .= '</table>';
+				$html .= '</td>';
+				$html .= '<td width="50%" valign="top">';
+					$html .= '<table class="salary_info" cellspacing="0">';
+						$html .= '<tr>';
+							$html .= '<td align="left">';
+								$html .= '<strong>Total Deductions</strong>';
+							$html .= '</td>';
+							$html .= '<td width="110" align="right">';
+								$html .= '<strong>' . number_format($totalDeductions, 2, '.', ',') . '</strong>';
+							$html .= '</td>';
+						$html .= '</tr>';
+					$html .= '</table>';
+				$html .= '</td>';
+			$html .= '</tr>';
+		$html .= '</table>';
 
-// 					$html .= '<td width="50%" valign="top">';
-// 						$html .= '<table class="salary_info" cellspacing="0">';
-// 						foreach ( $empSalary as $salary ) {
-// 							if ( $salary['pay_type'] == 'deductions' ) {
-// 								$totalDeductions += $salary['pay_amount'];
-// 								$html .= '<tr>';
-// 									$html .= '<td align="left">';
-// 										$html .= $salary['payhead_name'];
-// 									$html .= '</td>';
-// 									$html .= '<td width="110" align="right">';
-// 										$html .= number_format($salary['pay_amount'], 2, '.', ',');
-// 									$html .= '</td>';
-// 								$html .= '</tr>';
-// 							}
-// 						}
-// 						$html .= '</table>';
-// 					$html .= '</td>';
-// 				$html .= '</tr>';
-// 			} else {
-// 				$html .= '<tr>';
-// 					$html .= '<td colspan="2" width="100%">No payheads are assigned for this employee</td>';
-// 				$html .= '</tr>';
-// 			}
+		$html .= '<div class="div_half">';
+			$html .= '<h3 class="net_payable">';
+				$html .= 'Net Salary Payable: Rs.' . number_format(($totalEarnings - $totalDeductions), 2, '.', ',');
+			$html .= '</h3>';
+		$html .= '</div>';
+		$html .= '<div class="div_half">';
+			$html .= '<h3 class="net_payable">';
+				$html .= '<p class="in_word">(In words: ' . ucfirst(ConvertNumberToWords(($totalEarnings - $totalDeductions))) . ')</p>';
+			$html .= '</h3>';
+		$html .= '</div>';
 
-// 			$html .= '<tr>';
-// 				$html .= '<td width="50%" valign="top">';
-// 					$html .= '<table class="salary_info" cellspacing="0">';
-// 						$html .= '<tr>';
-// 							$html .= '<td align="left">';
-// 								$html .= '<strong>Total Earnings</strong>';
-// 							$html .= '</td>';
-// 							$html .= '<td width="110" align="right">';
-// 								$html .= '<strong>' . number_format($totalEarnings, 2, '.', ',') . '</strong>';
-// 							$html .= '</td>';
-// 						$html .= '</tr>';
-// 					$html .= '</table>';
-// 				$html .= '</td>';
-// 				$html .= '<td width="50%" valign="top">';
-// 					$html .= '<table class="salary_info" cellspacing="0">';
-// 						$html .= '<tr>';
-// 							$html .= '<td align="left">';
-// 								$html .= '<strong>Total Deductions</strong>';
-// 							$html .= '</td>';
-// 							$html .= '<td width="110" align="right">';
-// 								$html .= '<strong>' . number_format($totalDeductions, 2, '.', ',') . '</strong>';
-// 							$html .= '</td>';
-// 						$html .= '</tr>';
-// 					$html .= '</table>';
-// 				$html .= '</td>';
-// 			$html .= '</tr>';
-// 		$html .= '</table>';
+		$html .= '<div class="signature">';
+			$html .= '<table class="emp_info">';
+				$html .= '<thead>';
+					$html .= '<tr>';
+						$html .= '<td>Date: ' . date('d-m-Y') . '</td>';
+						$html .= '<th width="200">';
+							$html .= '<img width="100" src="' . BASE_URL . 'dist/img/signature.png" alt="Raquibul Islam chowdhury" /><br />';
+							$html .= '<strong>Raquibul Islam chowdhury, General Manager</strong>';
+						$html .= '</th>';
+					$html .= '</tr>';
+				$html .= '</thead>';
+			$html .= '</table>';
+		$html .= '</div>';
 
-// 		$html .= '<div class="div_half">';
-// 			$html .= '<h3 class="net_payable">';
-// 				$html .= 'Net Salary Payable: Rs.' . number_format(($totalEarnings - $totalDeductions), 2, '.', ',');
-// 			$html .= '</h3>';
-// 		$html .= '</div>';
-// 		$html .= '<div class="div_half">';
-// 			$html .= '<h3 class="net_payable">';
-// 				$html .= '<p class="in_word">(In words: ' . ucfirst(ConvertNumberToWords(($totalEarnings - $totalDeductions))) . ')</p>';
-// 			$html .= '</h3>';
-// 		$html .= '</div>';
+		$html .= '<p class="com_info">';
+			$html .= 'DSE Tower(level-5),<br/>';
+			$html .= 'House-46, Road-21, Nikunja-2, Dhaka - 1229<br/>';
+			$html .= 'Bangladesh<br/>';
+			$html .= 'www.cdbl.com.bd';
+		$html .= '</p>';
+		$html .= '<p class="noseal"><small>Note: This is an electronically generated copy & therefore doesn’t require seal.</small></p>';
 
-// 		$html .= '<div class="signature">';
-// 			$html .= '<table class="emp_info">';
-// 				$html .= '<thead>';
-// 					$html .= '<tr>';
-// 						$html .= '<td>Date: ' . date('d-m-Y') . '</td>';
-// 						$html .= '<th width="200">';
-// 							$html .= '<img width="100" src="' . BASE_URL . 'dist/img/signature.png" alt="Nani Gopal Paul" /><br />';
-// 							$html .= '<strong>Nani Gopal Paul, Director</strong>';
-// 						$html .= '</th>';
-// 					$html .= '</tr>';
-// 				$html .= '</thead>';
-// 			$html .= '</table>';
-// 		$html .= '</div>';
+	    $mpdf->WriteHTML($html);
+	    $pay_month = str_replace(', ', '-', $pay_month);
+	    $payslip_path = dirname(dirname(__FILE__)) . '/payslips/';
+	    if ( ! file_exists($payslip_path . $employee_id . '/') ) {
+	    	mkdir($payslip_path . $employee_id, 0777);
+	    }
+	    if ( ! file_exists($payslip_path . $employee_id . '/' . $pay_month . '/') ) {
+	    	mkdir($payslip_path . $employee_id . '/' . $pay_month, 0777);
+	    }
+		$mpdf->Output($payslip_path . $employee_id . '/' . $pay_month . '/' . $pay_month . '.pdf', 'F');
+    	$result['code'] = 0;
+    	$_SESSION['PaySlipMsg'] = $pay_month . ' PaySlip has been successfully generated for ' . $employee_id . '.';
+    } else {
+    	$result['code'] = 1;
+    	$result['result'] = 'Something went wrong, please try again.';
+    }
 
-// 		$html .= '<p class="com_info">';
-// 			$html .= 'No. 15, 20th Main, 100 Feet Road,<br/>';
-// 			$html .= '1st Phase, 2nd Stage, BTM Layout,<br/>';
-// 			$html .= 'Bangalore, 560076,<br/>';
-// 			$html .= 'Karnataka, INDIA<br/>';
-// 			$html .= 'www.wisely.co';
-// 		$html .= '</p>';
-// 		$html .= '<p class="noseal"><small>Note: This is an electronically generated copy & therefore doesn’t require seal.</small></p>';
+	echo json_encode($result);
+}
 
-// 	    $mpdf->WriteHTML($html);
-// 	    $pay_month = str_replace(', ', '-', $pay_month);
-// 	    $payslip_path = dirname(dirname(__FILE__)) . '/payslips/';
-// 	    if ( ! file_exists($payslip_path . $emp_code . '/') ) {
-// 	    	mkdir($payslip_path . $emp_code, 0777);
-// 	    }
-// 	    if ( ! file_exists($payslip_path . $emp_code . '/' . $pay_month . '/') ) {
-// 	    	mkdir($payslip_path . $emp_code . '/' . $pay_month, 0777);
-// 	    }
-// 		$mpdf->Output($payslip_path . $emp_code . '/' . $pay_month . '/' . $pay_month . '.pdf', 'F');
-//     	$result['code'] = 0;
-//     	$_SESSION['PaySlipMsg'] = $pay_month . ' PaySlip has been successfully generated for ' . $emp_code . '.';
-//     } else {
-//     	$result['code'] = 1;
-//     	$result['result'] = 'Something went wrong, please try again.';
-//     }
+function SendPaySlipByMail() {
+	$result = array();
+	global $db;
 
-// 	echo json_encode($result);
-// }
+	$emp_code = $_POST['emp_code'];
+	$month 	  = $_POST['month'];
+	$empData  = GetEmployeeDataByEmpCode($emp_code);
+	if ( $empData ) {
+		$empName  = $empData['first_name'] . ' ' . $empData['last_name'];
+		$empEmail = $empData['email'];
+		$subject  = 'PaySlip for ' . $month;
+		$message  = '<p>Hi ' . $empData['first_name'] . '</p>';
+		$message .= '<p>Here is your attached Salary Slip for the period of ' . $month . '.</p>';
+		$message .= '<hr/>';
+		$message .= '<p>Thank You,<br/>Wisely Online Services Private Limited</p>';
+		$attachment[0]['src'] = dirname(dirname(__FILE__)) . '/payslips/' . $emp_code . '/' . str_replace(', ', '-', $month) . '/' . str_replace(', ', '-', $month) . '.pdf';
+		$attachment[0]['name'] = str_replace(', ', '-', $month);
+		$send = Send_Mail($subject, $message, $empName, $empEmail, FALSE, FALSE, FALSE, FALSE, $attachment);
+		if ( $send == 0 ) {
+			$result['code'] = 0;
+			$result['result'] = 'PaySlip for ' . $month . ' has been successfully send to ' . $empName;
+		} else {
+			$result['code'] = 1;
+			$result['result'] = 'PaySlip is not send, please try again.';
+		}
+	} else {
+		$result['code'] = 2;
+		$result['result'] = 'No such employee found.';
+	}
 
-// function SendPaySlipByMail() {
-// 	$result = array();
-// 	global $db;
-
-// 	$emp_code = $_POST['emp_code'];
-// 	$month 	  = $_POST['month'];
-// 	$empData  = GetEmployeeDataByEmpCode($emp_code);
-// 	if ( $empData ) {
-// 		$empName  = $empData['first_name'] . ' ' . $empData['last_name'];
-// 		$empEmail = $empData['email'];
-// 		$subject  = 'PaySlip for ' . $month;
-// 		$message  = '<p>Hi ' . $empData['first_name'] . '</p>';
-// 		$message .= '<p>Here is your attached Salary Slip for the period of ' . $month . '.</p>';
-// 		$message .= '<hr/>';
-// 		$message .= '<p>Thank You,<br/>Wisely Online Services Private Limited</p>';
-// 		$attachment[0]['src'] = dirname(dirname(__FILE__)) . '/payslips/' . $emp_code . '/' . str_replace(', ', '-', $month) . '/' . str_replace(', ', '-', $month) . '.pdf';
-// 		$attachment[0]['name'] = str_replace(', ', '-', $month);
-// 		$send = Send_Mail($subject, $message, $empName, $empEmail, FALSE, FALSE, FALSE, FALSE, $attachment);
-// 		if ( $send == 0 ) {
-// 			$result['code'] = 0;
-// 			$result['result'] = 'PaySlip for ' . $month . ' has been successfully send to ' . $empName;
-// 		} else {
-// 			$result['code'] = 1;
-// 			$result['result'] = 'PaySlip is not send, please try again.';
-// 		}
-// 	} else {
-// 		$result['code'] = 2;
-// 		$result['result'] = 'No such employee found.';
-// 	}
-
-// 	echo json_encode($result);
-// }
+	echo json_encode($result);
+}
 
 function EditProfileByID()
 {
