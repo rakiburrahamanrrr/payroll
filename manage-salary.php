@@ -77,7 +77,7 @@ if ($checkSalarySQL) {
 							<div class="box-body">
 								<?php if ($flag == 0) { ?>
 									<form method="POST" role="form" id="payslip-form">
-										<input type="hidden" name="employee_id" id="employee_id" value="<?php echo $empData['employee_id']; ?>" />
+										<input type="hidden" name="emp_code" id="emp_code" value="<?php echo $empData['emp_code']; ?>" />
 										<input type="hidden" name="pay_month" value="<?php echo $month; ?>" />
 										<div class="table-responsive">
 											<table class="table table-bordered">
@@ -215,12 +215,12 @@ if ($checkSalarySQL) {
 												</tr>
 											</thead>
 											<tbody>
-												<?php if (!empty($empSalary)) { ?>
+<?php if (!empty($empSalary)) { ?>
 													<tr>
 														<td colspan="2" style="padding:0">
 															<table class="table table-bordered table-striped" style="margin:0">
 																<?php foreach ($empSalary as $salary) { ?>
-																	<?php if ($salary['pay_type'] == 'earnings') { ?>
+																	<?php if (isset($salary['pay_type']) && $salary['pay_type'] == 'earnings') { ?>
 																		<?php $totalEarnings += $salary['pay_amount']; ?>
 																		<tr>
 																			<td width="70%">
@@ -237,7 +237,7 @@ if ($checkSalarySQL) {
 														<td colspan="2" style="padding:0">
 															<table class="table table-bordered table-striped" style="margin:0">
 																<?php foreach ($empSalary as $salary) { ?>
-																	<?php if ($salary['pay_type'] == 'deductions') { ?>
+																	<?php if (isset($salary['pay_type']) && $salary['pay_type'] == 'deductions') { ?>
 																		<?php $totalDeductions += $salary['pay_amount']; ?>
 																		<tr>
 																			<td width="70%">
@@ -322,7 +322,8 @@ if ($checkSalarySQL) {
 			$.notify({
 				icon: 'glyphicon glyphicon-ok-circle',
 				message: '<?php echo $_SESSION['PaySlipMsg']; ?>',
-			}, {
+			}, 
+			{
 				allow_dismiss: false,
 				type: "success",
 				placement: {

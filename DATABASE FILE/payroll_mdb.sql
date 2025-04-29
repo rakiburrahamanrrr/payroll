@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.0
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 26, 2025 at 08:28 AM
--- Server version: 10.4.27-MariaDB
--- PHP Version: 8.1.12
+-- Generation Time: Apr 29, 2025 at 11:44 AM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -123,8 +123,8 @@ CREATE TABLE `cdbl_employees` (
 --
 
 INSERT INTO `cdbl_employees` (`emp_code`, `first_name`, `last_name`, `dob`, `gender`, `marital_status`, `nationality`, `address`, `paraddress`, `email`, `mobile`, `telephone`, `national_id`, `verification`, `employee_id`, `employment_type`, `employment_status`, `department`, `designation`, `emp_grade`, `empsal_grade`, `joining_date`, `confirmation_date`, `resign_date`, `job_loc`, `blood_group`, `insurance_id`, `service_period`, `academic_qualifications`, `emp_action`, `photo`, `emp_password`, `account_no`, `etin_no`, `created_at`) VALUES
-('cdbl90', 'anmona', 'haque', '1999-02-28', 'female', 'Married', '', 'Mohammadpur', 'Dhaka', 'asad@cdbl.com.bd', '01709247401', '', '5104939238', 'Verified', 78, 'Permanent', 'Inactive', 'Value Added Services', 'Junior Officer', '13', '10', '2019-04-01', '2019-06-06', NULL, 'DC', 'O+', '123456', '', 'BSC', 'No', 'cdbl90.jpeg', '7c4a8d09ca3762af61e59520943dc26494f8941b', '020219307811', '1597539', '2025-04-20 07:45:29'),
-('cdbl01', 'Rakibur', 'Rahaman', '1998-04-08', 'male', 'Married', '', '230/1, East Kafrul', 'Dhaka', 'rafi@cdbl.com.bd', '01521334588', '01709247401', '5104939235', 'Verified', 89, 'Permanent', 'Active', 'Value Added Services', 'Officer', '12', '10', '2022-09-01', '2023-03-01', NULL, 'DC', 'B+', '147852369', '', 'MSc in cyber security, Bsc in computer science, HSC in Science, SSC in science', 'No', 'cdbl01.jpeg', '7c4a8d09ca3762af61e59520943dc26494f8941b', '020219398811', '159753', '2025-04-06 20:16:45');
+('cdbl90', 'anmona', 'haque', '1999-02-28', 'female', 'Married', '', 'Mohammadpur', 'Dhaka', 'asad@cdbl.com.bd', '01709247401', '', '5104939238', 'Verified', 90, 'Permanent', 'Inactive', 'Value Added Services', 'Junior Officer', '13', '10', '2019-04-01', '2019-06-06', NULL, 'DC', 'O+', '123456', '', 'BSC', 'No', 'cdbl90.jpeg', '7c4a8d09ca3762af61e59520943dc26494f8941b', '020219307811', '1597539', '2025-04-20 07:45:29'),
+('cdbl01', 'Rakibur', 'Rahaman', '1998-04-08', 'male', 'Married', '', '230/1, East Kafrul', 'Dhaka', 'rafi@cdbl.com.bd', '01521334588', '01709247401', '5104939235', 'Verified', 1, 'Permanent', 'Active', 'Value Added Services', 'Officer', '12', '10', '2022-09-01', '2023-03-01', NULL, 'DC', 'B+', '147852369', '', 'MSc in cyber security, Bsc in computer science, HSC in Science, SSC in science', 'No', 'cdbl01.jpeg', '7c4a8d09ca3762af61e59520943dc26494f8941b', '020219398811', '159753', '2025-04-06 20:16:45');
 
 -- --------------------------------------------------------
 
@@ -239,7 +239,8 @@ INSERT INTO `cdbl_payscale_grade` (`id`, `emp_grade`, `empsal_grade`, `basic_sal
 (1, 12, 10, 17000, 7650, 850, 850, 0, 0),
 (2, 12, 15, 37400, 16830, 1870, 1870, 0, 0),
 (3, 12, 11, 17850, 8033, 893, 893, 0, 0),
-(4, 12, 14, 36550, 16448, 1828, 1828, 0, 0);
+(4, 12, 14, 36550, 16448, 1828, 1828, 0, 0),
+(5, 13, 10, 16500, 6800, 1000, 1000, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -259,24 +260,18 @@ CREATE TABLE `cdbl_pay_structure` (
 --
 
 INSERT INTO `cdbl_pay_structure` (`salary_id`, `emp_code`, `payhead_id`, `default_salary`) VALUES
-(129, 'WY01', 1, 45000.00),
-(130, 'WY01', 15, 5000.00),
-(131, 'WY03', 7, 5500.00),
-(132, 'WY03', 1, 21000.00),
-(133, 'WY05', 1, 51500.00),
-(134, 'WY05', 7, 6500.00),
-(135, 'WY05', 12, 5510.00),
-(136, 'WY04', 1, 39000.00),
-(137, 'WY04', 7, 5600.00),
-(138, 'WY04', 12, 4250.00),
-(139, 'WY02', 1, 21000.00),
-(140, 'WY02', 7, 6500.00),
-(179, 'cdbl90', 1, 19500.00),
-(212, 'cdbl01', 4, 850.00),
-(213, 'cdbl01', 10, 0.00),
-(214, 'cdbl01', 1, 17000.00),
-(215, 'cdbl01', 7, 0.00),
-(216, 'cdbl01', 8, 0.00);
+(111, 'cdbl01', 1, 17000.00),
+(112, 'cdbl01', 3, 7650.00),
+(113, 'cdbl01', 5, 850.00),
+(114, 'cdbl01', 12, 417.00),
+(115, 'cdbl01', 4, 850.00),
+(116, 'cdbl01', 13, 1700.00),
+(117, 'cdbl01', 15, 1350.00),
+(123, 'cdbl90', 1, 16500.00),
+(124, 'cdbl90', 3, 6800.00),
+(125, 'cdbl90', 5, 1000.00),
+(126, 'cdbl90', 12, 417.00),
+(127, 'cdbl90', 4, 1000.00);
 
 -- --------------------------------------------------------
 
@@ -285,39 +280,40 @@ INSERT INTO `cdbl_pay_structure` (`salary_id`, `emp_code`, `payhead_id`, `defaul
 --
 
 CREATE TABLE `cdbl_salaries` (
-  `salary_id` int(11) NOT NULL,
-  `emp_code` varchar(255) NOT NULL,
-  `payhead_name` varchar(255) NOT NULL,
-  `pay_amount` float(11,2) NOT NULL,
-  `earning_total` float(11,2) NOT NULL,
-  `deduction_total` float(11,2) NOT NULL,
-  `net_salary` float(11,2) NOT NULL,
-  `pay_type` enum('earnings','deductions') NOT NULL,
-  `pay_month` varchar(255) NOT NULL,
-  `generate_date` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+  `salary_id` int(255) NOT NULL,
+  `emp_code` varchar(50) NOT NULL,
+  `pay_month` varchar(20) NOT NULL,
+  `generate_date` varchar(50) NOT NULL,
+  `basic_salary` decimal(10,2) DEFAULT NULL,
+  `car_allowance` decimal(10,2) DEFAULT NULL,
+  `house_rent` decimal(10,2) DEFAULT NULL,
+  `conveyance_allowance` decimal(10,2) DEFAULT NULL,
+  `medical_allowance` decimal(10,2) DEFAULT NULL,
+  `overtime` decimal(10,2) DEFAULT NULL,
+  `traveling_expenses` decimal(10,2) DEFAULT NULL,
+  `loans_repayment` decimal(10,2) DEFAULT NULL,
+  `performance_bonus` decimal(10,2) DEFAULT NULL,
+  `professional_tax` decimal(10,2) DEFAULT NULL,
+  `income_tax` decimal(10,2) DEFAULT NULL,
+  `employee_provident_fund` decimal(10,2) DEFAULT NULL,
+  `other_deductions` decimal(10,2) DEFAULT NULL,
+  `arrear_salary` decimal(10,2) DEFAULT NULL,
+  `leave_without_pay` decimal(10,2) DEFAULT NULL,
+  `driver_allowance` decimal(10,2) DEFAULT NULL,
+  `net_salary` decimal(10,2) DEFAULT NULL,
+  `total_deduction` int(11) DEFAULT NULL,
+  `gross_salary` decimal(10,2) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --
 -- Dumping data for table `cdbl_salaries`
 --
 
-INSERT INTO `cdbl_salaries` (`salary_id`, `emp_code`, `payhead_name`, `pay_amount`, `earning_total`, `deduction_total`, `net_salary`, `pay_type`, `pay_month`, `generate_date`) VALUES
-(244, 'WY01', 'Basic Salary', 45000.00, 45000.00, 0.00, 45000.00, 'earnings', 'March, 2021', '2021-04-12 13:48:19'),
-(245, 'WY03', 'Overtime', 5500.00, 39500.00, 0.00, 39500.00, 'earnings', 'March, 2021', '2021-04-14 16:09:02'),
-(246, 'WY03', 'Basic Salary', 34000.00, 39500.00, 0.00, 39500.00, 'earnings', 'March, 2021', '2021-04-14 16:09:02'),
-(247, 'WY05', 'Basic Salary', 51500.00, 58000.00, 5510.00, 52490.00, 'earnings', 'April, 2021', '2021-04-14 19:17:13'),
-(248, 'WY05', 'Overtime', 6500.00, 58000.00, 5510.00, 52490.00, 'earnings', 'April, 2021', '2021-04-14 19:17:13'),
-(249, 'WY05', 'Income Tax', 5510.00, 58000.00, 5510.00, 52490.00, 'deductions', 'April, 2021', '2021-04-14 19:17:14'),
-(250, 'WY04', 'Basic Salary', 39000.00, 44600.00, 4250.00, 40350.00, 'earnings', 'April, 2021', '2021-04-14 19:22:25'),
-(251, 'WY04', 'Overtime', 5600.00, 44600.00, 4250.00, 40350.00, 'earnings', 'April, 2021', '2021-04-14 19:22:25'),
-(252, 'WY04', 'Income Tax', 4250.00, 44600.00, 4250.00, 40350.00, 'deductions', 'April, 2021', '2021-04-14 19:22:25'),
-(253, 'cdbl01', 'Basic Salary', 19550.00, 30304.00, 3722.00, 26582.00, 'earnings', 'April, 2025', '2025-04-06 21:26:09'),
-(254, 'cdbl01', 'House Rent Allowance', 8798.00, 30304.00, 3722.00, 26582.00, 'earnings', 'April, 2025', '2025-04-06 21:26:09'),
-(255, 'cdbl01', 'Conveyance Allowance', 978.00, 30304.00, 3722.00, 26582.00, 'earnings', 'April, 2025', '2025-04-06 21:26:09'),
-(256, 'cdbl01', 'Medical Allowance', 978.00, 30304.00, 3722.00, 26582.00, 'earnings', 'April, 2025', '2025-04-06 21:26:09'),
-(257, 'cdbl01', 'Income Tax', 417.00, 30304.00, 3722.00, 26582.00, 'deductions', 'April, 2025', '2025-04-06 21:26:09'),
-(258, 'cdbl01', 'Employee Provident Fund', 1955.00, 30304.00, 3722.00, 26582.00, 'deductions', 'April, 2025', '2025-04-06 21:26:09'),
-(259, 'cdbl01', 'Other Deductions', 1350.00, 30304.00, 3722.00, 26582.00, 'deductions', 'April, 2025', '2025-04-06 21:26:09');
+INSERT INTO `cdbl_salaries` (`salary_id`, `emp_code`, `pay_month`, `generate_date`, `basic_salary`, `car_allowance`, `house_rent`, `conveyance_allowance`, `medical_allowance`, `overtime`, `traveling_expenses`, `loans_repayment`, `performance_bonus`, `professional_tax`, `income_tax`, `employee_provident_fund`, `other_deductions`, `arrear_salary`, `leave_without_pay`, `driver_allowance`, `net_salary`, `total_deduction`, `gross_salary`) VALUES
+(1, 'cdbl01', 'April, 2025', '2025-04-29 15:18:52', 0.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(2, 'cdbl01', 'April, 2025', '2025-04-29 15:19:45', 0.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(3, 'cdbl01', 'May, 2025', '2025-04-29 15:25:11', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 22883.00, 3467, 26350.00),
+(4, 'cdbl01', 'May, 2025', '2025-04-29 15:25:22', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 22883.00, 3467, 26350.00);
 
 -- --------------------------------------------------------
 
@@ -402,8 +398,6 @@ ALTER TABLE `cdbl_attendance`
 -- Indexes for table `cdbl_employees`
 --
 ALTER TABLE `cdbl_employees`
-  ADD PRIMARY KEY (`employee_id`),
-  ADD UNIQUE KEY `emp_code` (`emp_code`),
   ADD UNIQUE KEY `email` (`email`),
   ADD UNIQUE KEY `mobile` (`mobile`),
   ADD UNIQUE KEY `national_id` (`national_id`);
@@ -444,8 +438,7 @@ ALTER TABLE `cdbl_pay_structure`
 -- Indexes for table `cdbl_salaries`
 --
 ALTER TABLE `cdbl_salaries`
-  ADD PRIMARY KEY (`salary_id`),
-  ADD KEY `emp_code` (`emp_code`);
+  ADD PRIMARY KEY (`salary_id`);
 
 --
 -- Indexes for table `loan_categories`
@@ -514,19 +507,19 @@ ALTER TABLE `cdbl_payheads`
 -- AUTO_INCREMENT for table `cdbl_payscale_grade`
 --
 ALTER TABLE `cdbl_payscale_grade`
-  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `cdbl_pay_structure`
 --
 ALTER TABLE `cdbl_pay_structure`
-  MODIFY `salary_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=217;
+  MODIFY `salary_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=128;
 
 --
 -- AUTO_INCREMENT for table `cdbl_salaries`
 --
 ALTER TABLE `cdbl_salaries`
-  MODIFY `salary_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=260;
+  MODIFY `salary_id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `loan_categories`

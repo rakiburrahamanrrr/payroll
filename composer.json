@@ -1,0 +1,20 @@
+{
+    "name": "user/payroll",
+    "description": "cdblpms",
+    "autoload": {
+        "psr-4": {
+            "User\\Payroll\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "cdblvas"
+        }
+    ],
+    "require": {
+        "psr/log": "^3.0",
+        "setasign/fpdi": "^2.6",
+        "mpdf/mpdf": "6.0",
+        "tecnickcom/tcpdf": "^6.9"
+    }
+}
