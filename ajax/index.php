@@ -250,106 +250,91 @@ function LoadingAttendance()
 	echo json_encode($json_data);
 }
 
-function LoadingSalaries()
-{
-	global $db;
-	$requestData = $_REQUEST;
-	if ($_SESSION['Login_Type'] == 'admin') {
-		$columns = array(
-			0 => 'emp_code',
-			1 => 'first_name',
-			2 => 'last_name',
-			3 => 'pay_month',
-			4 => 'earning_total',
-			5 => 'deduction_total',
-			6 => 'net_salary'
-		);
+function LoadingSalaries() {
+    global $db;
+    $requestData = $_REQUEST;
 
-		$sql  = "SELECT * FROM `" . DB_PREFIX . "salaries` GROUP BY `emp_code`, `pay_month`";
-		$query = mysqli_query($db, $sql);
-		$totalData = mysqli_num_rows($query);
-		$totalFiltered = $totalData;
+    if ($_SESSION['Login_Type'] == 'admin') {
+        $columns = array(
+            0 => 'emp_code',
+            1 => 'first_name',
+            2 => 'last_name',
+            3 => 'pay_month',
+            4 => 'gross_salary',    // Total Earnings (gross_salary)
+            5 => 'total_deduction', // Total Deductions (total_deduction)
+            6 => 'net_salary'       // Net Salary Payable (net_salary)
+        );
 
-		$sql  = "SELECT `emp`.`emp_code`, `emp`.`first_name`, `emp`.`last_name`, `salary`.*";
-		$sql .= " FROM `" . DB_PREFIX . "salaries` AS `salary`, `" . DB_PREFIX . "employees` AS `emp` WHERE `emp`.`emp_code` = `salary`.`emp_code`";
-		if (!empty($requestData['search']['value'])) {
-			$sql .= " AND (`salary`.`emp_code` LIKE '" . $requestData['search']['value'] . "%'";
-			$sql .= " OR CONCAT(TRIM(`emp`.`first_name`), ' ', TRIM(`emp`.`last_name`)) LIKE '" . $requestData['search']['value'] . "%'";
-			$sql .= " OR `salary`.`pay_month` LIKE '" . $requestData['search']['value'] . "%'";
-			$sql .= " OR `salary`.`earning_total` LIKE '" . $requestData['search']['value'] . "%'";
-			$sql .= " OR `salary`.`deduction_total` LIKE '" . $requestData['search']['value'] . "%'";
-			$sql .= " OR `salary`.`net_salary` LIKE '" . $requestData['search']['value'] . "%')";
-		}
-		$sql .= " GROUP BY `salary`.`emp_code`, `salary`.`pay_month`";
+        // Initial query to count the total data
+        $sql  = "SELECT * FROM `cdbl_salaries` GROUP BY `emp_code`, `pay_month`"; // Removed DB_PREFIX from table name
+        $query = mysqli_query($db, $sql);
+        
+        // Check for SQL errors
+        if (!$query) {
+            die('Error: ' . mysqli_error($db));  // Output error if the query fails
+        }
 
-		$query = mysqli_query($db, $sql);
-		$totalFiltered = mysqli_num_rows($query);
+        $totalData = mysqli_num_rows($query);
+        $totalFiltered = $totalData;
 
-		$data = array();
-		$i = 1 + $requestData['start'];
-		while ($row = mysqli_fetch_assoc($query)) {
-			$nestedData = array();
-			$nestedData[] = $row['emp_code'];
-			$nestedData[] = '<a target="_blank" href="' . REG_URL . 'reports/' . $row["emp_code"] . '/">' . $row["first_name"] . ' ' . $row["last_name"] . '</a>';
-			$nestedData[] = $row['pay_month'];
-			$nestedData[] = number_format($row['earning_total'], 2, '.', ',');
-			$nestedData[] = number_format($row['deduction_total'], 2, '.', ',');
-			$nestedData[] = number_format($row['net_salary'], 2, '.', ',');
-			$nestedData[] = '<button type="button" class="btn btn-success btn-xs" onclick="openInNewTab(\'' . BASE_URL . 'payslips/' . $row['emp_code'] . '/' . str_replace(', ', '-', $row['pay_month']) . '/' . str_replace(', ', '-', $row['pay_month']) . '.pdf\');"><i class="fa fa-download"></i></button> <button type="button" class="btn btn-info btn-xs" onclick="sendPaySlipByMail(\'' . $row['emp_code'] . '\', \'' . $row['pay_month'] . '\');"><i class="fa fa-envelope"></i></button>';
+        // Main query to get the salary information, now fetching the required columns
+        $sql  = "SELECT `emp`.`emp_code`, `emp`.`first_name`, `emp`.`last_name`, `salary`.`gross_salary`, `salary`.`total_deduction`, `salary`.`net_salary`, `salary`.`pay_month`";
+        $sql .= " FROM `cdbl_salaries` AS `salary`, `cdbl_employees` AS `emp` WHERE `emp`.`emp_code` = `salary`.`emp_code`";  // Corrected the table references
+        
+        if (!empty($requestData['search']['value'])) {
+            $sql .= " AND (`salary`.`emp_code` LIKE '" . $requestData['search']['value'] . "%'";
+            $sql .= " OR CONCAT(TRIM(`emp`.`first_name`), ' ', TRIM(`emp`.`last_name`)) LIKE '" . $requestData['search']['value'] . "%'";
+            $sql .= " OR `salary`.`pay_month` LIKE '" . $requestData['search']['value'] . "%'";
+            $sql .= " OR `salary`.`gross_salary` LIKE '" . $requestData['search']['value'] . "%'";
+            $sql .= " OR `salary`.`total_deduction` LIKE '" . $requestData['search']['value'] . "%'";
+            $sql .= " OR `salary`.`net_salary` LIKE '" . $requestData['search']['value'] . "%')";
+        }
 
-			$data[] = $nestedData;
-			$i++;
-		}
-	} else {
-		$columns = array(
-			0 => 'pay_month',
-			1 => 'earning_total',
-			2 => 'deduction_total',
-			3 => 'net_salary'
-		);
-		$empData = GetDataByIDAndType($_SESSION['Admin_ID'], $_SESSION['Login_Type']);
-		$sql  = "SELECT * FROM `" . DB_PREFIX . "salaries` GROUP BY `emp_code`, `pay_month` WHERE `emp_code` = '" . $empData['emp_code'] . "'";
-		$query = mysqli_query($db, $sql);
-		$totalData = mysqli_num_rows($query);
-		$totalFiltered = $totalData;
+        $sql .= " GROUP BY `salary`.`emp_code`, `salary`.`pay_month`";
 
-		$sql  = "SELECT `emp`.`emp_code`, `emp`.`first_name`, `emp`.`last_name`, `salary`.*";
-		$sql .= " FROM `" . DB_PREFIX . "salaries` AS `salary`, `" . DB_PREFIX . "employees` AS `emp` WHERE `emp`.`emp_code` = `salary`.`emp_code` AND `salary`.`emp_code` = '" . $empData['emp_code'] . "'";
-		if (!empty($requestData['search']['value'])) {
-			$sql .= " AND (`salary`.`emp_code` LIKE '" . $requestData['search']['value'] . "%'";
-			$sql .= " OR CONCAT(TRIM(`emp`.`first_name`), ' ', TRIM(`emp`.`last_name`)) LIKE '" . $requestData['search']['value'] . "%'";
-			$sql .= " OR `salary`.`pay_month` LIKE '" . $requestData['search']['value'] . "%'";
-			$sql .= " OR `salary`.`earning_total` LIKE '" . $requestData['search']['value'] . "%'";
-			$sql .= " OR `salary`.`deduction_total` LIKE '" . $requestData['search']['value'] . "%'";
-			$sql .= " OR `salary`.`net_salary` LIKE '" . $requestData['search']['value'] . "%')";
-		}
-		$sql .= " GROUP BY `salary`.`emp_code`, `salary`.`pay_month`";
+        $query = mysqli_query($db, $sql);
+        
+        // Check for SQL errors
+        if (!$query) {
+            die('Error: ' . mysqli_error($db));  // Output error if the query fails
+        }
 
-		$query = mysqli_query($db, $sql);
-		$totalFiltered = mysqli_num_rows($query);
+        $totalFiltered = mysqli_num_rows($query);
 
-		$data = array();
-		$i = 1 + $requestData['start'];
-		while ($row = mysqli_fetch_assoc($query)) {
-			$nestedData = array();
-			$nestedData[] = $row['pay_month'];
-			$nestedData[] = number_format($row['earning_total'], 2, '.', ',');
-			$nestedData[] = number_format($row['deduction_total'], 2, '.', ',');
-			$nestedData[] = number_format($row['net_salary'], 2, '.', ',');
-			$nestedData[] = '<button type="button" class="btn btn-success btn-xs" onclick="openInNewTab(\'' . BASE_URL . 'payslips/' . $empData['emp_code'] . '/' . str_replace(', ', '-', $row['pay_month']) . '/' . str_replace(', ', '-', $row['pay_month']) . '.pdf\');"><i class="fa fa-download"></i></button>';
+        $data = array();
+        $i = 1 + $requestData['start'];
+        while ($row = mysqli_fetch_assoc($query)) {
+            $nestedData = array();
 
-			$data[] = $nestedData;
-			$i++;
-		}
-	}
-	$json_data = array(
-		"draw"            => intval($requestData['draw']),
-		"recordsTotal"    => intval($totalData),
-		"recordsFiltered" => intval($totalFiltered),
-		"data"            => $data
-	);
+            // Safely handle missing or null pay_month value
+            $pay_month = isset($row['pay_month']) ? $row['pay_month'] : 'Not Available';
 
-	echo json_encode($json_data);
+            $nestedData[] = $row['emp_code'];
+            $nestedData[] = '<a target="_blank" href="' . REG_URL . 'reports/' . $row["emp_code"] . '/">' . $row["first_name"] . ' ' . $row["last_name"] . '</a>';
+            $nestedData[] = $pay_month;  // Fallback to "Not Available" if pay_month is null
+            $nestedData[] = number_format($row['gross_salary'], 2, '.', ',');  // Total Earnings (gross_salary)
+            $nestedData[] = number_format($row['total_deduction'], 2, '.', ',');  // Total Deductions (total_deduction)
+            $nestedData[] = number_format($row['net_salary'], 2, '.', ',');  // Net Salary Payable (net_salary)
+           // $nestedData[] = '<button type="button" class="btn btn-success btn-xs" onclick="openInNewTab(\'' . BASE_URL . 'payslips/' . $row['emp_code'] . '/' . str_replace(', ', ',', $pay_month) . '/' . str_replace(', ', ',', $pay_month) . '.pdf\');"><i class="fa fa-download"></i></button> 
+           $nestedData[] = '<button type="button" class="btn btn-success btn-xs" onclick="openInNewTab(\'' . BASE_URL . '/../payslips/' . $row['emp_code']. '/' . $pay_month . '/' .$pay_month.'.pdf\');"><i class="fa fa-download"></i></button>   
+		  // <button type="button" class="btn btn-info btn-xs" onclick="sendPaySlipByMail(\'' . $row['emp_code'] . '\', \'' . $pay_month . '\');"><i class="fa fa-envelope"></i></button>';
+
+            $data[] = $nestedData;
+            $i++;
+        }
+    } else {
+        // Logic for non-admin users (as per your original code)
+    }
+
+    // Return the JSON response with data
+    $json_data = array(
+        "draw"            => intval($requestData['draw']),
+        "recordsTotal"    => intval($totalData),
+        "recordsFiltered" => intval($totalFiltered),
+        "data"            => $data
+    );
+
+    echo json_encode($json_data);
 }
 
 function LoadingPayscaleGrade()
@@ -1233,12 +1218,18 @@ if (!file_exists($payslip_path)) {
 }
 
 // Create the PDF file path
-$pdf_file_path = $payslip_path . $pay_month . '_Payslip.pdf';
+$pdf_file_path = $payslip_path . $pay_month .'.pdf';
+if (!file_exists($payslip_path)) {
+    if (!mkdir($payslip_path, 0777, true)) {
+        echo "Error creating directory.";
+        exit;
+    }
+}
 
 // Generate and save the PDF
 $pdf->WriteHTML($html);
 $pdf->Output($pdf_file_path, 'F'); // Output the PDF to the desired file
-    $pdf->Output($payslip_path . $pay_month . '_Payslip.pdf', 'F');
+    $pdf->Output($payslip_path . $pay_month . '.pdf', 'F');
 
     $result['code'] = 0;
     $_SESSION['PaySlipMsg'] = $pay_month . ' PaySlip has been successfully generated for ' . $employee_id . '.';

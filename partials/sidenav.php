@@ -58,7 +58,7 @@ if (isset($userData['emp_code'])) {
 
 		<ul class="sidebar-menu">
 			<li class="header">NAVIGATION</li>
-			<?php if ( $_SESSION['Login_Type'] == 'admin' ) { ?>
+<?php if ( $_SESSION['Login_Type'] == 'admin' ) { ?>
 				<li class="<?php echo $page_name == "attendance" ? 'active' : ''; ?>">
 					<a href="<?php echo BASE_URL; ?>attendance/">
 						<i class="fa fa-calendar"></i> <span>Attendance</span>
@@ -67,6 +67,11 @@ if (isset($userData['emp_code'])) {
 				<li class="<?php echo $page_name == "employees" ? 'active' : ''; ?>">
 					<a href="<?php echo BASE_URL; ?>employees/">
 						<i class="fa fa-users"></i> <span>Employees Section</span>
+					</a>
+				</li>
+				<li class="<?php echo $page_name == "monthly_salary" ? 'active' : ''; ?>">
+					<a href="<?php echo BASE_URL; ?>monthly_salary.php">
+						<i class="fa fa-briefcase"></i> <span>Salary Assign</span>
 					</a>
 				</li>
 				<li class="<?php echo $page_name == "salaries" ? 'active' : ''; ?>">
