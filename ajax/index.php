@@ -1,7 +1,8 @@
-<?php
-require_once __DIR__ . '/../tcpdf/tcpdf.php';  // This assumes the 'tcpdf' folder is at the same level as 'ajax'
-include(dirname(dirname(__FILE__)) . '/config.php');
+<?php 
 
+require_once __DIR__ . '/../vendor/autoload.php';  // This is correct relative to your 'ajax' folder
+include(dirname(dirname(__FILE__)) . '/config.php');
+define('DEBUG_MODE', true); 
 $case = isset($_GET['case']) ? $_GET['case'] : '';
 switch ($case) {
 	case 'LoginProcessHandler':
@@ -1071,319 +1072,11 @@ function EditEmployeeDetailsByID()
 
 	echo json_encode($result);
 }
-
-
-// function GeneratePaySlip() {
-//     global $db;
-//     $result = array();
-
-//     $employee_id = isset($_POST['emp_code']) ? $_POST['emp_code'] : '';
-//     $pay_month = isset($_POST['pay_month']) ? $_POST['pay_month'] : '';
-//     $earnings_heads = isset($_POST['earnings_heads']) ? $_POST['earnings_heads'] : array();
-//     $earnings_amounts = isset($_POST['earnings_amounts']) ? $_POST['earnings_amounts'] : array();
-//     $deductions_heads = isset($_POST['deductions_heads']) ? $_POST['deductions_heads'] : array();
-//     $deductions_amounts = isset($_POST['deductions_amounts']) ? $_POST['deductions_amounts'] : array();
-
-//  	if (!empty($employee_id) && !empty($pay_month)) {
-
-//         // Set default values for pay heads
-//         $pay_head_values = array(
-//             'car_allowance' => 0,
-//             'house_rent' => 0,
-//             'conveyance_allowance' => 0,
-//             'medical_allowance' => 0,
-//             'overtime' => 0,
-//             'traveling_expenses' => 0,
-//             'loans_repayment' => 0,
-//             'performance_bonus' => 0,
-//             'professional_tax' => 0,
-//             'income_tax' => 0,
-//             'employee_provident_fund' => 0,
-//             'other_deductions' => 0,
-//             'arrear_salary' => 0,
-//             'leave_without_pay' => 0,
-//             'driver_allowance' => 0,
-//             'net_salary' => 0,  // This will be calculated
-//             'total_deduction' => 0,  // This will be calculated
-//             'gross_salary' => 0  // This will be calculated
-//         );
-
-//         // Map earnings heads and amounts to their corresponding columns
-//         foreach ($earnings_heads as $index => $head) {
-//             if (array_key_exists($head, $pay_head_values)) {
-//                 $pay_head_values[$head] = $earnings_amounts[$index];
-//             }
-//         }
-
-//         // Map deductions heads and amounts to their corresponding columns
-//         foreach ($deductions_heads as $index => $head) {
-//             if (array_key_exists($head, $pay_head_values)) {
-//                 $pay_head_values[$head] = $deductions_amounts[$index];
-//             }
-//         }
-
-//         // Calculate the total earnings and deductions
-//         $gross_salary = array_sum($earnings_amounts);
-//         $total_deduction = array_sum($deductions_amounts);
-
-//         // Set the total earnings and deductions to the appropriate columns
-//         $pay_head_values['gross_salary'] = $gross_salary;
-//         $pay_head_values['total_deduction'] = $total_deduction;
-//         $pay_head_values['net_salary'] = $gross_salary - $total_deduction;
-
-//         // Insert the data into the cdbl_salaries table
-//         $columns = implode(", ", array_keys($pay_head_values));
-//         $escaped_values = array_map(function($value) use ($db) {
-//             if (is_numeric($value)) {
-//                 return $value;
-//             } else {
-//                 return "'" . mysqli_real_escape_string($db, $value) . "'";
-//             }
-//         }, array_values($pay_head_values));
-//         $values = implode(", ", $escaped_values);
-
-//         $query = "INSERT INTO `" . DB_PREFIX . "salaries` ( `emp_code`, `pay_month`, `generate_date`,$columns) 
-//                   VALUES ('$employee_id', '$pay_month', NOW(),$values)";
-
-//         if (!mysqli_query($db, $query)) {
-//             $result['code'] = 1;
-//             $result['result'] = 'Error in generating salary record: ' . mysqli_error($db);
-//             echo json_encode($result);
-//             return;
-//         }
-
-//         $empData = GetEmployeeDataByEmpCode($employee_id);
-//         $empSalary = GetEmployeeSalaryByEmpCodeAndMonth($employee_id, $pay_month);
-//         $empLeave = GetEmployeeLWPDataByEmpCodeAndMonth($employee_id, $pay_month);
-//         $totalEarnings = 0;
-//         $totalDeductions = 0;
-	
-//         // TCPDF setup
-//         require_once 'tcpdf/tcpdf.php';  // Ensure you have the correct path to tcpdf.php
-
-//         $pdf = new TCPDF();
-//         $pdf->SetCreator(PDF_CREATOR);
-//         $pdf->SetAuthor('Your Name');
-//         $pdf->SetTitle('Salary Slip');
-//         $pdf->SetSubject('Salary Details for ' . $pay_month);
-
-//         $pdf->AddPage();
-//         $html = '<style>
-//         @page{margin:20px 20px;font-family:Arial;font-size:14px;}
-//         .div_half{float:left;margin:0 0 30px 0;width:50%;}
-//         .logo{width:250px;padding:0;}
-//         .com_title{text-align:center;font-size:16px;margin:0;}
-//         .reg_no{text-align:center;font-size:12px;margin:5px 0;}
-//         .subject{text-align:center;font-size:20px;font-weight:bold;}
-//         .emp_info{width:100%;margin:0 0 30px 0;}
-//         .table{border:1px solid #ccc;margin:0 0 30px 0;}
-//         .salary_info{width:100%;margin:0;}
-//         .salary_info th,.salary_info td{border:1px solid #ccc;margin:0;padding:5px;vertical-align:middle;}
-//         .net_payable{margin:0;color:#050;}
-//         .in_word{text-align:right;font-size:12px;margin:5px 0;}
-//         .signature{margin:0 0 30px 0;}
-//         .signature strong{font-size:12px;padding:5px 0 0 0;border-top:1px solid #000;}
-//         .com_info{font-size:12px;text-align:center;margin:0 0 30px 0;}
-//         .noseal{text-align:center;font-size:11px;}
-//         </style>';
-//         $html .= '<div class="div_half">';
-//         $html .= '<img class="logo" src="' . BASE_URL . 'dist/img/logo.png" alt="Central Depository Bangladesh Limited" />';
-//         $html .= '</div>';
-//         $html .= '<div class="div_half">';
-//         $html .= '<h2 class="com_title">Central Depository Bangladesh Limited</h2>';
-//         $html .= '</div>';
-
-//         $html .= '<p class="subject">Salary Slip for ' . $pay_month . '</p>';
-
-//         // Add employee information (same as previous code)
-//         $html .= '<table class="emp_info">';
-//         $html .= '<tr>';
-//         $html .= '<td width="25%">Employee Code</td>';
-//         $html .= '<td width="25%">: ' . strtoupper($employee_id) . '</td>';
-//         $html .= '<td width="25%">Employee id</td>';
-//         $html .= '<td width="25%">: ' . $empData['employee_id'] . '</td>';
-//         $html .= '</tr>';
-
-//         $html .= '<tr>';
-//         $html .= '<td>Employee Name</td>';
-//         $html .= '<td>: ' . ucwords($empData['first_name'] . ' ' . $empData['last_name']) . '</td>';
-//         $html .= '<td>Bank Account</td>';
-//         $html .= '<td>: ' . $empData['account_no'] . '</td>';
-//         $html .= '</tr>';
-
-//         $html .= '<tr>';
-//         $html .= '<td>Designation</td>';
-//         $html .= '<td>: ' . ucwords($empData['designation']) . '</td>';
-//         $html .= '</tr>';
-
-//         $html .= '<tr>';
-//         $html .= '<td>Department</td>';
-//         $html .= '<td>: ' . ucwords($empData['department']) . '</td>';
-//         $html .= '<td>Payable/Working Days</td>';
-//         $html .= '<td>: ' . ($empLeave['workingDays'] - $empLeave['withoutPay']) . '/' . $empLeave['workingDays'] . ' Days</td>';
-//         $html .= '</tr>';
-
-//         $html .= '<tr>';
-//         $html .= '<td>Date of Joining</td>';
-//         $html .= '<td>: ' . date('d-m-Y', strtotime($empData['joining_date'])) . '</td>';
-//         $html .= '</tr>';
-//         $html .= '</table>';
-
-//         // Add salary and deductions info
-//         $html .= '<table class="table" cellspacing="0" cellpadding="0" width="100%">';
-//         $html .= '<thead>';
-//         $html .= '<tr>';
-//         $html .= '<th width="50%" valign="top">';
-//         $html .= '<table class="salary_info" cellspacing="0">';
-//         $html .= '<tr>';
-//         $html .= '<th align="left">Earnings</th>';
-//         $html .= '<th width="110" align="right">Amount (Bdt.)</th>';
-//         $html .= '</tr>';
-//         $html .= '</table>';
-//         $html .= '</th>';
-//         $html .= '<th width="50%" valign="top">';
-//         $html .= '<table class="salary_info" cellspacing="0">';
-//         $html .= '<tr>';
-//         $html .= '<th align="left">Deductions</th>';
-//         $html .= '<th width="110" align="right">Amount (Bdt.)</th>';
-//         $html .= '</tr>';
-//         $html .= '</table>';
-//         $html .= '</th>';
-//         $html .= '</tr>';
-//         $html .= '</thead>';
-
-//         if (!empty($empSalary)) {
-//             $html .= '<tr>';
-//             $html .= '<td width="50%" valign="top">';
-//             $html .= '<table class="salary_info" cellspacing="0">';
-//             foreach ($empSalary as $salary) {
-//                 if ($salary['pay_type'] == 'earnings') {
-//                     $totalEarnings += $salary['pay_amount'];
-//                     $html .= '<tr>';
-//                     $html .= '<td align="left">';
-//                     $html .= $salary['payhead_name'];
-//                     $html .= '</td>';
-//                     $html .= '<td width="110" align="right">';
-//                     $html .= number_format($salary['pay_amount'], 2, '.', ',');
-//                     $html .= '</td>';
-//                     $html .= '</tr>';
-//                 }
-//             }
-//             $html .= '</table>';
-//             $html .= '</td>';
-
-//             $html .= '<td width="50%" valign="top">';
-//             $html .= '<table class="salary_info" cellspacing="0">';
-//             foreach ($empSalary as $salary) {
-//                 if ($salary['pay_type'] == 'deductions') {
-//                     $totalDeductions += $salary['pay_amount'];
-//                     $html .= '<tr>';
-//                     $html .= '<td align="left">';
-//                     $html .= $salary['payhead_name'];
-//                     $html .= '</td>';
-//                     $html .= '<td width="110" align="right">';
-//                     $html .= number_format($salary['pay_amount'], 2, '.', ',');
-//                     $html .= '</td>';
-//                     $html .= '</tr>';
-//                 }
-//             }
-//             $html .= '</table>';
-//             $html .= '</td>';
-//             $html .= '</tr>';
-//         } 
-// 		else {
-//             $html .= '<tr>';
-//             $html .= '<td colspan="2" width="100%">No payheads are assigned for this employee</td>';
-//             $html .= '</tr>';
-//         }
-
-//         $html .= '<tr>';
-//         $html .= '<td width="50%" valign="top">';
-//         $html .= '<table class="salary_info" cellspacing="0">';
-//         $html .= '<tr>';
-//         $html .= '<td align="left">';
-//         $html .= '<strong>Total Earnings</strong>';
-//         $html .= '</td>';
-//         $html .= '<td width="110" align="right">';
-//         $html .= '<strong>' . number_format($totalEarnings, 2, '.', ',') . '</strong>';
-//         $html .= '</td>';
-//         $html .= '</tr>';
-//         $html .= '</table>';
-//         $html .= '</td>';
-//         $html .= '<td width="50%" valign="top">';
-//         $html .= '<table class="salary_info" cellspacing="0">';
-//         $html .= '<tr>';
-//         $html .= '<td align="left">';
-//         $html .= '<strong>Total Deductions</strong>';
-//         $html .= '</td>';
-//         $html .= '<td width="110" align="right">';
-//         $html .= '<strong>' . number_format($totalDeductions, 2, '.', ',') . '</strong>';
-//         $html .= '</td>';
-//         $html .= '</tr>';
-//         $html .= '</table>';
-//         $html .= '</td>';
-//         $html .= '</tr>';
-//         $html .= '</table>';
-
-//         // Net salary and in words
-//         $html .= '<div class="div_half">';
-//         $html .= '<h3 class="net_payable">';
-//         $html .= 'Net Salary Payable: Rs.' . number_format(($totalEarnings - $totalDeductions), 2, '.', ',');
-//         $html .= '</h3>';
-//         $html .= '</div>';
-//         $html .= '<div class="div_half">';
-//         $html .= '<h3 class="net_payable">';
-//         $html .= '<p class="in_word">(In words: ' . ucfirst(ConvertNumberToWords(($totalEarnings - $totalDeductions))) . ')</p>';
-//         $html .= '</h3>';
-//         $html .= '</div>';
-
-//         // Signature section
-//         $html .= '<div class="signature">';
-//         $html .= '<table class="emp_info">';
-//         $html .= '<thead>';
-//         $html .= '<tr>';
-//         $html .= '<td>Date: ' . date('d-m-Y') . '</td>';
-//         $html .= '<th width="200">';
-//         $html .= '<img width="100" src="' . BASE_URL . 'dist/img/signature.png" alt="Raquibul Islam chowdhury" /><br />';
-//         $html .= '<strong>Raquibul Islam chowdhury, General Manager</strong>';
-//         $html .= '</th>';
-//         $html .= '</tr>';
-//         $html .= '</thead>';
-//         $html .= '</table>';
-//         $html .= '</div>';
-
-//         $html .= '<p class="com_info">';
-//         $html .= 'DSE Tower(level-5),<br/>';
-//         $html .= 'House-46, Road-21, Nikunja-2, Dhaka - 1229<br/>';
-//         $html .= 'Bangladesh<br/>';
-//         $html .= 'www.cdbl.com.bd';
-//         $html .= '</p>';
-//         $html .= '<p class="noseal"><small>Note: This is an electronically generated copy & therefore doesn’t require seal.</small></p>';
-
-//         // Generate and save the PDF
-//         $payslip_path = dirname(dirname(__FILE__)) . '/payslips/';
-//         if (!file_exists($payslip_path . $employee_id . '/')) {
-//             mkdir($payslip_path . $employee_id, 0777);
-//         }
-//         if (!file_exists($payslip_path . $employee_id . '/' . $pay_month . '/')) {
-//             mkdir($payslip_path . $employee_id . '/' . $pay_month, 0777);
-//         }
-
-//         $pdf->WriteHTML($html);
-//         $pdf->Output($payslip_path . $employee_id . '/' . $pay_month . '/' . $pay_month . '.pdf', 'F');
-
-//         $result['code'] = 0;
-//         $_SESSION['PaySlipMsg'] = $pay_month . ' PaySlip has been successfully generated for ' . $employee_id . '.';
-//     } else {}
-//     //     $result['code'] = 1;
-//     //     $result['result'] = 'Something went wrong, please try again.';}
-
-//     echo json_encode($result);
-// }
 function GeneratePaySlip() {
     global $db;
     $result = array();
 
+    // Get POST data
     $employee_id = isset($_POST['emp_code']) ? $_POST['emp_code'] : '';
     $pay_month = isset($_POST['pay_month']) ? $_POST['pay_month'] : '';
     $earnings_heads = isset($_POST['earnings_heads']) ? $_POST['earnings_heads'] : array();
@@ -1396,6 +1089,7 @@ function GeneratePaySlip() {
     $pay_structure_result = mysqli_query($db, $pay_structure_query);
     $pay_structure = mysqli_fetch_assoc($pay_structure_result);
 
+    // Check if pay structure exists
     if (!$pay_structure) {
         $result['code'] = 1;
         $result['result'] = 'No pay structure found for this employee.';
@@ -1428,17 +1122,19 @@ function GeneratePaySlip() {
 
     // Map earnings heads and amounts to their corresponding columns
     foreach ($earnings_heads as $index => $head) {
-        if (array_key_exists($head, $pay_head_values)) {
-            // Override the default values with the actual values from the form
-            $pay_head_values[$head] = isset($earnings_amounts[$index]) && $earnings_amounts[$index] !== '' ? $earnings_amounts[$index] : 0;
+        $head_key = strtolower(str_replace(' ', '_', $head));  // Converts "Basic Salary" to "basic_salary"
+        
+        if (array_key_exists($head_key, $pay_head_values)) {
+            $pay_head_values[$head_key] = isset($earnings_amounts[$index]) && $earnings_amounts[$index] !== '' ? $earnings_amounts[$index] : 0;
         }
     }
 
     // Map deductions heads and amounts to their corresponding columns
     foreach ($deductions_heads as $index => $head) {
-        if (array_key_exists($head, $pay_head_values)) {
-            // Override the default values with the actual values from the form
-            $pay_head_values[$head] = isset($deductions_amounts[$index]) && $deductions_amounts[$index] !== '' ? $deductions_amounts[$index] : 0;
+        $head_key = strtolower(str_replace(' ', '_', $head));  // Converts "Income Tax" to "income_tax"
+        
+        if (array_key_exists($head_key, $pay_head_values)) {
+            $pay_head_values[$head_key] = isset($deductions_amounts[$index]) && $deductions_amounts[$index] !== '' ? $deductions_amounts[$index] : 0;
         }
     }
 
@@ -1456,6 +1152,7 @@ function GeneratePaySlip() {
         return "`" . $col . "`";  // Enclose column names in backticks
     }, array_keys($pay_head_values)));
 
+    // Escape values to prevent SQL injection
     $escaped_values = array_map(function($value) use ($db) {
         if (is_numeric($value)) {
             return $value;
@@ -1469,25 +1166,85 @@ function GeneratePaySlip() {
     $values = implode(", ", $escaped_values);
 
     // Generate the SQL query
-    $query = "INSERT INTO `" . DB_PREFIX . "salaries` (`emp_code`, `pay_month`, `generate_date`, $columns) 
-              VALUES ('$employee_id', '$pay_month', NOW(), $values)";
-
-    // Debugging: Uncomment the next line to check the generated SQL query
-    echo $query;
+    $query = "INSERT INTO `cdbl_salaries` 
+    (`emp_code`, `pay_month`, `generate_date`, $columns) 
+    VALUES 
+    ('$employee_id', '$pay_month', NOW(), $values)";
 
     // Execute the query
     if (!mysqli_query($db, $query)) {
         $result['code'] = 1;
-        $result['result'] = 'Error in generating salary record: ' . mysqli_error($db);
+        $result['result'] = 'Error in generating salary record: ' . mysqli_error($db); // Detailed error message
         echo json_encode($result);
         return;
     }
 
-    // Generate the payslip PDF (omitted for brevity)
+    // TCPDF setup
+      // Ensure you have the correct path to tcpdf.php
+
+    $pdf = new TCPDF();
+    $pdf->SetCreator(PDF_CREATOR);
+    $pdf->SetAuthor('Your Name');
+    $pdf->SetTitle('Salary Slip');
+    $pdf->SetSubject('Salary Details for ' . $pay_month);
+
+    $pdf->AddPage();
+    $html = '<style>
+    @page{margin:20px 20px;font-family:Arial;font-size:14px;}
+    .div_half{float:left;margin:0 0 30px 0;width:50%;}
+    .logo{width:250px;padding:0;}
+    .com_title{text-align:center;font-size:16px;margin:0;}
+    .subject{text-align:center;font-size:20px;font-weight:bold;}
+    .emp_info{width:100%;margin:0 0 30px 0;}
+    .table{border:1px solid #ccc;margin:0 0 30px 0;}
+    .salary_info{width:100%;margin:0;}
+    .salary_info th,.salary_info td{border:1px solid #ccc;margin:0;padding:5px;vertical-align:middle;}
+    </style>';
+
+    // Start building the PDF content
+    $html .= '<div class="div_half">';
+    $html .= '<img class="logo" src="path_to_logo.png" alt="Company Logo" />';  // Replace with actual logo path
+    $html .= '</div>';
+    $html .= '<div class="div_half">';
+    $html .= '<h2 class="com_title">Your Company Name</h2>';
+    $html .= '</div>';
+
+    $html .= '<p class="subject">Salary Slip for ' . $pay_month . '</p>';
+
+    // Add employee information here (similar to your provided HTML structure)
+    $html .= '<table class="emp_info">';
+    $html .= '<tr><td>Employee Code</td><td>: ' . strtoupper($employee_id) . '</td></tr>';
+    $html .= '<tr><td>Employee Name</td><td>: John Doe</td></tr>';  // Replace with dynamic data
+    $html .= '</table>';
+
+    // Add salary details here
+    $html .= '<table class="table" cellspacing="0" cellpadding="0" width="100%">';
+    $html .= '<thead><tr><th>Earnings</th><th>Amount (Bdt.)</th></tr></thead>';
+    $html .= '<tr><td>Basic Salary</td><td>' . $pay_head_values['basic_salary'] . '</td></tr>';
+    $html .= '<tr><td>House Rent</td><td>' . $pay_head_values['house_rent'] . '</td></tr>';
+    $html .= '<tr><td>Medical Allowance</td><td>' . $pay_head_values['medical_allowance'] . '</td></tr>';
+    $html .= '</table>';
+
+    // Save the PDF
+    $pdf->WriteHTML($html);
+    $payslip_path = __DIR__ . '/../payslips/' . $employee_id . '/' . $pay_month . '/';  // Using absolute path
+if (!file_exists($payslip_path)) {
+    mkdir($payslip_path, 0777, true);  // Create directory if it doesn't exist
+}
+
+// Create the PDF file path
+$pdf_file_path = $payslip_path . $pay_month . '_Payslip.pdf';
+
+// Generate and save the PDF
+$pdf->WriteHTML($html);
+$pdf->Output($pdf_file_path, 'F'); // Output the PDF to the desired file
+    $pdf->Output($payslip_path . $pay_month . '_Payslip.pdf', 'F');
+
     $result['code'] = 0;
     $_SESSION['PaySlipMsg'] = $pay_month . ' PaySlip has been successfully generated for ' . $employee_id . '.';
     echo json_encode($result);
 }
+
 
 function SendPaySlipByMail() {
 	$result = array();
