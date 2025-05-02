@@ -1,6 +1,63 @@
-<?php require_once(dirname(__FILE__) . '/config.php');
+<?php
+require_once(dirname(__FILE__) . '/config.php');
+require_once(dirname(__FILE__) . '/includes/salary_helper.php');
+
 if (!isset($_SESSION['Admin_ID']) || $_SESSION['Login_Type'] != 'admin') {
     header('location:' . BASE_URL);
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['month']) && isset($_POST['year'])) {
+    $selected_month = $_POST['month'];
+    $selected_year = $_POST['year'];
+    $month_year = "$selected_month, $selected_year";
+
+    $employees = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "employees`");
+
+    $message = '';
+    while ($employee = mysqli_fetch_assoc($employees)) {
+        $emp_id = $employee['emp_code'];
+
+        global $db;
+        $empHeads = [];
+        $payheadSQL = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "pay_structure` AS `pay`, `" . DB_PREFIX . "payheads` AS `head` WHERE `head`.`payhead_id` = `pay`.`payhead_id` AND `pay`.`emp_code` = '$emp_id'");
+        if ($payheadSQL) {
+            while ($row = mysqli_fetch_assoc($payheadSQL)) {
+                $empHeads[] = $row;
+            }
+        }
+        if (!is_array($empHeads)) {
+            $empHeads = [];
+        }
+
+        $checkSalarySQL = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "salaries` WHERE `emp_code` = '$emp_id' AND `pay_month` = '$month_year'");
+        if (mysqli_num_rows($checkSalarySQL) == 0) {
+
+            $earnings_heads = [];
+            $earnings_amounts = [];
+            $deductions_heads = [];
+            $deductions_amounts = [];
+
+            foreach ($empHeads as $head) {
+                if ($head['payhead_type'] == 'earnings') {
+                    $earnings_heads[] = $head['payhead_name'];
+                    $earnings_amounts[] = $head['default_salary'];
+                } elseif ($head['payhead_type'] == 'deductions') {
+                    $deductions_heads[] = $head['payhead_name'];
+                    $deductions_amounts[] = $head['default_salary'];
+                }
+            }
+
+            // Generate salary slip and insert salary record
+            $result = generate_salary_slip($emp_id, $month_year, $earnings_heads, $earnings_amounts, $deductions_heads, $deductions_amounts);
+            if ($result['code'] != 0) {
+                $message .= "Failed to generate payslip for employee $emp_id: " . $result['result'] . "<br>";
+            }
+        }
+    }
+    if (empty($message)) {
+        $message = "Salaries and payslips for $month_year have been successfully generated for all employees.";
+    }
 }
 ?>
 
@@ -44,7 +101,39 @@ if (!isset($_SESSION['Admin_ID']) || $_SESSION['Login_Type'] != 'admin') {
             </section>
 
             <section class="content">
-                <!-- Content goes here -->
+                <div class="row">
+                    <div class="col-xs-12">
+                        <?php if (!empty($message)) { ?>
+                            <div class="alert alert-info"><?php echo $message; ?></div>
+                        <?php } ?>
+                        <form method="POST" action="">
+                            <div class="form-group">
+                                <label for="month">Select Month</label>
+                                <select class="form-control" id="month" name="month" required>
+                                    <option value="January">January</option>
+                                    <option value="February">February</option>
+                                    <option value="March">March</option>
+                                    <option value="April">April</option>
+                                    <option value="May">May</option>
+                                    <option value="June">June</option>
+                                    <option value="July">July</option>
+                                    <option value="August">August</option>
+                                    <option value="September">September</option>
+                                    <option value="October">October</option>
+                                    <option value="November">November</option>
+                                    <option value="December">December</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="year">Select Year</label>
+                                <input type="number" class="form-control" id="year" name="year" required placeholder="Enter Year (e.g., 2025)" />
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Generate Salaries & Payslips</button>
+                        </form>
+                    </div>
+                </div>
             </section>
         </div>
 

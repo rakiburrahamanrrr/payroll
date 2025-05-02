@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 29, 2025 at 11:44 AM
+-- Generation Time: Apr 30, 2025 at 09:04 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -260,18 +260,18 @@ CREATE TABLE `cdbl_pay_structure` (
 --
 
 INSERT INTO `cdbl_pay_structure` (`salary_id`, `emp_code`, `payhead_id`, `default_salary`) VALUES
-(111, 'cdbl01', 1, 17000.00),
-(112, 'cdbl01', 3, 7650.00),
-(113, 'cdbl01', 5, 850.00),
-(114, 'cdbl01', 12, 417.00),
-(115, 'cdbl01', 4, 850.00),
-(116, 'cdbl01', 13, 1700.00),
-(117, 'cdbl01', 15, 1350.00),
 (123, 'cdbl90', 1, 16500.00),
 (124, 'cdbl90', 3, 6800.00),
 (125, 'cdbl90', 5, 1000.00),
 (126, 'cdbl90', 12, 417.00),
-(127, 'cdbl90', 4, 1000.00);
+(127, 'cdbl90', 4, 1000.00),
+(135, 'cdbl01', 1, 17000.00),
+(136, 'cdbl01', 3, 7650.00),
+(137, 'cdbl01', 5, 850.00),
+(138, 'cdbl01', 12, 417.00),
+(139, 'cdbl01', 4, 850.00),
+(140, 'cdbl01', 13, 1700.00),
+(141, 'cdbl01', 15, 1350.00);
 
 -- --------------------------------------------------------
 
@@ -283,7 +283,7 @@ CREATE TABLE `cdbl_salaries` (
   `salary_id` int(255) NOT NULL,
   `emp_code` varchar(50) NOT NULL,
   `pay_month` varchar(20) NOT NULL,
-  `generate_date` varchar(50) NOT NULL,
+  `generate_date` datetime DEFAULT NULL,
   `basic_salary` decimal(10,2) DEFAULT NULL,
   `car_allowance` decimal(10,2) DEFAULT NULL,
   `house_rent` decimal(10,2) DEFAULT NULL,
@@ -301,7 +301,7 @@ CREATE TABLE `cdbl_salaries` (
   `leave_without_pay` decimal(10,2) DEFAULT NULL,
   `driver_allowance` decimal(10,2) DEFAULT NULL,
   `net_salary` decimal(10,2) DEFAULT NULL,
-  `total_deduction` int(11) DEFAULT NULL,
+  `total_deduction` decimal(10,2) DEFAULT NULL,
   `gross_salary` decimal(10,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
@@ -310,10 +310,10 @@ CREATE TABLE `cdbl_salaries` (
 --
 
 INSERT INTO `cdbl_salaries` (`salary_id`, `emp_code`, `pay_month`, `generate_date`, `basic_salary`, `car_allowance`, `house_rent`, `conveyance_allowance`, `medical_allowance`, `overtime`, `traveling_expenses`, `loans_repayment`, `performance_bonus`, `professional_tax`, `income_tax`, `employee_provident_fund`, `other_deductions`, `arrear_salary`, `leave_without_pay`, `driver_allowance`, `net_salary`, `total_deduction`, `gross_salary`) VALUES
-(1, 'cdbl01', 'April, 2025', '2025-04-29 15:18:52', 0.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(2, 'cdbl01', 'April, 2025', '2025-04-29 15:19:45', 0.00, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(3, 'cdbl01', 'May, 2025', '2025-04-29 15:25:11', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 22883.00, 3467, 26350.00),
-(4, 'cdbl01', 'May, 2025', '2025-04-29 15:25:22', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 22883.00, 3467, 26350.00);
+(1, 'cdbl01', 'March, 2025', '2025-04-30 12:54:48', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 22883.00, 3467.00, 26350.00),
+(2, 'cdbl01', 'April, 2025', '2025-04-30 12:56:30', 17000.00, 0.00, 7650.00, 850.00, 850.00, 0.00, 0.00, 0.00, 0.00, 0.00, 417.00, 1700.00, 1350.00, 0.00, 0.00, 0.00, 22883.00, 3467.00, 26350.00),
+(3, 'cdbl90', 'March, 2025', '2025-04-30 12:57:04', 16500.00, 0.00, 6800.00, 1000.00, 1000.00, 0.00, 0.00, 0.00, 0.00, 0.00, 417.00, 0.00, 0.00, 0.00, 0.00, 0.00, 24883.00, 417.00, 25300.00),
+(4, 'cdbl01', 'February, 2025', '2025-04-30 12:58:19', 17000.00, 0.00, 7650.00, 850.00, 850.00, 0.00, 0.00, 0.00, 0.00, 0.00, 417.00, 1700.00, 1350.00, 0.00, 0.00, 0.00, 22883.00, 3467.00, 26350.00);
 
 -- --------------------------------------------------------
 
@@ -513,7 +513,7 @@ ALTER TABLE `cdbl_payscale_grade`
 -- AUTO_INCREMENT for table `cdbl_pay_structure`
 --
 ALTER TABLE `cdbl_pay_structure`
-  MODIFY `salary_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=128;
+  MODIFY `salary_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=142;
 
 --
 -- AUTO_INCREMENT for table `cdbl_salaries`
