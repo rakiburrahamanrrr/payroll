@@ -92,9 +92,9 @@ if ( isset($_POST['submit']) ) {
 			$confirmation_date_mysql = !empty($confirmation_date) ? "STR_TO_DATE('$confirmation_date', '%m/%d/%Y')" : "NULL";
 			$resign_date_mysql = !empty($resign_date) ? "STR_TO_DATE('$resign_date', '%m/%d/%Y')" : "NULL";
 			
-			$insertSQL = mysqli_query($db, "INSERT INTO `" . DB_PREFIX . "employees`(
+$insertSQL = mysqli_query($db, "INSERT INTO `" . DB_PREFIX . "employees`(
                 `emp_code`, `first_name`, `last_name`, `dob`, `gender`, `marital_status`, 
-                `nationality`, `address`, `paraddress`, `email`, `mobile`, `telephone`, 
+                `address`, `paraddress`, `email`, `mobile`, `telephone`, 
                 `national_id`, `verification`, `employee_id`, `employment_type`, 
                 `employment_status`, `department`, `designation`, `emp_grade`, 
                 `empsal_grade`, `joining_date`, `confirmation_date`, `resign_date`,
@@ -103,7 +103,7 @@ if ( isset($_POST['submit']) ) {
                 `account_no`, `etin_no`, `created_at`
             ) VALUES (
                 '$curEmpID', '$first_name', '$last_name', $dob_mysql, '$gender', '$marital_status', 
-                '$nationality', '$address', '$paraddress', '$email', '$mobile', '$telephone', 
+                '$address', '$paraddress', '$email', '$mobile', '$telephone', 
                 '$national_id', '$verification', $employee_id, '$employment_type', 
                 '$employment_status', '$department', '$designation', '$emp_grade', 
                 '$empsal_grade', $joining_date_mysql, $confirmation_date_mysql, $resign_date_mysql,
@@ -111,8 +111,13 @@ if ( isset($_POST['submit']) ) {
                 '$academic_qualifications', '$emp_action', '$photocopy', '" . sha1($emp_password) . "', 
                 '$account_no', '$etin_no', NOW()
             )");
-	 		$_SESSION['success'] = '<p class="text-center"><span class="text-success">Employee registration successfully!</span></p>';
-	 		header('location:report.php?');
+            if (!$insertSQL) {
+                $errors['sql_error'] = '<span class="text-danger">Database insert error: ' . mysqli_error($db) . '</span>';
+            } else {
+                $_SESSION['success'] = '<p class="text-center"><span class="text-success">Employee registration successfully!</span></p>';
+                header('location:report.php?');
+                exit;
+            }
 	 	} else {
 	 		$errors['photo'] = '<span class="text-danger">Photo is not uploaded, please try again!</span>';
 	 	}
@@ -154,6 +159,13 @@ if ( isset($_POST['submit']) ) {
 				</div>
 			</div>
 			<form class="form-horizontal" method="post" enctype="multipart/form-data" novalidate="">
+                <?php if (!empty($errors['sql_error'])): ?>
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <?php echo $errors['sql_error']; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
 				<div class="box-body">
 					<div class="form-group">
 						<label for="first_name" class="col-sm-2 control-label">Full Name</label>
