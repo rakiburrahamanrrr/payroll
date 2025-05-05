@@ -66,6 +66,8 @@ if ( !isset($_SESSION['Admin_ID']) || !isset($_SESSION['Login_Type']) ) {
 									<table id="emp-salary" class="table table-bordered table-stripe">
 										<thead>
 											<tr>
+											<th>EMP CODE</th>
+												<th>NAME</th>
 												<th>SALARY MONTH</th>
 												<th>EARNINGS</th>
 												<th>DEDUCTIONS</th>
