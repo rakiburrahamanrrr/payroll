@@ -78,24 +78,6 @@ if ( $selectSQL ) {
 					</div>
 				</div>
 				<div class="row">
-					<label class="col-sm-3">City</label>
-					<div class="col-sm-9">
-						<p><?php echo ucwords($empDATA['city']); ?></p>
-					</div>
-				</div>
-				<div class="row">
-					<label class="col-sm-3">State</label>
-					<div class="col-sm-9">
-						<p><?php echo ucwords($empDATA['state']); ?></p>
-					</div>
-				</div>
-				<div class="row">
-					<label class="col-sm-3">Country</label>
-					<div class="col-sm-9">
-						<p><?php echo ucwords($empDATA['country']); ?></p>
-					</div>
-				</div>
-				<div class="row">
 					<label class="col-sm-3">Email Id</label>
 					<div class="col-sm-9">
 						<p><?php echo $empDATA['email']; ?></p>
@@ -113,12 +95,7 @@ if ( $selectSQL ) {
 						<p><?php echo $empDATA['telephone'] ? $empDATA['telephone'] : 'N/A'; ?></p>
 					</div>
 				</div>
-				<div class="row">
-					<label class="col-sm-3">Identification</label>
-					<div class="col-sm-9">
-						<p><?php echo ucwords($empDATA['identity_doc']); ?></p>
-					</div>
-				</div>
+				
 				<div class="row">
 					<label class="col-sm-3">Id No</label>
 					<div class="col-sm-9">
