@@ -1259,76 +1259,78 @@ function GeneratePaySlip() {
 	  
 	  // Set up the page style
 	  $html = '
-	  <style>
-		  .header { text-align: center; font-size: 18px; font-weight: bold; margin-top: 20px; }
-		  .company-name { font-size: 16px; font-weight: bold; }
-		  .payslip-title { font-size: 18px; font-weight: bold; margin-top: 5px; }
-		  .logo { width: 150px; padding: 0; margin-top: 15px; }
-		  .employee-info-table { width: 100%; margin-top: 20px; font-size: 12px; }
-		  .employee-info-table td { padding: 5px; vertical-align: middle; border: 1px solid #ddd; }
-		  .salary-table { width: 100%; margin-top: 20px; font-size: 12px; border-collapse: collapse; }
-		  .salary-table th, .salary-table td { padding: 8px; border: 1px solid #ddd; }
-		  .footer { margin-top: 40px; font-size: 12px; }
-		  .footer td { padding: 5px; }
-	  </style>
-	  ';
-	  
-	  // Header Section
-	  $html .= '<div class="header">';
-  	  $html .= '<img class="logo" src="' . dirname(dirname(__FILE__)) . '/dist/img/cdbllogo.png" alt="Logo" />';
-	  $html .= '<img class="logo" src="' . dirname(dirname(__FILE__)) . '/dist/img/logo-key.jpg" alt="Logo" />';  // Use absolute file path for TCPDF
-	  $html .= '<div class="company-name">Central Depository Bangladesh Limited</div>';
-	  $html .= '<div class="payslip-title">Payslip for the Month of ' . $pay_month . '</div>';
-	  $html .= '</div>';
-	  
-	  // Employee Info Section
-	  $html .= '<table class="employee-info-table">';
-	  // Fetch employee details from database
-	  $employee_query = "SELECT first_name, last_name, designation, department, joining_date FROM `" . DB_PREFIX . "employees` WHERE emp_code = '$employee_id' LIMIT 1";
-	  $employee_result = mysqli_query($db, $employee_query);
-	  if (!$employee_result) {
-		  $emp_name = 'N/A';
-		  $designation = 'N/A';
-		  $department = 'N/A';
-		  $joining_date = 'N/A';
-	  } else {
-		  $employee_data = mysqli_fetch_assoc($employee_result);
-		  $emp_name = trim(($employee_data['first_name'] ?? '') . ' ' . ($employee_data['last_name'] ?? ''));
-		  if ($emp_name === '') {
-			  $emp_name = 'N/A';
-		  }
-		  $designation = $employee_data['designation'] ?? 'N/A';
-		  $department = $employee_data['department'] ?? 'N/A';
-		  $joining_date = !empty($employee_data['joining_date']) ? date('d-M-Y', strtotime($employee_data['joining_date'])) : 'N/A';
-	  }
-  
-	  $html .= '<tr><td>Employee Code</td><td>: ' . strtoupper($employee_id) . '</td></tr>';
-	  $html .= '<tr><td>Employee Name</td><td>: ' . htmlspecialchars($emp_name) . '</td></tr>';
-	  $html .= '<tr><td>Designation</td><td>: ' . htmlspecialchars($designation) . '</td></tr>';
-	  $html .= '<tr><td>Department</td><td>: ' . htmlspecialchars($department) . '</td></tr>';
-	  $html .= '<tr><td>Joining Date</td><td>: ' . $joining_date . '</td></tr>';
-	  $html .= '</table>';
-	  
-	  // Earnings and Deductions Table
-	  $html .= '<table class="salary-table">';
-	  $html .= '<thead><tr><th>Particulars</th><th>Amount (BDT)</th><th>Particulars</th><th>Amount (BDT)</th></tr></thead>';
-	  $html .= '<tr><td>Basic Salary</td><td>' . $pay_head_values['basic_salary'] . '</td><td>PF</td><td>' . $pay_head_values['employee_provident_fund'] . '</td></tr>';
-	  $html .= '<tr><td>House Rent</td><td>' . $pay_head_values['house_rent'] . '</td><td>Income Tax</td><td>' . $pay_head_values['income_tax'] . '</td></tr>';
-	  $html .= '<tr><td>Car Allowance</td><td>' . $pay_head_values['car_allowance'] . '</td><td>Loan Repayment</td><td>' . $pay_head_values['loans_repayment'] . '</td></tr>';
-	  $html .= '<tr><td>Medical Allowance</td><td>' . $pay_head_values['medical_allowance'] . '</td><td>Other Deductions</td><td>' . $pay_head_values['other_deductions'] . '</td></tr>';
-	  $html .= '</table>';
-	  
-	  // Net Salary
-	  $html .= '<table class="footer">';
-	  $html .= '<tr><td><strong>Net Salary</strong></td><td>: ' . $pay_head_values['net_salary'] . '</td></tr>';
-	  $html .= '<tr><td><strong>In Words</strong></td><td>: ' . ($pay_head_values['net_salary']) . ' Taka</td></tr>';
-	  $html .= '</table>';
-	  
-	  // Footer Section
-	  $html .= '<div class="footer">';
-	  $html .= '<p>Prepared By: CDBL Payroll Management System</p>';
-	  $html .= '<p>Approved By: Raquibul Islam Chowdhury</p>';
-	  $html .= '</div>';
+    <style>
+        .header { text-align: center; font-size: 20px; font-weight: bold; margin-top: 30px; margin-bottom: 15px; border: none; }
+        .company-name { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+        .payslip-title { font-size: 20px; font-weight: bold; margin-top: 10px; margin-bottom: 20px; }
+        .logo { width: 80px; padding-right: 20px; margin-top: 10px; margin-bottom: 10px; border: none; }
+        .logo2 { width: 240px; padding-left: 20px; margin-bottom: 10px; border: none; }
+        .employee-info-table { width: 100%; margin-top: 25px; font-size: 13px; border-collapse: collapse; }
+        .employee-info-table td { padding: 8px; vertical-align: middle; border: 1px solid #bbb; }
+        .salary-table { width: 100%; margin-top: 25px; font-size: 13px; border-collapse: collapse; }
+        .salary-table th, .salary-table td { padding: 10px; border: 1px solid #bbb; }
+        .footer { margin-top: 50px; font-size: 13px; }
+        .footer td { padding: 8px; }
+    </style>
+    ';
+    
+    // Header Section
+    $html .= '<div class="header">';
+    $html .= '<img class="logo" src="' . dirname(dirname(__FILE__)) . '/dist/img/cdbllogo.png" alt="Logo" style="width: 100px; height: 80px;  margin-right: 10px;" />';  // Use absolute file path for TCPDF
+    $html .= '<img class="logo2" src="' . dirname(dirname(__FILE__)) . '/dist/img/logo-key.jpg" alt="Logo" style="width: 100px; height: 80px; margin-left: 10px;" />';
+    $html .= '<div class="company-name">Central Depository Bangladesh Limited</div>';
+    $html .= '<div class="payslip-title">Payslip for the Month of ' . $pay_month . '</div>';
+    $html .= '</div>';
+    
+    // Employee Info Section
+    $html .= '<table class="employee-info-table">';
+    // Fetch employee details from database
+    $employee_query = "SELECT first_name, last_name, designation, department, joining_date FROM `" . DB_PREFIX . "employees` WHERE emp_code = '$employee_id' LIMIT 1";
+    $employee_result = mysqli_query($db, $employee_query);
+    if (!$employee_result) {
+        $emp_name = 'N/A';
+        $designation = 'N/A';
+        $department = 'N/A';
+        $joining_date = 'N/A';
+    } else {
+        $employee_data = mysqli_fetch_assoc($employee_result);
+        $emp_name = trim(($employee_data['first_name'] ?? '') . ' ' . ($employee_data['last_name'] ?? ''));
+        if ($emp_name === '') {
+            $emp_name = 'N/A';
+        }
+        $designation = $employee_data['designation'] ?? 'N/A';
+        $department = $employee_data['department'] ?? 'N/A';
+        $joining_date = !empty($employee_data['joining_date']) ? date('d-M-Y', strtotime($employee_data['joining_date'])) : 'N/A';
+    }
+
+    $html .= '<tr><td>Employee Code</td><td>: ' . strtoupper($employee_id) . '</td></tr>';
+    $html .= '<tr><td>Employee Name</td><td>: ' . htmlspecialchars($emp_name) . '</td></tr>';
+    $html .= '<tr><td>Designation</td><td>: ' . htmlspecialchars($designation) . '</td></tr>';
+    $html .= '<tr><td>Department</td><td>: ' . htmlspecialchars($department) . '</td></tr>';
+    $html .= '<tr><td>Joining Date</td><td>: ' . $joining_date . '</td></tr>';
+    $html .= '</table>';
+    
+    // Earnings and Deductions Table
+    $html .= '<table class="salary-table">';
+    $html .= '<thead><tr><th>Particulars</th><th>Amount (BDT)</th><th>Particulars</th><th>Amount (BDT)</th></tr></thead>';
+    $html .= '<tr><td>Basic Salary</td><td>' . number_format($pay_head_values['basic_salary'], 2) . '</td><td>PF</td><td>' . number_format($pay_head_values['employee_provident_fund'], 2) . '</td></tr>';
+    $html .= '<tr><td>House Rent</td><td>' . number_format($pay_head_values['house_rent'], 2) . '</td><td>Income Tax</td><td>' . number_format($pay_head_values['income_tax'], 2) . '</td></tr>';
+    $html .= '<tr><td>Car Allowance</td><td>' . number_format($pay_head_values['car_allowance'], 2) . '</td><td>Loan Repayment</td><td>' . number_format($pay_head_values['loans_repayment'], 2) . '</td></tr>';
+    $html .= '<tr><td>Medical Allowance</td><td>' . number_format($pay_head_values['medical_allowance'], 2) . '</td><td>Other Deductions</td><td>' . number_format($pay_head_values['other_deductions'], 2) . '</td></tr>';
+    $html .= '</table>';
+    
+    // Net Salary
+    $html .= '<table class="footer">';
+    $html .= '<tr><td><strong>Net Salary</strong></td><td>: ' . number_format($pay_head_values['net_salary'], 2) . '</td></tr>';
+    $html .= '<tr><td><strong>In Words</strong></td><td>: ' . ucfirst(numberToWords($pay_head_values['net_salary'])) . ' Taka</td></tr>';
+    $html .= '</table>';
+    
+    // Footer Section
+    $html .= '<div class="footer">';
+    $html .= '<p>Prepared By: CDBL Payroll Management System</p>';
+    $html .= '<p>Approved By: Raquibul Islam Chowdhury</p>';
+    $html .= '</div>';
+
 	  
 //   Save the PDF
     $pdf->WriteHTML($html);
