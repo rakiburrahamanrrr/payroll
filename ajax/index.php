@@ -1275,18 +1275,38 @@ function GeneratePaySlip() {
 	  
 	  // Header Section
 	  $html .= '<div class="header">';
-	  $html .= '<img class="logo" src="' . __DIR__ . '/path_to_logo.png" alt="Logo" />';  // Replace with actual logo path
+  	  $html .= '<img class="logo" src="' . dirname(dirname(__FILE__)) . '/dist/img/cdbllogo.png" alt="Logo" />';
+	  $html .= '<img class="logo" src="' . dirname(dirname(__FILE__)) . '/dist/img/logo-key.jpg" alt="Logo" />';  // Use absolute file path for TCPDF
 	  $html .= '<div class="company-name">Central Depository Bangladesh Limited</div>';
 	  $html .= '<div class="payslip-title">Payslip for the Month of ' . $pay_month . '</div>';
 	  $html .= '</div>';
 	  
 	  // Employee Info Section
 	  $html .= '<table class="employee-info-table">';
+	  // Fetch employee details from database
+	  $employee_query = "SELECT first_name, last_name, designation, department, joining_date FROM `" . DB_PREFIX . "employees` WHERE emp_code = '$employee_id' LIMIT 1";
+	  $employee_result = mysqli_query($db, $employee_query);
+	  if (!$employee_result) {
+		  $emp_name = 'N/A';
+		  $designation = 'N/A';
+		  $department = 'N/A';
+		  $joining_date = 'N/A';
+	  } else {
+		  $employee_data = mysqli_fetch_assoc($employee_result);
+		  $emp_name = trim(($employee_data['first_name'] ?? '') . ' ' . ($employee_data['last_name'] ?? ''));
+		  if ($emp_name === '') {
+			  $emp_name = 'N/A';
+		  }
+		  $designation = $employee_data['designation'] ?? 'N/A';
+		  $department = $employee_data['department'] ?? 'N/A';
+		  $joining_date = !empty($employee_data['joining_date']) ? date('d-M-Y', strtotime($employee_data['joining_date'])) : 'N/A';
+	  }
+  
 	  $html .= '<tr><td>Employee Code</td><td>: ' . strtoupper($employee_id) . '</td></tr>';
-	  $html .= '<tr><td>Employee Name</td><td>: ' . 'John Doe' . '</td></tr>';  // Replace with dynamic data
-	  $html .= '<tr><td>Designation</td><td>: ' . 'Officer' . '</td></tr>';
-	  $html .= '<tr><td>Department</td><td>: ' . 'Value Added Services' . '</td></tr>';
-	  $html .= '<tr><td>Joining Date</td><td>: 01-SEP-2022</td></tr>';
+	  $html .= '<tr><td>Employee Name</td><td>: ' . htmlspecialchars($emp_name) . '</td></tr>';
+	  $html .= '<tr><td>Designation</td><td>: ' . htmlspecialchars($designation) . '</td></tr>';
+	  $html .= '<tr><td>Department</td><td>: ' . htmlspecialchars($department) . '</td></tr>';
+	  $html .= '<tr><td>Joining Date</td><td>: ' . $joining_date . '</td></tr>';
 	  $html .= '</table>';
 	  
 	  // Earnings and Deductions Table
@@ -1310,8 +1330,7 @@ function GeneratePaySlip() {
 	  $html .= '<p>Approved By: Raquibul Islam Chowdhury</p>';
 	  $html .= '</div>';
 	  
-	  $pdf->WriteHTML($html);	  
-    // Save the PDF
+//   Save the PDF
     $pdf->WriteHTML($html);
     $payslip_path = __DIR__ . '/../payslips/' . $employee_id . '/' . $pay_month . '/';  // Using absolute path
 if (!file_exists($payslip_path)) {
