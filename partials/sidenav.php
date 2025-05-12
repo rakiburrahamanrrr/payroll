@@ -94,6 +94,11 @@ if (isset($userData['emp_code'])) {
 						<i class="fa fa-money"></i> <span>Loan Approval</span>
 					</a>
 				</li>
+				<li class="<?php echo $page_name == "loan_slip_assign" ? 'active' : ''; ?>">
+					<a href="<?php echo BASE_URL; ?>loan_slip_assign.php">
+						<i class="fa fa-file-text"></i> <span>Loan Slip Generate</span>
+					</a>
+				</li>
 				<li class="<?php echo $page_name == "payheads" ? 'active' : ''; ?>">
 					<a href="<?php echo BASE_URL; ?>payheads/">
 						<i class="fa fa-gratipay"></i> Pay Heads
