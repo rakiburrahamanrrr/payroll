@@ -46,8 +46,24 @@ if ($action === 'approve') {
     mysqli_stmt_bind_param($stmt, 'i', $loanId);
 }
 
-// Execute the statement
 if (mysqli_stmt_execute($stmt)) {
+    if ($action === 'approve') {
+        // Insert initial loan_balance record after approval
+        $query_loan = "SELECT loan_amount, loan_installment_amount FROM loan_requests WHERE loan_id = ?";
+        $stmt_loan = mysqli_prepare($db, $query_loan);
+        mysqli_stmt_bind_param($stmt_loan, "i", $loanId);
+        mysqli_stmt_execute($stmt_loan);
+        mysqli_stmt_bind_result($stmt_loan, $loanAmount, $installmentAmount);
+        mysqli_stmt_fetch($stmt_loan);
+        mysqli_stmt_close($stmt_loan);
+
+        $query_insert_balance = "INSERT INTO loan_balance (loan_id, deduction_amount, deduction_month, remaining_balance) VALUES (?, ?, ?, ?)";
+        $stmt_insert = mysqli_prepare($db, $query_insert_balance);
+        $current_date = $effectiveDate;
+        mysqli_stmt_bind_param($stmt_insert, "idsd", $loanId, $installmentAmount, $current_date, $loanAmount);
+        mysqli_stmt_execute($stmt_insert);
+        mysqli_stmt_close($stmt_insert);
+    }
     // After execution, redirect with status
     header("Location: admin_loan_approval.php?status=success");
     exit;
