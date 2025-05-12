@@ -1,144 +1,112 @@
 <?php
-require_once('config.php');
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
+// admin_loan_approval.php
+require 'config.php';
+
+// Check admin rights
+if (!isset($_SESSION['Admin_ID']) || ($_SESSION['Login_Type'] ?? '') !== 'admin') {
+    die("Access denied.");
 }
 
-// Check if the user is logged in as an admin
-if (!isset($_SESSION['Login_Type']) || $_SESSION['Login_Type'] != 'admin') {
-    header("Location: index.php");
-    exit();
-}
-
-// Fetch pending loan requests
-$loan_requests = [];
-$query = "SELECT lr.loan_id, lr.employee_id, lr.loan_amount, lr.installment, lr.loan_payment_amount, lr.interest_amount, lr.loan_status, lc.category_name
-          FROM loan_requests lr
-          JOIN loan_categories lc ON lr.category_id = lc.category_id
-          WHERE lr.loan_status = 'Pending'";
-$result = mysqli_query($db, $query);
-while ($row = mysqli_fetch_assoc($result)) {
-    $loan_requests[] = $row;
-}
-
-// Handle loan approval
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['approve'])) {
-    $loan_id = $_POST['loan_id'];
-    $loan_approved_date = date('Y-m-d');
-    $effective_date = date('Y-m-d', strtotime('+1 month')); // Example: Set effective date to 1 month from approval
-
-    $query = "UPDATE loan_requests 
-              SET loan_status = 'Loan Approved', loan_approved_date = '$loan_approved_date', effective_date = '$effective_date'
-              WHERE loan_id = '$loan_id'";
-
-    if (mysqli_query($db, $query)) {
-        $message = "Loan approved successfully!";
-    } else {
-        $message = "Error approving loan: " . mysqli_error($db);
-    }
-}
-
-// Handle loan completion
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['complete'])) {
-    $loan_id = $_POST['loan_id'];
-
-    $query = "UPDATE loan_requests SET loan_status = 'Loan Completed' WHERE loan_id = '$loan_id'";
-    
-    if (mysqli_query($db, $query)) {
-        $query_history = "INSERT INTO loan_history (loan_id, action, action_date) 
-                          VALUES ('$loan_id', 'Loan Completed', NOW())";
-        mysqli_query($db, $query_history);
-        $message = "Loan completed successfully!";
-    } else {
-        $message = "Error completing loan: " . mysqli_error($db);
+// Fetch all pending loan requests with employee and category details
+$sql = "
+  SELECT lr.loan_id, lr.employee_id, e.first_name, e.last_name,
+         lc.category_name, lr.loan_amount, lr.loan_installment_amount,
+         lr.reason, lr.requested_date
+    FROM loan_requests lr
+    LEFT JOIN loan_categories lc ON lr.category_id = lc.category_id
+    LEFT JOIN cdbl_employees   e  ON lr.employee_id = e.employee_id
+   WHERE lr.loan_status = 'pending'
+   ORDER BY lr.requested_date DESC
+";
+$result = mysqli_query($db, $sql);
+$requests = [];
+if ($result) {
+    while ($row = mysqli_fetch_assoc($result)) {
+        $requests[] = $row;
     }
 }
 ?>
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
-  <title>Admin Loan Approval - Payroll</title>
-  <link rel="stylesheet" href="<?php echo BASE_URL; ?>bootstrap/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css">
-  <link rel="stylesheet" href="<?php echo BASE_URL; ?>dist/css/AdminLTE.css">
-  <link rel="stylesheet" href="<?php echo BASE_URL; ?>dist/css/skins/_all-skins.min.css">
-  <!--[if lt IE 9]>
-    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-  <![endif]-->
+  <meta charset="UTF-8">
+  <title>Pending Loan Requests</title>
+  <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="dist/css/AdminLTE.css">
+  <link rel="stylesheet" href="dist/css/skins/_all-skins.min.css">
 </head>
 <body class="hold-transition skin-blue sidebar-mini">
 <div class="wrapper">
   <?php require_once(dirname(__FILE__) . '/partials/topnav.php'); ?>
   <?php require_once(dirname(__FILE__) . '/partials/sidenav.php'); ?>
 
-  <div class="content-wrapper">
+  <div class="content-wrapper" style="min-height: 916px;">
     <section class="content-header">
-      <h1>Loan Approval Requests</h1>
-      <ol class="breadcrumb">
-        <li><a href="<?php echo BASE_URL; ?>"><i class="fa fa-dashboard"></i> Home</a></li>
-        <li class="active">Loan Approval</li>
-      </ol>
+      <h1>Pending Loan Requests</h1>
     </section>
+
     <section class="content">
-      <?php if (isset($message)) { echo '<div class="alert alert-info">' . htmlspecialchars($message) . '</div>'; } ?>
-      <div class="box">
-        <div class="box-body table-responsive no-padding">
-          <table class="table table-bordered table-hover">
-            <thead>
-              <tr>
-                <th>Loan ID</th>
-                <th>Employee ID</th>
-                <th>Loan Category</th>
-                <th>Loan Amount</th>
-                <th>Installment</th>
-                <th>Payment Amount</th>
-                <th>Interest Amount</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php foreach ($loan_requests as $loan) { ?>
+      <?php if (empty($requests)): ?>
+        <div class="alert alert-info">No pending requests.</div>
+      <?php else: ?>
+        <div class="box">
+          <div class="box-body table-responsive no-padding">
+            <table class="table table-bordered table-hover">
+              <thead>
                 <tr>
-                  <td><?= htmlspecialchars($loan['loan_id']); ?></td>
-                  <td><?= htmlspecialchars($loan['employee_id']); ?></td>
-                  <td><?= htmlspecialchars($loan['category_name']); ?></td>
-                  <td><?= htmlspecialchars($loan['loan_amount']); ?></td>
-                  <td><?= htmlspecialchars($loan['installment']); ?></td>
-                  <td><?= htmlspecialchars($loan['loan_payment_amount']); ?></td>
-                  <td><?= htmlspecialchars($loan['interest_amount']); ?></td>
-                  <td><?= htmlspecialchars($loan['loan_status']); ?></td>
+                  <th>Loan ID</th>
+                  <th>Employee</th>
+                  <th>Type</th>
+                  <th>Amount</th>
+                  <th>Installment</th>
+                  <th>Reason</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+              <?php foreach ($requests as $r): ?>
+                <tr>
+                  <td><?= htmlspecialchars($r['loan_id']) ?></td>
+                  <td><?= htmlspecialchars($r['first_name'] . ' ' . $r['last_name']) ?></td>
+                  <td><?= htmlspecialchars($r['category_name']) ?></td>
+                  <td><?= number_format($r['loan_amount'], 2) ?></td>
+                  <td><?= number_format($r['loan_installment_amount'], 2) ?></td>
+                  <td><?= nl2br(htmlspecialchars($r['reason'])) ?></td>
+                  <td><?= htmlspecialchars($r['requested_date']) ?></td>
                   <td>
-                    <form action="admin_loan_approval.php" method="POST" style="display:inline;">
-                      <input type="hidden" name="loan_id" value="<?= htmlspecialchars($loan['loan_id']); ?>">
-                      <input type="submit" name="approve" value="Approve" class="btn btn-success btn-xs">
+                    <form method="post" action="process_loan_action.php" style="display:inline;">
+                      <input type="hidden" name="loan_id" value="<?= htmlspecialchars($r['loan_id']) ?>">
+                      <input type="hidden" name="action" value="approve">
+                      <input type="hidden" name="effective_date" value="<?= date('Y-m-d') ?>">
+                      <button class="btn btn-success btn-xs" type="submit">Approve</button>
                     </form>
-                    <form action="admin_loan_approval.php" method="POST" style="display:inline;">
-                      <input type="hidden" name="loan_id" value="<?= htmlspecialchars($loan['loan_id']); ?>">
-                      <input type="submit" name="complete" value="Complete" class="btn btn-primary btn-xs">
+                    <form method="post" action="process_loan_action.php" style="display:inline;">
+                      <input type="hidden" name="loan_id" value="<?= htmlspecialchars($r['loan_id']) ?>">
+                      <button class="btn btn-danger btn-xs" name="action" value="reject">Reject</button>
                     </form>
                   </td>
                 </tr>
-              <?php } ?>
-            </tbody>
-          </table>
+              <?php endforeach; ?>
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      <?php endif; ?>
     </section>
   </div>
 
-  <footer class="main-footer">
-    <strong>&copy; CDBL Payroll Management System | </strong> Developed By CDBL VAS Team 2025
-  </footer>
+  <?php require_once(dirname(__FILE__) . '/partials/footer.php'); ?>
 </div>
 
-<script src="<?php echo BASE_URL; ?>plugins/jQuery/jquery-2.2.3.min.js"></script>
-<script src="<?php echo BASE_URL; ?>bootstrap/js/bootstrap.min.js"></script>
-<script src="<?php echo BASE_URL; ?>dist/js/app.min.js"></script>
+<script src="plugins/jQuery/jquery-2.2.3.min.js"></script>
+<script src="bootstrap/js/bootstrap.min.js"></script>
+<script src="dist/js/app.min.js"></script>
+<script>
+  $(document).ready(function() {
+    console.log("Document ready"); // Global debug log
+  });
+</script>
 </body>
 </html>
+
