@@ -213,7 +213,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $sql_employees = "
                 SELECT DISTINCT lr.employee_id, ce.emp_code, CONCAT(ce.first_name, ' ', ce.last_name) AS employee_name, ce.designation
                 FROM loan_requests lr
-                JOIN cdbl_employees ce ON lr.employee_id = ce.emp_code
+                JOIN cdbl_employees ce ON lr.employee_id = ce.employee_id
                 JOIN loan_balance lb ON lr.loan_id = lb.loan_id
                 WHERE lr.loan_status = 'approved' AND lb.deduction_month = '$deduction_month'
                 ORDER BY ce.emp_code
@@ -239,7 +239,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $date_today = date('jS F Y');
 
                 while ($employee = $result_employees->fetch_assoc()) {
-                    $employee_id = $employee['emp_code'];
+                    $employee_id = $employee['employee_id'];
                     $employee_name = $employee['employee_name'];
                     $designation = $employee['designation'];
 
@@ -302,6 +302,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                     $pdf->AddPage();
 
+                    // Debug: log $month and $year before generating HTML
+                    error_log("Generating PDF for month: $month, year: $year");
+
                     // Formal letter header
                     $html = '<p style="text-align:right;">' . $date_today . '</p>';
                     $html .= '<h3 style="text-align:center;">TO WHOM IT MAY CONCERN</h3>';
@@ -343,20 +346,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         }
                         $stmt_ded->close();
 
-                        // Remaining balance (total loan amount - sum of all deductions till date)
-                        $sql_total_ded = "SELECT SUM(deduction_amount) as total_deduction FROM loan_balance WHERE loan_id = ?";
-                        $stmt_total_ded = $conn->prepare($sql_total_ded);
-                        $stmt_total_ded->bind_param("i", $loan_id);
-                        $stmt_total_ded->execute();
-                        $res_total_ded = $stmt_total_ded->get_result();
-                        $total_deduction_till_date = 0;
-                        if ($res_total_ded && $res_total_ded->num_rows > 0) {
-                            $row_total_ded = $res_total_ded->fetch_assoc();
-                            $total_deduction_till_date = floatval($row_total_ded['total_deduction']);
+                        // Remaining balance (fetch from loan_balance for current deduction_month)
+                        $sql_remaining_balance = "SELECT remaining_balance FROM loan_balance WHERE loan_id = ? AND DATE_FORMAT(deduction_month, '%Y-%m') = ?";
+                        $stmt_remaining = $conn->prepare($sql_remaining_balance);
+                        $month_year = date('Y-m', strtotime("$year-$month-01"));
+                        $stmt_remaining->bind_param("is", $loan_id, $month_year);
+                        $stmt_remaining->execute();
+                        $res_remaining = $stmt_remaining->get_result();
+                        $remaining_balance = 0;
+                        if ($res_remaining && $res_remaining->num_rows > 0) {
+                            $row_remaining = $res_remaining->fetch_assoc();
+                            $remaining_balance = floatval($row_remaining['remaining_balance']);
                         }
-                        $stmt_total_ded->close();
+                        $stmt_remaining->close();
 
-                        $remaining_balance = $loan_amount - $total_deduction_till_date;
                         if ($remaining_balance < 0) $remaining_balance = 0;
 
                         // Format amounts
@@ -379,6 +382,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                     $html .= '<br><br><p>Date: ' . $date_today . '</p>';
                     $html .= '<p>Jayanta Biswun Mondal<br>Senior Assistant General Manager<br>Finance & Accounts</p>';
+
+                    // Check if $html is empty or not before writing to PDF
+                    if (empty(trim($html))) {
+                        $html = '<p>No loan details available to display.</p>';
+                    }
 
                     $pdf->writeHTML($html, true, false, true, false, '');
 
