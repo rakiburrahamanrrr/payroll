@@ -266,14 +266,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         continue;
                     }
 
-                    // Calculate total repayment for the selected month
+                    // Calculate total repayment for the selected month from loan_balance
                     $sql_total_repayment = "
-                        SELECT SUM(loan_installment_amount) as total_repayment
-                        FROM loan_requests
-                        WHERE employee_id = ? AND loan_status = 'approved'
+                        SELECT SUM(deduction_amount) as total_repayment
+                        FROM loan_balance lb
+                        JOIN loan_requests lr ON lb.loan_id = lr.loan_id
+                        WHERE lr.employee_id = ? AND DATE_FORMAT(lb.deduction_month, '%Y-%m') = ? 
                     ";
                     $stmt_total_repayment = $conn->prepare($sql_total_repayment);
-                    $stmt_total_repayment->bind_param("s", $employee_id);
+                    $month_year = date('Y-m', strtotime("$year-$month-01"));
+                    $stmt_total_repayment->bind_param("ss", $employee_id, $month_year);
                     $stmt_total_repayment->execute();
                     $res_total_repayment = $stmt_total_repayment->get_result();
                     $total_repayment = 0;
@@ -283,14 +285,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     }
                     $stmt_total_repayment->close();
 
-                    // Calculate total outstanding loan amount as of the selected month
+                    // Calculate total outstanding loan amount as of the selected month from loan_balance
                     $sql_total_outstanding = "
-                        SELECT SUM(loan_amount) as total_outstanding
-                        FROM loan_requests
-                        WHERE employee_id = ? AND loan_status = 'approved'
+                        SELECT SUM(remaining_balance) as total_outstanding
+                        FROM loan_balance lb
+                        JOIN loan_requests lr ON lb.loan_id = lr.loan_id
+                        WHERE lr.employee_id = ? AND DATE_FORMAT(lb.deduction_month, '%Y-%m') = ?
                     ";
                     $stmt_total_outstanding = $conn->prepare($sql_total_outstanding);
-                    $stmt_total_outstanding->bind_param("s", $employee_id);
+                    $stmt_total_outstanding->bind_param("ss", $employee_id, $month_year);
                     $stmt_total_outstanding->execute();
                     $res_total_outstanding = $stmt_total_outstanding->get_result();
                     $total_outstanding = 0;
