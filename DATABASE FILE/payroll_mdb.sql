@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 08, 2025 at 08:38 AM
+-- Generation Time: May 19, 2025 at 08:50 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -241,7 +241,8 @@ INSERT INTO `cdbl_payscale_grade` (`id`, `emp_grade`, `empsal_grade`, `basic_sal
 (2, 12, 15, 37400, 16830, 1870, 1870, 0, 0),
 (3, 12, 11, 17850, 8033, 893, 893, 0, 0),
 (4, 12, 14, 36550, 16448, 1828, 1828, 0, 0),
-(5, 13, 10, 16500, 6800, 1000, 1000, 0, 0);
+(5, 13, 10, 16500, 6800, 1000, 1000, 0, 0),
+(6, 13, 11, 16800, 6900, 1200, 1200, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -261,24 +262,26 @@ CREATE TABLE `cdbl_pay_structure` (
 --
 
 INSERT INTO `cdbl_pay_structure` (`salary_id`, `emp_code`, `payhead_id`, `default_salary`) VALUES
-(123, 'cdbl90', 1, 16500.00),
-(124, 'cdbl90', 3, 6800.00),
-(125, 'cdbl90', 5, 1000.00),
-(126, 'cdbl90', 12, 417.00),
-(127, 'cdbl90', 4, 1000.00),
-(142, 'cdbl01', 1, 17000.00),
-(143, 'cdbl01', 3, 7650.00),
-(144, 'cdbl01', 5, 850.00),
-(145, 'cdbl01', 12, 417.00),
-(146, 'cdbl01', 4, 850.00),
-(147, 'cdbl01', 13, 1700.00),
-(148, 'cdbl01', 15, 1350.00),
-(149, 'cdbl01', 14, 20000.00),
-(150, 'cdbl91', 1, 37400.00),
-(151, 'cdbl91', 3, 16830.00),
-(152, 'cdbl91', 5, 1870.00),
-(153, 'cdbl91', 12, 825.00),
-(154, 'cdbl91', 13, 3740.00);
+(1, 'cdbl01', 1, 17000.00),
+(2, 'cdbl01', 3, 7650.00),
+(3, 'cdbl01', 5, 850.00),
+(4, 'cdbl01', 11, 417.00),
+(5, 'cdbl01', 12, 1700.00),
+(6, 'cdbl01', 13, 0.00),
+(7, 'cdbl91', 1, 37400.00),
+(8, 'cdbl91', 2, 0.00),
+(9, 'cdbl91', 3, 16830.00),
+(10, 'cdbl91', 4, 1870.00),
+(11, 'cdbl91', 5, 1870.00),
+(12, 'cdbl91', 11, 825.00),
+(13, 'cdbl91', 12, 3740.00),
+(22, 'cdbl90', 1, 16500.00),
+(23, 'cdbl90', 2, 0.00),
+(24, 'cdbl90', 3, 6800.00),
+(25, 'cdbl90', 4, 1000.00),
+(26, 'cdbl90', 5, 1000.00),
+(27, 'cdbl90', 11, 417.00),
+(28, 'cdbl90', 13, 500.00);
 
 -- --------------------------------------------------------
 
@@ -312,15 +315,6 @@ CREATE TABLE `cdbl_salaries` (
   `gross_salary` decimal(10,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
---
--- Dumping data for table `cdbl_salaries`
---
-
-INSERT INTO `cdbl_salaries` (`salary_id`, `emp_code`, `pay_month`, `generate_date`, `basic_salary`, `car_allowance`, `house_rent`, `conveyance_allowance`, `medical_allowance`, `overtime`, `traveling_expenses`, `loans_repayment`, `performance_bonus`, `professional_tax`, `income_tax`, `employee_provident_fund`, `other_deductions`, `arrear_salary`, `leave_without_pay`, `driver_allowance`, `net_salary`, `total_deduction`, `gross_salary`) VALUES
-(1, 'cdbl90', 'January, 2025', '2025-05-08 12:12:09', 16500.00, 0.00, 6800.00, 1000.00, 1000.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 417.00, 0.00, 0.00, 0.00, 0.00, 24883.00, 417.00, 25300.00),
-(2, 'cdbl91', 'January, 2025', '2025-05-08 12:12:09', 37400.00, 0.00, 16830.00, 0.00, 1870.00, 0.00, 0.00, 3740.00, 0.00, 0.00, 0.00, 825.00, 0.00, 0.00, 0.00, 0.00, 51535.00, 4565.00, 56100.00),
-(3, 'cdbl01', 'January, 2025', '2025-05-08 12:12:09', 17000.00, 0.00, 7650.00, 850.00, 850.00, 0.00, 0.00, 1700.00, 0.00, 0.00, 0.00, 417.00, 20000.00, 1350.00, 0.00, 0.00, 5583.00, 22117.00, 27700.00);
-
 -- --------------------------------------------------------
 
 --
@@ -334,6 +328,25 @@ CREATE TABLE `loan_balance` (
   `deduction_month` date NOT NULL,
   `remaining_balance` decimal(10,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+--
+-- Dumping data for table `loan_balance`
+--
+
+INSERT INTO `loan_balance` (`loan_balance_id`, `loan_id`, `deduction_amount`, `deduction_month`, `remaining_balance`) VALUES
+(1, 1, 100.00, '2025-05-01', 9580.00),
+(2, 2, 1000.00, '2025-05-01', 20000.00),
+(3, 3, 1000.00, '2025-05-01', 12000.00),
+(4, 1, 120.00, '2025-05-01', 9580.00),
+(5, 2, 1000.00, '2025-05-01', 16000.00),
+(6, 3, 1000.00, '2025-05-01', 8000.00),
+(7, 1, 100.00, '2025-06-01', 9580.00),
+(8, 2, 1000.00, '2025-06-01', 17000.00),
+(9, 3, 1000.00, '2025-06-01', 9000.00),
+(10, 1, 100.00, '2025-07-01', 9580.00),
+(11, 2, 1000.00, '2025-07-01', 16000.00),
+(12, 3, 1000.00, '2025-07-01', 8000.00),
+(13, 4, 1500.00, '2025-05-01', 248500.00);
 
 -- --------------------------------------------------------
 
@@ -352,7 +365,9 @@ CREATE TABLE `loan_categories` (
 --
 
 INSERT INTO `loan_categories` (`category_id`, `category_name`, `description`) VALUES
-(1, 'car loan', 'car loan');
+(1, 'car loan', 'car loan'),
+(2, 'Home Loan', 'Home Loan'),
+(3, 'Personal loan', 'Personal Loan');
 
 -- --------------------------------------------------------
 
@@ -392,7 +407,7 @@ CREATE TABLE `loan_history` (
 
 CREATE TABLE `loan_requests` (
   `loan_id` int(11) NOT NULL,
-  `emp_code` varchar(50) NOT NULL,
+  `employee_id` varchar(50) NOT NULL,
   `category_id` int(11) NOT NULL,
   `loan_amount` decimal(10,2) NOT NULL,
   `loan_installment_amount` decimal(10,2) NOT NULL,
@@ -408,13 +423,11 @@ CREATE TABLE `loan_requests` (
 -- Dumping data for table `loan_requests`
 --
 
-INSERT INTO `loan_requests` (`loan_id`, `emp_code`, `category_id`, `loan_amount`, `loan_installment_amount`, `reason`, `loan_status`, `approved_date`, `requested_date`, `effective_date`, `complete_date`) VALUES
-(1, 'cdbl01', 1, 100000.00, 10000.00, 'buy car', 'pending', NULL, '2025-05-07', NULL, NULL),
-(2, 'cdbl01', 1, 100000.00, 10000.00, 'buy a car', 'pending', NULL, '2025-05-07', NULL, NULL),
-(3, 'cdbl01', 1, 200000.00, 10000.00, 'buy a car', 'pending', NULL, '2025-05-07', NULL, NULL),
-(4, 'cdbl01', 1, 200000.00, 10000.00, 'buy a car', 'pending', NULL, '2025-05-08', NULL, NULL),
-(5, 'cdbl01', 1, 200000.00, 10000.00, 'buy a car', 'pending', NULL, '2025-05-08', NULL, NULL),
-(6, 'cdbl01', 1, 200000.00, 10000.00, 'buy a car', 'pending', NULL, '2025-05-08', NULL, NULL);
+INSERT INTO `loan_requests` (`loan_id`, `employee_id`, `category_id`, `loan_amount`, `loan_installment_amount`, `reason`, `loan_status`, `approved_date`, `requested_date`, `effective_date`, `complete_date`) VALUES
+(1, '1', 2, 10000.00, 100.00, 'test', 'approved', '2025-05-19', '2025-05-19', '2025-05-19', NULL),
+(2, '1', 3, 20000.00, 1000.00, 'test2', 'approved', '2025-05-19', '2025-05-19', '2025-05-19', NULL),
+(3, '90', 3, 12000.00, 1000.00, 'test3', 'approved', '2025-05-19', '2025-05-19', '2025-05-19', NULL),
+(4, '90', 2, 250000.00, 2500.00, 'test', 'approved', '2025-05-19', '2025-05-19', '2025-05-19', NULL);
 
 --
 -- Indexes for dumped tables
@@ -483,8 +496,7 @@ ALTER TABLE `cdbl_salaries`
 -- Indexes for table `loan_balance`
 --
 ALTER TABLE `loan_balance`
-  ADD PRIMARY KEY (`loan_balance_id`),
-  ADD KEY `loan_id` (`loan_id`);
+  ADD PRIMARY KEY (`loan_balance_id`);
 
 --
 -- Indexes for table `loan_categories`
@@ -496,22 +508,19 @@ ALTER TABLE `loan_categories`
 -- Indexes for table `loan_certificates`
 --
 ALTER TABLE `loan_certificates`
-  ADD PRIMARY KEY (`certificate_id`),
-  ADD KEY `loan_id` (`loan_id`);
+  ADD PRIMARY KEY (`certificate_id`);
 
 --
 -- Indexes for table `loan_history`
 --
 ALTER TABLE `loan_history`
-  ADD PRIMARY KEY (`history_id`),
-  ADD KEY `loan_id` (`loan_id`);
+  ADD PRIMARY KEY (`history_id`);
 
 --
 -- Indexes for table `loan_requests`
 --
 ALTER TABLE `loan_requests`
-  ADD PRIMARY KEY (`loan_id`),
-  ADD KEY `category_id` (`category_id`);
+  ADD PRIMARY KEY (`loan_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -551,31 +560,31 @@ ALTER TABLE `cdbl_payheads`
 -- AUTO_INCREMENT for table `cdbl_payscale_grade`
 --
 ALTER TABLE `cdbl_payscale_grade`
-  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `cdbl_pay_structure`
 --
 ALTER TABLE `cdbl_pay_structure`
-  MODIFY `salary_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=155;
+  MODIFY `salary_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `cdbl_salaries`
 --
 ALTER TABLE `cdbl_salaries`
-  MODIFY `salary_id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `salary_id` int(255) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `loan_balance`
 --
 ALTER TABLE `loan_balance`
-  MODIFY `loan_balance_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `loan_balance_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `loan_categories`
 --
 ALTER TABLE `loan_categories`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `loan_certificates`
@@ -593,35 +602,7 @@ ALTER TABLE `loan_history`
 -- AUTO_INCREMENT for table `loan_requests`
 --
 ALTER TABLE `loan_requests`
-  MODIFY `loan_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
-
---
--- Constraints for dumped tables
---
-
---
--- Constraints for table `loan_balance`
---
-ALTER TABLE `loan_balance`
-  ADD CONSTRAINT `loan_balance_ibfk_1` FOREIGN KEY (`loan_id`) REFERENCES `loan_requests` (`loan_id`);
-
---
--- Constraints for table `loan_certificates`
---
-ALTER TABLE `loan_certificates`
-  ADD CONSTRAINT `loan_certificates_ibfk_1` FOREIGN KEY (`loan_id`) REFERENCES `loan_requests` (`loan_id`);
-
---
--- Constraints for table `loan_history`
---
-ALTER TABLE `loan_history`
-  ADD CONSTRAINT `loan_history_ibfk_1` FOREIGN KEY (`loan_id`) REFERENCES `loan_requests` (`loan_id`);
-
---
--- Constraints for table `loan_requests`
---
-ALTER TABLE `loan_requests`
-  ADD CONSTRAINT `loan_requests_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `loan_categories` (`category_id`);
+  MODIFY `loan_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
