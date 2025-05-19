@@ -28,22 +28,22 @@ if (isset($userData['emp_code'])) {
 	<section class="sidebar">
 		<div class="user-panel">
 			<div class="pull-left image">
-				<?php if ( $_SESSION['Login_Type'] == 'admin' ) { ?>
+				<?php if ( isset($_SESSION['Login_Type']) && $_SESSION['Login_Type'] == 'admin' ) { ?>
 					<img src="<?php echo BASE_URL; ?>dist/img/admin.png" class="img-circle" alt="User Image">
 				<?php } else { ?>
-					<img src="<?php echo REG_URL; ?>photos/<?php echo $userData['photo']; ?>" class="img-circle" alt="User Image">
+					<img src="<?php echo REG_URL; ?>photos/<?php echo isset($userData['photo']) ? $userData['photo'] : ''; ?>" class="img-circle" alt="User Image">
 				<?php } ?>
 			</div>
 			<div class="pull-left info">
-				<?php if ( $_SESSION['Login_Type'] == 'admin' ) { ?>
-					<p><?php echo $userData['admin_name']; ?></p>
+				<?php if ( isset($_SESSION['Login_Type']) && $_SESSION['Login_Type'] == 'admin' ) { ?>
+					<p><?php echo isset($userData['admin_name']) ? $userData['admin_name'] : ''; ?></p>
 				<?php } else { ?>
-					<p><?php echo $userData['first_name']; ?> <?php echo $userData['last_name']; ?></p>
+					<p><?php echo isset($userData['first_name']) ? $userData['first_name'] : ''; ?> <?php echo isset($userData['last_name']) ? $userData['last_name'] : ''; ?></p>
 				<?php } ?>
 				<a href="#"><i class="fa fa-circle text-success"></i> Online</a>
 			</div>
 		</div>
-		<?php if ( $_SESSION['Login_Type'] != 'admin' ) { ?>
+		<?php if ( isset($_SESSION['Login_Type']) && $_SESSION['Login_Type'] != 'admin' ) { ?>
 			<?php if ( $attendanceROW < 2 ) { ?>
 				<form method="POST" class="employee sidebar-form" role="form" id="attendance-form">
 	                <div class="input-group">

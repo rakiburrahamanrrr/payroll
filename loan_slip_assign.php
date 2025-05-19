@@ -26,6 +26,108 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         error_log("Error normalizing deduction_month in loan_balance: " . $conn->error);
     }
 
+    // Function to process loan slips for a given deduction_month
+        function process_loan_slips($conn, $deduction_month, &$message, &$show_readjust_form) {
+            $sql_loans = "SELECT loan_id, loan_amount, loan_installment_amount, effective_date, employee_id FROM loan_requests WHERE loan_status = 'approved'";
+            $result_loans = $conn->query($sql_loans);
+
+            if ($result_loans && $result_loans->num_rows > 0) {
+                $already_processed_loans = [];
+                $newly_processed_loans = [];
+
+                // Group loans by employee_id to sum installment amounts
+                $loans_by_employee = [];
+
+                while ($loan = $result_loans->fetch_assoc()) {
+                    $loan_id = intval($loan['loan_id']);
+                    $loan_amount = floatval($loan['loan_amount']);
+                    $installment_amount = floatval($loan['loan_installment_amount']);
+                    $effective_date = $loan['effective_date'];
+                    $employee_id = $loan['employee_id'];
+
+                    // Check if input deduction_month is greater than effective_date
+                    if (strtotime($deduction_month) < strtotime($effective_date)) {
+                        // Skip processing this loan as the input month/year is before effective_date
+                        continue;
+                    }
+
+                    // Check if loan slip for this loan_id and deduction_month already exists in loan_balance
+                    $sql_check = "SELECT * FROM loan_balance WHERE loan_id = $loan_id AND deduction_month = '$deduction_month'";
+                    $result_check = $conn->query($sql_check);
+
+                    if ($result_check && $result_check->num_rows > 0) {
+                        // Already processed
+                        $already_processed_loans[] = $loan_id;
+                    } else {
+                        // Insert new loan slip entry
+                        // Calculate total deduction so far
+                        $sql_total_deduction = "SELECT SUM(deduction_amount) as total_deduction FROM loan_balance WHERE loan_id = $loan_id";
+                        $result_total = $conn->query($sql_total_deduction);
+                        $total_deduction = 0;
+                        if ($result_total && $result_total->num_rows > 0) {
+                            $row_total = $result_total->fetch_assoc();
+                            $total_deduction = floatval($row_total['total_deduction']);
+                        }
+
+                        $remaining_balance = $loan_amount - $total_deduction - $installment_amount;
+                        if ($remaining_balance < 0) {
+                            $remaining_balance = 0;
+                        }
+
+                        $sql_insert = "INSERT INTO loan_balance (loan_id, deduction_month, deduction_amount, remaining_balance) VALUES ($loan_id, '$deduction_month', $installment_amount, $remaining_balance)";
+                        if ($conn->query($sql_insert) === TRUE) {
+                            $newly_processed_loans[] = $loan_id;
+
+                            // Group installment amounts by employee_id
+                            if (!isset($loans_by_employee[$employee_id])) {
+                                $loans_by_employee[$employee_id] = 0;
+                            }
+                            $loans_by_employee[$employee_id] += $installment_amount;
+                        } else {
+                            $message .= "Error inserting loan slip for Loan ID $loan_id: " . $conn->error . "<br>";
+                        }
+                    }
+                }
+
+                // After processing all loans, update cdbl_pay_structure for each employee with total installment amount
+                foreach ($loans_by_employee as $employee_id => $total_installment) {
+                    // Fetch emp_code from cdbl_employees
+                    $sql_emp_code = "SELECT emp_code FROM cdbl_employees WHERE employee_id = '$employee_id'";
+                    $result_emp_code = $conn->query($sql_emp_code);
+                    if ($result_emp_code && $result_emp_code->num_rows > 0) {
+                        $row_emp_code = $result_emp_code->fetch_assoc();
+                        $emp_code = $row_emp_code['emp_code'];
+
+                        // Insert or update cdbl_pay_structure
+                        // Check if entry exists
+                        $sql_check_pay = "SELECT * FROM cdbl_pay_structure WHERE emp_code = '$emp_code' AND payhead_id = 13";
+                        $result_check_pay = $conn->query($sql_check_pay);
+                        if ($result_check_pay && $result_check_pay->num_rows > 0) {
+                            // Update default_salary with total installment amount
+                            $sql_update_pay = "UPDATE cdbl_pay_structure SET default_salary = $total_installment WHERE emp_code = '$emp_code' AND payhead_id = 13";
+                            $conn->query($sql_update_pay);
+                        } else {
+                            // Insert new entry
+                            $sql_insert_pay = "INSERT INTO cdbl_pay_structure (emp_code, payhead_id, default_salary) VALUES ('$emp_code', 13, $total_installment)";
+                            $conn->query($sql_insert_pay);
+                        }
+                    }
+                }
+
+            if (count($already_processed_loans) > 0) {
+                $message .= "Loan slip already processed for Loan IDs: " . implode(', ', $already_processed_loans) . " for " . date('F Y', strtotime($deduction_month)) . ". ";
+                $message .= "If you want to readjust the loan deduction amount, please provide the details below.";
+                $show_readjust_form = true;
+            }
+
+            if (count($newly_processed_loans) > 0) {
+                $message .= "Loan slip processed successfully for Loan IDs: " . implode(', ', $newly_processed_loans) . " for " . date('F Y', strtotime($deduction_month)) . ".";
+            }
+        } else {
+            $message = "No active loans found to process.";
+        }
+    }
+
     // Check if this is a readjustment form submission
     if (isset($_POST['readjust_submit'])) {
         // Process readjustment update
@@ -69,7 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $message = "Invalid Loan ID.";
             $show_readjust_form = true;
         }
-    } else {
+    } else if (isset($_POST['process_loan_slip'])) {
         // Process loan slip generation for given month and year
         $month = $_POST['month'];
         $year = $_POST['year'];
@@ -80,74 +182,219 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         } else {
             // Compose deduction_month date as first day of month
             $deduction_month = date('Y-m-d', strtotime("first day of $month $year"));
-
-$sql_loans = "SELECT loan_id, loan_amount, loan_installment_amount, effective_date FROM loan_requests WHERE loan_status = 'approved'";
-$result_loans = $conn->query($sql_loans);
-
-if ($result_loans && $result_loans->num_rows > 0) {
-    $already_processed_loans = [];
-    $newly_processed_loans = [];
-
-    while ($loan = $result_loans->fetch_assoc()) {
-        $loan_id = intval($loan['loan_id']);
-        $loan_amount = floatval($loan['loan_amount']);
-        $installment_amount = floatval($loan['loan_installment_amount']);
-        $effective_date = $loan['effective_date'];
-
-        // Check if input deduction_month is greater than effective_date
-        if (strtotime($deduction_month) <= strtotime($effective_date)) {
-            // Skip processing this loan as the input month/year is not greater than effective_date
-            continue;
+            process_loan_slips($conn, $deduction_month, $message, $show_readjust_form);
         }
+    } else if (isset($_POST['generate_loan_slip'])) {
+        // Process loan slip generation if not already done, then generate PDF
+        $month = $_POST['month'];
+        $year = $_POST['year'];
 
-        // Check if loan slip for this loan_id and deduction_month already exists in loan_balance
-        $sql_check = "SELECT * FROM loan_balance WHERE loan_id = $loan_id AND deduction_month = '$deduction_month'";
-        $result_check = $conn->query($sql_check);
-
-        if ($result_check && $result_check->num_rows > 0) {
-            // Already processed
-            $already_processed_loans[] = $loan_id;
+        if (empty($month) || empty($year)) {
+            $message = "Please provide both month and year.";
         } else {
-            // Insert new loan slip entry
-            // Calculate total deduction so far
-            $sql_total_deduction = "SELECT SUM(deduction_amount) as total_deduction FROM loan_balance WHERE loan_id = $loan_id";
-            $result_total = $conn->query($sql_total_deduction);
-            $total_deduction = 0;
-            if ($result_total && $result_total->num_rows > 0) {
-                $row_total = $result_total->fetch_assoc();
-                $total_deduction = floatval($row_total['total_deduction']);
+            $deduction_month = date('Y-m-d', strtotime("first day of $month $year"));
+
+            // Check if loan_balance entries exist for the deduction_month
+            $sql_check_balance = "SELECT COUNT(*) as count FROM loan_balance WHERE deduction_month = '$deduction_month'";
+            $result_check_balance = $conn->query($sql_check_balance);
+            $count = 0;
+            if ($result_check_balance && $result_check_balance->num_rows > 0) {
+                $row_check = $result_check_balance->fetch_assoc();
+                $count = intval($row_check['count']);
             }
 
-            $remaining_balance = $loan_amount - $total_deduction - $installment_amount;
-            if ($remaining_balance < 0) {
-                $remaining_balance = 0;
+            if ($count == 0) {
+                // Process loan slips if not already done
+                process_loan_slips($conn, $deduction_month, $message, $show_readjust_form);
             }
 
-            $sql_insert = "INSERT INTO loan_balance (loan_id, deduction_month, deduction_amount, remaining_balance) VALUES ($loan_id, '$deduction_month', $installment_amount, $remaining_balance)";
-            if ($conn->query($sql_insert) === TRUE) {
-                $newly_processed_loans[] = $loan_id;
+            // Now generate the PDF
+            // Fetch all employees who have approved loans
+            $sql_employees = "
+                SELECT DISTINCT lr.employee_id, ce.emp_code, CONCAT(ce.first_name, ' ', ce.last_name) AS employee_name, ce.designation
+                FROM loan_requests lr
+                JOIN cdbl_employees ce ON lr.employee_id = ce.emp_code
+                JOIN loan_balance lb ON lr.loan_id = lb.loan_id
+                WHERE lr.loan_status = 'approved' AND lb.deduction_month = '$deduction_month'
+                ORDER BY ce.emp_code
+            ";
+            $result_employees = $conn->query($sql_employees);
+
+            if ($result_employees && $result_employees->num_rows > 0) {
+                // Include TCPDF for PDF generation
+                require_once(dirname(__FILE__) . '/TCPDF/tcpdf.php');
+
+                // Create new PDF document
+                $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+                $pdf->SetCreator('CDBL Payroll System');
+                $pdf->SetAuthor('CDBL VAS Team');
+                $pdf->SetTitle('Loan Slip Statements');
+                $pdf->SetMargins(15, 20, 15);
+                $pdf->SetAutoPageBreak(TRUE, 20);
+                $pdf->setPrintHeader(false);
+                $pdf->setPrintFooter(false);
+
+                $pdf->SetFont('helvetica', '', 12);
+
+                $date_today = date('jS F Y');
+
+                while ($employee = $result_employees->fetch_assoc()) {
+                    $employee_id = $employee['emp_code'];
+                    $employee_name = $employee['employee_name'];
+                    $designation = $employee['designation'];
+
+                    // Fetch all approved loans for this employee
+                    $sql_loans_pdf = "
+                        SELECT 
+                            lr.loan_id,
+                            lr.loan_amount,
+                            lr.loan_installment_amount,
+                            lr.reason AS loan_name,
+                            lc.category_name AS loan_category
+                        FROM loan_requests lr
+                        LEFT JOIN loan_categories lc ON lr.category_id = lc.category_id
+                        WHERE lr.loan_status = 'approved' AND lr.employee_id = ?
+                        ORDER BY lr.loan_id
+                    ";
+                    $stmt_loans_pdf = $conn->prepare($sql_loans_pdf);
+                    $stmt_loans_pdf->bind_param("s", $employee_id);
+                    $stmt_loans_pdf->execute();
+                    $res_loans_pdf = $stmt_loans_pdf->get_result();
+
+                    if ($res_loans_pdf->num_rows == 0) {
+                        // Skip employee if no approved loans
+                        continue;
+                    }
+
+                    // Calculate total repayment for the selected month
+                    $sql_total_repayment = "
+                        SELECT SUM(loan_installment_amount) as total_repayment
+                        FROM loan_requests
+                        WHERE employee_id = ? AND loan_status = 'approved'
+                    ";
+                    $stmt_total_repayment = $conn->prepare($sql_total_repayment);
+                    $stmt_total_repayment->bind_param("s", $employee_id);
+                    $stmt_total_repayment->execute();
+                    $res_total_repayment = $stmt_total_repayment->get_result();
+                    $total_repayment = 0;
+                    if ($res_total_repayment && $res_total_repayment->num_rows > 0) {
+                        $row_total_repayment = $res_total_repayment->fetch_assoc();
+                        $total_repayment = floatval($row_total_repayment['total_repayment']);
+                    }
+                    $stmt_total_repayment->close();
+
+                    // Calculate total outstanding loan amount as of the selected month
+                    $sql_total_outstanding = "
+                        SELECT SUM(loan_amount) as total_outstanding
+                        FROM loan_requests
+                        WHERE employee_id = ? AND loan_status = 'approved'
+                    ";
+                    $stmt_total_outstanding = $conn->prepare($sql_total_outstanding);
+                    $stmt_total_outstanding->bind_param("s", $employee_id);
+                    $stmt_total_outstanding->execute();
+                    $res_total_outstanding = $stmt_total_outstanding->get_result();
+                    $total_outstanding = 0;
+                    if ($res_total_outstanding && $res_total_outstanding->num_rows > 0) {
+                        $row_total_outstanding = $res_total_outstanding->fetch_assoc();
+                        $total_outstanding = floatval($row_total_outstanding['total_outstanding']);
+                    }
+                    $stmt_total_outstanding->close();
+
+                    $pdf->AddPage();
+
+                    // Formal letter header
+                    $html = '<p style="text-align:right;">' . $date_today . '</p>';
+                    $html .= '<h3 style="text-align:center;">TO WHOM IT MAY CONCERN</h3>';
+                    $html .= '<p>This is to certify that <b>' . htmlspecialchars($employee_name) . '</b> - ' . htmlspecialchars($designation) . ' has outstanding loans as of <b>' . htmlspecialchars(date('jS F Y', strtotime($deduction_month))) . '</b>.</p>';
+
+                    $html .= '<p>The total outstanding loan amount is Tk. <b>' . number_format($total_outstanding, 2) . '</b> and the total repayment for the month of <b>' . htmlspecialchars($month . ', ' . $year) . '</b> is Tk. <b>' . number_format($total_repayment, 2) . '</b>.</p>';
+
+                    $html .= '<p>Details of the loans are as follows:</p>';
+
+                    // Table header
+                    $html .= '<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">';
+                    $html .= '<thead><tr style="background-color:#f2f2f2;">
+                    <th>Loan Category</th>
+                    <th>Loan Name</th>
+                    <th>Loan Amount (Tk.)</th>
+                    <th>Monthly Installment (Tk.)</th>
+                    <th>Total Deduction (Tk.)</th>
+                    <th>Remaining Outstanding (Tk.)</th>
+                    </tr></thead><tbody>';
+
+                    while ($loan = $res_loans_pdf->fetch_assoc()) {
+                        $loan_id = intval($loan['loan_id']);
+                        $loan_amount = floatval($loan['loan_amount']);
+                        $installment_amount = floatval($loan['loan_installment_amount']);
+                        $loan_category = $loan['loan_category'];
+                        $loan_name = $loan['loan_name'];
+
+                        // Total deduction for the selected month
+                        $sql_deduction = "SELECT SUM(deduction_amount) as total_deduction FROM loan_balance WHERE loan_id = ? AND DATE_FORMAT(deduction_month, '%Y-%m') = ?";
+                        $stmt_ded = $conn->prepare($sql_deduction);
+                        $month_year = date('Y-m', strtotime("$year-$month-01"));
+                        $stmt_ded->bind_param("is", $loan_id, $month_year);
+                        $stmt_ded->execute();
+                        $res_ded = $stmt_ded->get_result();
+                        $total_deduction = 0;
+                        if ($res_ded && $res_ded->num_rows > 0) {
+                            $row_ded = $res_ded->fetch_assoc();
+                            $total_deduction = floatval($row_ded['total_deduction']);
+                        }
+                        $stmt_ded->close();
+
+                        // Remaining balance (total loan amount - sum of all deductions till date)
+                        $sql_total_ded = "SELECT SUM(deduction_amount) as total_deduction FROM loan_balance WHERE loan_id = ?";
+                        $stmt_total_ded = $conn->prepare($sql_total_ded);
+                        $stmt_total_ded->bind_param("i", $loan_id);
+                        $stmt_total_ded->execute();
+                        $res_total_ded = $stmt_total_ded->get_result();
+                        $total_deduction_till_date = 0;
+                        if ($res_total_ded && $res_total_ded->num_rows > 0) {
+                            $row_total_ded = $res_total_ded->fetch_assoc();
+                            $total_deduction_till_date = floatval($row_total_ded['total_deduction']);
+                        }
+                        $stmt_total_ded->close();
+
+                        $remaining_balance = $loan_amount - $total_deduction_till_date;
+                        if ($remaining_balance < 0) $remaining_balance = 0;
+
+                        // Format amounts
+                        $loan_amount_fmt = number_format($loan_amount, 2);
+                        $installment_amount_fmt = number_format($installment_amount, 2);
+                        $total_deduction_fmt = number_format($total_deduction, 2);
+                        $remaining_balance_fmt = number_format($remaining_balance, 2);
+
+                        $html .= '<tr>
+                        <td>' . htmlspecialchars($loan_category) . '</td>
+                        <td>' . htmlspecialchars($loan_name) . '</td>
+                        <td style="text-align:right;">' . $loan_amount_fmt . '</td>
+                        <td style="text-align:right;">' . $installment_amount_fmt . '</td>
+                        <td style="text-align:right;">' . $total_deduction_fmt . '</td>
+                        <td style="text-align:right;">' . $remaining_balance_fmt . '</td>
+                        </tr>';
+                    }
+
+                    $html .= '</tbody></table>';
+
+                    $html .= '<br><br><p>Date: ' . $date_today . '</p>';
+                    $html .= '<p>Jayanta Biswun Mondal<br>Senior Assistant General Manager<br>Finance & Accounts</p>';
+
+                    $pdf->writeHTML($html, true, false, true, false, '');
+
+                    $stmt_loans_pdf->close();
+                }
+
+                $conn->close();
+
+                // Output PDF
+                $pdf->Output('loan_slip_statements_' . $month . '_' . $year . '.pdf', 'I');
+                exit;
             } else {
-                $message .= "Error inserting loan slip for Loan ID $loan_id: " . $conn->error . "<br>";
+                $message = "No employees with approved loans found for $month/$year.";
             }
         }
     }
-
-                if (count($already_processed_loans) > 0) {
-                    $message .= "Loan slip already processed for Loan IDs: " . implode(', ', $already_processed_loans) . " for $month/$year. ";
-                    $message .= "If you want to readjust the loan deduction amount, please provide the details below.";
-                    $show_readjust_form = true;
-                }
-
-                if (count($newly_processed_loans) > 0) {
-                    $message .= "Loan slip processed successfully for Loan IDs: " . implode(', ', $newly_processed_loans) . " for $month/$year.";
-                }
-            } else {
-                $message = "No active loans found to process.";
-            }
-        }
-    }
-
-    $conn->close();
 }
 ?>
 
@@ -229,10 +476,10 @@ if ($result_loans && $result_loans->num_rows > 0) {
                             </div>
 
                             <button type="submit" class="btn btn-primary" name="process_loan_slip">Loan Slip Process</button>
-                        </form>
-                        <form method="GET" action="generate_loan_slip.php" target="_blank" style="margin-top: 10px;">
-                            <button type="submit" class="btn btn-success">Generate Loan Slip</button>
-                        </form>
+                        <button type="submit" class="btn btn-success" name="generate_loan_slip" style="margin-top: 10px;">Generate Loan Slip</button>
+                    </form>
+                    <!-- Removed the separate Generate Loan Slip button that calls generate_loan_slip.php -->
+                    <!-- Added Generate Loan Slip button integrated with loan slip process -->
 
                         <?php if ($show_readjust_form) { ?>
                             <hr>
