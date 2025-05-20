@@ -14,6 +14,115 @@ $year = '';
 $loan_id_input = '';
 $deduction_amount_input = '';
 
+function process_loan_slips($conn, $deduction_month, &$message, &$show_readjust_form) {
+    $sql_loans = "SELECT loan_id, loan_amount, loan_installment_amount, effective_date, employee_id FROM loan_requests WHERE loan_status = 'approved'";
+    $result_loans = $conn->query($sql_loans);
+
+    if ($result_loans && $result_loans->num_rows > 0) {
+        $already_processed_loans = [];
+        $newly_processed_loans = [];
+
+        // Group loans by employee_id to sum installment amounts
+        $loans_by_employee = [];
+
+        while ($loan = $result_loans->fetch_assoc()) {
+            $loan_id = intval($loan['loan_id']);
+            $loan_amount = floatval($loan['loan_amount']);
+            $installment_amount = floatval($loan['loan_installment_amount']);
+            $effective_date = $loan['effective_date'];
+            $employee_id = $loan['employee_id'];
+
+            // Check if input deduction_month is greater than effective_date
+            if (strtotime($deduction_month) < strtotime($effective_date)) {
+                // Skip processing this loan as the input month/year is before effective_date
+                continue;
+            }
+
+            // Check if loan slip for this loan_id and deduction_month already exists in loan_balance
+            $sql_check = "SELECT * FROM loan_balance WHERE loan_id = $loan_id AND deduction_month = '$deduction_month'";
+            $result_check = $conn->query($sql_check);
+
+            if ($result_check && $result_check->num_rows > 0) {
+                // Already processed
+                $already_processed_loans[] = $loan_id;
+            } else {
+                // Insert new loan slip entry
+                // Calculate total deduction so far
+                $sql_total_deduction = "SELECT SUM(deduction_amount) as total_deduction FROM loan_balance WHERE loan_id = $loan_id";
+                $result_total = $conn->query($sql_total_deduction);
+                $total_deduction = 0;
+                if ($result_total && $result_total->num_rows > 0) {
+                    $row_total = $result_total->fetch_assoc();
+                    $total_deduction = floatval($row_total['total_deduction']);
+                }
+
+                error_log("loan_amount type: " . gettype($loan_amount) . ", value: " . var_export($loan_amount, true));
+                error_log("total_deduction type: " . gettype($total_deduction) . ", value: " . var_export($total_deduction, true));
+                error_log("installment_amount type: " . gettype($installment_amount) . ", value: " . var_export($installment_amount, true));
+
+                $loan_amount = (float)$loan_amount;
+                $total_deduction = (float)$total_deduction;
+                $installment_amount = (float)$installment_amount;
+
+                $remaining_balance = $loan_amount - $total_deduction - $installment_amount;
+                if ($remaining_balance < 0) {
+                    $remaining_balance = 0;
+                }
+
+                $sql_insert = "INSERT INTO loan_balance (loan_id, deduction_month, deduction_amount, remaining_balance) VALUES ($loan_id, '$deduction_month', $installment_amount, $remaining_balance)";
+                if ($conn->query($sql_insert) === TRUE) {
+                    $newly_processed_loans[] = $loan_id;
+
+                    // Group installment amounts by employee_id
+                    if (!isset($loans_by_employee[$employee_id])) {
+                        $loans_by_employee[$employee_id] = 0;
+                    }
+                    $loans_by_employee[$employee_id] += $installment_amount;
+                } else {
+                    $message .= "Error inserting loan slip for Loan ID $loan_id: " . $conn->error . "<br>";
+                }
+            }
+        }
+
+        // After processing all loans, update cdbl_pay_structure for each employee with total installment amount
+        foreach ($loans_by_employee as $employee_id => $total_installment) {
+            // Fetch emp_code from cdbl_employees
+            $sql_emp_code = "SELECT emp_code FROM cdbl_employees WHERE employee_id = '$employee_id'";
+            $result_emp_code = $conn->query($sql_emp_code);
+            if ($result_emp_code && $result_emp_code->num_rows > 0) {
+                $row_emp_code = $result_emp_code->fetch_assoc();
+                $emp_code = $row_emp_code['emp_code'];
+
+                // Insert or update cdbl_pay_structure
+                // Check if entry exists
+                $sql_check_pay = "SELECT * FROM cdbl_pay_structure WHERE emp_code = '$emp_code' AND payhead_id = 13";
+                $result_check_pay = $conn->query($sql_check_pay);
+                if ($result_check_pay && $result_check_pay->num_rows > 0) {
+                    // Update default_salary with total installment amount
+                    $sql_update_pay = "UPDATE cdbl_pay_structure SET default_salary = $total_installment WHERE emp_code = '$emp_code' AND payhead_id = 13";
+                    $conn->query($sql_update_pay);
+                } else {
+                    // Insert new entry
+                    $sql_insert_pay = "INSERT INTO cdbl_pay_structure (emp_code, payhead_id, default_salary) VALUES ('$emp_code', 13, $total_installment)";
+                    $conn->query($sql_insert_pay);
+                }
+            }
+        }
+
+        if (count($already_processed_loans) > 0) {
+            $message .= "Loan slip already processed for Loan IDs: " . implode(', ', $already_processed_loans) . " for " . date('F Y', strtotime($deduction_month)) . ". ";
+            $message .= "If you want to readjust the loan deduction amount, please provide the details below.";
+            $show_readjust_form = true;
+        }
+
+        if (count($newly_processed_loans) > 0) {
+            $message .= "Loan slip processed successfully for Loan IDs: " . implode(', ', $newly_processed_loans) . " for " . date('F Y', strtotime($deduction_month)) . ".";
+        }
+    } else {
+        $message = "No active loans found to process.";
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $conn = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB_NAME);
     if ($conn->connect_error) {
@@ -24,116 +133,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $sql_normalize = "UPDATE loan_balance SET deduction_month = DATE_FORMAT(deduction_month, '%Y-%m-01') WHERE deduction_month != DATE_FORMAT(deduction_month, '%Y-%m-01')";
     if (!$conn->query($sql_normalize)) {
         error_log("Error normalizing deduction_month in loan_balance: " . $conn->error);
-    }
-
-    // Function to process loan slips for a given deduction_month
-        function process_loan_slips($conn, $deduction_month, &$message, &$show_readjust_form) {
-            $sql_loans = "SELECT loan_id, loan_amount, loan_installment_amount, effective_date, employee_id FROM loan_requests WHERE loan_status = 'approved'";
-            $result_loans = $conn->query($sql_loans);
-
-            if ($result_loans && $result_loans->num_rows > 0) {
-                $already_processed_loans = [];
-                $newly_processed_loans = [];
-
-                // Group loans by employee_id to sum installment amounts
-                $loans_by_employee = [];
-
-                while ($loan = $result_loans->fetch_assoc()) {
-                    $loan_id = intval($loan['loan_id']);
-                    $loan_amount = floatval($loan['loan_amount']);
-                    $installment_amount = floatval($loan['loan_installment_amount']);
-                    $effective_date = $loan['effective_date'];
-                    $employee_id = $loan['employee_id'];
-
-                    // Check if input deduction_month is greater than effective_date
-                    if (strtotime($deduction_month) < strtotime($effective_date)) {
-                        // Skip processing this loan as the input month/year is before effective_date
-                        continue;
-                    }
-
-                    // Check if loan slip for this loan_id and deduction_month already exists in loan_balance
-                    $sql_check = "SELECT * FROM loan_balance WHERE loan_id = $loan_id AND deduction_month = '$deduction_month'";
-                    $result_check = $conn->query($sql_check);
-
-                    if ($result_check && $result_check->num_rows > 0) {
-                        // Already processed
-                        $already_processed_loans[] = $loan_id;
-                    } else {
-                        // Insert new loan slip entry
-                        // Calculate total deduction so far
-                        $sql_total_deduction = "SELECT SUM(deduction_amount) as total_deduction FROM loan_balance WHERE loan_id = $loan_id";
-                        $result_total = $conn->query($sql_total_deduction);
-                        $total_deduction = 0;
-                        if ($result_total && $result_total->num_rows > 0) {
-                            $row_total = $result_total->fetch_assoc();
-                            $total_deduction = floatval($row_total['total_deduction']);
-                        }
-
-                        error_log("loan_amount type: " . gettype($loan_amount) . ", value: " . var_export($loan_amount, true));
-                        error_log("total_deduction type: " . gettype($total_deduction) . ", value: " . var_export($total_deduction, true));
-                        error_log("installment_amount type: " . gettype($installment_amount) . ", value: " . var_export($installment_amount, true));
-
-                        $loan_amount = (float)$loan_amount;
-                        $total_deduction = (float)$total_deduction;
-                        $installment_amount = (float)$installment_amount;
-
-                        $remaining_balance = $loan_amount - $total_deduction - $installment_amount;
-                        if ($remaining_balance < 0) {
-                            $remaining_balance = 0;
-                        }
-
-                        $sql_insert = "INSERT INTO loan_balance (loan_id, deduction_month, deduction_amount, remaining_balance) VALUES ($loan_id, '$deduction_month', $installment_amount, $remaining_balance)";
-                        if ($conn->query($sql_insert) === TRUE) {
-                            $newly_processed_loans[] = $loan_id;
-
-                            // Group installment amounts by employee_id
-                            if (!isset($loans_by_employee[$employee_id])) {
-                                $loans_by_employee[$employee_id] = 0;
-                            }
-                            $loans_by_employee[$employee_id] += $installment_amount;
-                        } else {
-                            $message .= "Error inserting loan slip for Loan ID $loan_id: " . $conn->error . "<br>";
-                        }
-                    }
-                }
-
-                // After processing all loans, update cdbl_pay_structure for each employee with total installment amount
-                foreach ($loans_by_employee as $employee_id => $total_installment) {
-                    // Fetch emp_code from cdbl_employees
-                    $sql_emp_code = "SELECT emp_code FROM cdbl_employees WHERE employee_id = '$employee_id'";
-                    $result_emp_code = $conn->query($sql_emp_code);
-                    if ($result_emp_code && $result_emp_code->num_rows > 0) {
-                        $row_emp_code = $result_emp_code->fetch_assoc();
-                        $emp_code = $row_emp_code['emp_code'];
-
-                        // Insert or update cdbl_pay_structure
-                        // Check if entry exists
-                        $sql_check_pay = "SELECT * FROM cdbl_pay_structure WHERE emp_code = '$emp_code' AND payhead_id = 13";
-                        $result_check_pay = $conn->query($sql_check_pay);
-                        if ($result_check_pay && $result_check_pay->num_rows > 0) {
-                            // Update default_salary with total installment amount
-                            $sql_update_pay = "UPDATE cdbl_pay_structure SET default_salary = $total_installment WHERE emp_code = '$emp_code' AND payhead_id = 13";
-                            $conn->query($sql_update_pay);
-                        } else {
-                            // Insert new entry
-                            $sql_insert_pay = "INSERT INTO cdbl_pay_structure (emp_code, payhead_id, default_salary) VALUES ('$emp_code', 13, $total_installment)";
-                            $conn->query($sql_insert_pay);
-                        }
-                    }
-                }
-
-            if (count($already_processed_loans) > 0) {
-                $message .= "Loan slip already processed for Loan IDs: " . implode(', ', $already_processed_loans) . " for " . date('F Y', strtotime($deduction_month)) . ". ";
-                $message .= "If you want to readjust the loan deduction amount, please provide the details below.";
-                $show_readjust_form = true;
-            }
-
-            if (count($newly_processed_loans) > 0) {
-                $message .= "Loan slip processed successfully for Loan IDs: " . implode(', ', $newly_processed_loans) . " for " . date('F Y', strtotime($deduction_month)) . ".";
-            }
-        } else {
-            $message = "No active loans found to process.";
-        }
     }
 
     // Check if this is a readjustment form submission
@@ -152,22 +151,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $result_loan = $conn->query($sql_loan);
         if ($result_loan && $result_loan->num_rows > 0) {
             $row_loan = $result_loan->fetch_assoc();
-                $loan_amount = floatval($row_loan['loan_amount']);
-                $sql_update = "UPDATE loan_balance SET deduction_amount = $deduction_amount_input WHERE loan_id = $loan_id_input AND deduction_month = '$deduction_month'";
-                if ($conn->query($sql_update) === TRUE) {
-                    // Recalculate total deduction amount for this loan
-                    $sql_sum = "SELECT SUM(deduction_amount) as total_deduction FROM loan_balance WHERE loan_id = $loan_id_input";
-                    $result_sum = $conn->query($sql_sum);
-                    $total_deduction = 0;
-                    if ($result_sum && $result_sum->num_rows > 0) {
-                        $row_sum = $result_sum->fetch_assoc();
-                        $total_deduction = floatval($row_sum['total_deduction']);
-                    }
-                    $remaining_balance = $loan_amount - $total_deduction;
+            $loan_amount = floatval($row_loan['loan_amount']);
+            $sql_update = "UPDATE loan_balance SET deduction_amount = $deduction_amount_input WHERE loan_id = $loan_id_input AND deduction_month = '$deduction_month'";
+            if ($conn->query($sql_update) === TRUE) {
+                // Recalculate total deduction amount for this loan
+                $sql_sum = "SELECT SUM(deduction_amount) as total_deduction FROM loan_balance WHERE loan_id = $loan_id_input";
+                $result_sum = $conn->query($sql_sum);
+                $total_deduction = 0;
+                if ($result_sum && $result_sum->num_rows > 0) {
+                    $row_sum = $result_sum->fetch_assoc();
+                    $total_deduction = floatval($row_sum['total_deduction']);
+                }
+                $remaining_balance = $loan_amount - $total_deduction;
 
-                    // Update remaining balance in loan_balance for all entries of this loan
-                    $sql_update_balance = "UPDATE loan_balance SET remaining_balance = $remaining_balance WHERE loan_id = $loan_id_input";
-                    $conn->query($sql_update_balance);
+                // Update remaining balance in loan_balance for all entries of this loan
+                $sql_update_balance = "UPDATE loan_balance SET remaining_balance = $remaining_balance WHERE loan_id = $loan_id_input";
+                $conn->query($sql_update_balance);
 
                 $message = "Deduction amount updated successfully for Loan ID $loan_id_input for $month/$year.";
                 $show_readjust_form = false;
@@ -343,10 +342,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $loan_category = $loan['loan_category'];
                         $loan_name = $loan['loan_name'];
 
-                        // Total deduction for the selected month
-                        $sql_deduction = "SELECT SUM(deduction_amount) as total_deduction FROM loan_balance WHERE loan_id = ? AND DATE_FORMAT(deduction_month, '%Y-%m') = ?";
+                        // Total deduction for the selected month (cumulative sum up to selected month)
+                        $sql_deduction = "SELECT SUM(deduction_amount) as total_deduction FROM loan_balance WHERE loan_id = ? AND deduction_month <= ?";
                         $stmt_ded = $conn->prepare($sql_deduction);
-                        $month_year = date('Y-m', strtotime("$year-$month-01"));
+                        $month_year = date('Y-m-d', strtotime("$year-$month-01"));
                         $stmt_ded->bind_param("is", $loan_id, $month_year);
                         $stmt_ded->execute();
                         $res_ded = $stmt_ded->get_result();

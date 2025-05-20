@@ -4,20 +4,20 @@ $page_name = basename($_SERVER["SCRIPT_FILENAME"], '.php');
 global $db, $userData;
 
 $attendanceROW = 0;
-$action_name = 'Punch In';
+$action_name = 'Start';
 
 if (isset($userData['emp_code'])) {
     $attendanceSQL = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "attendance` WHERE `emp_code` = '" . $userData['emp_code'] . "' AND `attendance_date` = '" . date('Y-m-d') . "'");
     if ($attendanceSQL) {
         $attendanceROW = mysqli_num_rows($attendanceSQL);
         if ($attendanceROW == 0) {
-            $action_name = 'Punch In';
+            $action_name = 'Start';
         } else {
             $attendanceDATA = mysqli_fetch_assoc($attendanceSQL);
             if ($attendanceDATA['action_name'] == 'punchin') {
-                $action_name = 'Punch Out';
+                $action_name = 'stop';
             } else {
-                $action_name = 'Punch In';
+                $action_name = 'Start';
             }
         }
     }
@@ -59,11 +59,11 @@ if (isset($userData['emp_code'])) {
 		<ul class="sidebar-menu">
 			<li class="header">NAVIGATION</li>
 <?php if ( $_SESSION['Login_Type'] == 'admin' ) { ?>
-				<li class="<?php echo $page_name == "attendance" ? 'active' : ''; ?>">
-					<a href="<?php echo BASE_URL; ?>attendance/">
-						<i class="fa fa-calendar"></i> <span>Attendance</span>
-					</a>
-				</li>
+<li class="<?php echo $page_name == "attendance" ? 'active' : ''; ?>">
+	<a href="<?php echo BASE_URL; ?>attendance/">
+		<i class="fa fa-calendar"></i> <span>Project Task Record</span>
+	</a>
+</li>
 				<li class="<?php echo $page_name == "employees" ? 'active' : ''; ?>">
 					<a href="<?php echo BASE_URL; ?>employees/">
 						<i class="fa fa-users"></i> <span>Employees Section</span>

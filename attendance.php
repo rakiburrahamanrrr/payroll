@@ -57,10 +57,10 @@ if ( !isset($_SESSION['Admin_ID']) || $_SESSION['Login_Type'] != 'admin' ) {
 												<th>DATE</th>
 												<th>EMP CODE</th>
 												<th>NAME</th>
-												<th>PUNCH-IN</th>
-												<th>PUNCH-IN MESSAGE</th>
-												<th>PUNCH-OUT</th>
-												<th>PUNCH-OUT MESSAGE</th>
+												<th>Work Started time</th>
+												<th>Task Details</th>
+												<th>Work Stopped</th>
+												<th>Task Details</th>
 												<th>WORK HOURS</th>
 											</tr>
 										</thead>
