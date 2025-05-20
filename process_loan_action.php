@@ -60,7 +60,8 @@ if (mysqli_stmt_execute($stmt)) {
         $query_insert_balance = "INSERT INTO loan_balance (loan_id, deduction_amount, deduction_month, remaining_balance) VALUES (?, ?, ?, ?)";
         $stmt_insert = mysqli_prepare($db, $query_insert_balance);
         $current_date = $effectiveDate;
-        mysqli_stmt_bind_param($stmt_insert, "idsd", $loanId, $installmentAmount, $current_date, $loanAmount);
+        $remainingBalance = $loanAmount - $installmentAmount;
+        mysqli_stmt_bind_param($stmt_insert, "idsd", $loanId, $installmentAmount, $current_date, $remainingBalance);
         mysqli_stmt_execute($stmt_insert);
         mysqli_stmt_close($stmt_insert);
     }

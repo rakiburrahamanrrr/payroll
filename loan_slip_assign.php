@@ -69,6 +69,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             $total_deduction = floatval($row_total['total_deduction']);
                         }
 
+                        error_log("loan_amount type: " . gettype($loan_amount) . ", value: " . var_export($loan_amount, true));
+                        error_log("total_deduction type: " . gettype($total_deduction) . ", value: " . var_export($total_deduction, true));
+                        error_log("installment_amount type: " . gettype($installment_amount) . ", value: " . var_export($installment_amount, true));
+
+                        $loan_amount = (float)$loan_amount;
+                        $total_deduction = (float)$total_deduction;
+                        $installment_amount = (float)$installment_amount;
+
                         $remaining_balance = $loan_amount - $total_deduction - $installment_amount;
                         if ($remaining_balance < 0) {
                             $remaining_balance = 0;
@@ -144,22 +152,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $result_loan = $conn->query($sql_loan);
         if ($result_loan && $result_loan->num_rows > 0) {
             $row_loan = $result_loan->fetch_assoc();
-            $loan_amount = floatval($row_loan['loan_amount']);
-            $sql_update = "UPDATE loan_balance SET deduction_amount = $deduction_amount_input WHERE loan_id = $loan_id_input AND deduction_month = '$deduction_month'";
-            if ($conn->query($sql_update) === TRUE) {
-                // Recalculate total deduction amount for this loan
-                $sql_sum = "SELECT SUM(deduction_amount) as total_deduction FROM loan_balance WHERE loan_id = $loan_id_input";
-                $result_sum = $conn->query($sql_sum);
-                $total_deduction = 0;
-                if ($result_sum && $result_sum->num_rows > 0) {
-                    $row_sum = $result_sum->fetch_assoc();
-                    $total_deduction = floatval($row_sum['total_deduction']);
-                }
-                $remaining_balance = $loan_amount - $total_deduction;
+                $loan_amount = floatval($row_loan['loan_amount']);
+                $sql_update = "UPDATE loan_balance SET deduction_amount = $deduction_amount_input WHERE loan_id = $loan_id_input AND deduction_month = '$deduction_month'";
+                if ($conn->query($sql_update) === TRUE) {
+                    // Recalculate total deduction amount for this loan
+                    $sql_sum = "SELECT SUM(deduction_amount) as total_deduction FROM loan_balance WHERE loan_id = $loan_id_input";
+                    $result_sum = $conn->query($sql_sum);
+                    $total_deduction = 0;
+                    if ($result_sum && $result_sum->num_rows > 0) {
+                        $row_sum = $result_sum->fetch_assoc();
+                        $total_deduction = floatval($row_sum['total_deduction']);
+                    }
+                    $remaining_balance = $loan_amount - $total_deduction;
 
-                // Update remaining balance in loan_balance for all entries of this loan
-                $sql_update_balance = "UPDATE loan_balance SET remaining_balance = $remaining_balance WHERE loan_id = $loan_id_input";
-                $conn->query($sql_update_balance);
+                    // Update remaining balance in loan_balance for all entries of this loan
+                    $sql_update_balance = "UPDATE loan_balance SET remaining_balance = $remaining_balance WHERE loan_id = $loan_id_input";
+                    $conn->query($sql_update_balance);
 
                 $message = "Deduction amount updated successfully for Loan ID $loan_id_input for $month/$year.";
                 $show_readjust_form = false;
