@@ -132,19 +132,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['month']) && isset($_PO
         $sheet->setCellValue('D3', 'CDBL/Finance/' . str_replace(', ', '/', $month_year));
         $sheet->getStyle('D3')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
 
-        // Remove the merge on A6:D8 and replace with merges per line for subject text
-        $sheet->setCellValue('A6', 'Sub: Transfer of Fund');
-        $sheet->mergeCells('A6:D6');
-        $sheet->getStyle('A6')->getFont()->setBold(true);
-
-        $sheet->setCellValue('A7', "Please debit the sum of Tk. {$totalAmountFormatted}/- to our SND A/C # 0190171903041 and transfer to credit of the following Accounts at your branch, amounts as listed below :");
-        $sheet->mergeCells('A7:D7');
-        $sheet->getStyle('A7')->getAlignment()->setWrapText(true);
-
-        $sheet->setCellValue('A8', "(Salary for {$month_year})");
-        $sheet->mergeCells('A8:D8');
-        $sheet->getStyle('A8')->getAlignment()->setWrapText(true);
-
         // Initialize totalNetSalary before loop
         $totalNetSalary = 0;
 
