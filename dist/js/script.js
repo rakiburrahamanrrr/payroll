@@ -87,6 +87,75 @@ if ( $('#attendance-form').length > 0 ) {
 /* End of Script */
 
 $(document).ready(function() {
+
+    // Dynamic calculation for Payscale Grade form, prefix is '' for edit form, '_add' for add form
+    function calculatePayscaleAllowances(prefix) {
+        prefix = prefix || '';
+        var basicSalary = parseFloat($('#basic_salary' + prefix).val().replace(/,/g, '')) || 0;
+        var empGrade = parseInt($('#emp_grade' + prefix).val()) || 0;
+        var houseRent = 0;
+        var medicalAllowance = 0;
+        var conveyanceAllowance = 0;
+        var driverAllowance = 0;
+        var carAllowance = 0;
+
+        // House Rent: 45% of basic salary
+        houseRent = basicSalary * 0.45;
+
+        // Medical Allowance calculation
+        if (empGrade >= 4 && empGrade <= 7) {
+            medicalAllowance = basicSalary * 0.10;
+            if (medicalAllowance > 10000) {
+                medicalAllowance = 10000;
+            }
+        } else if (empGrade > 7 && empGrade <= 15) {
+            medicalAllowance = basicSalary * 0.05;
+        } else {
+            medicalAllowance = basicSalary * 0.05;
+        }
+
+        // Conveyance, Driver Allowance, Car Allowance calculation
+        if (empGrade >= 2 && empGrade <= 5) {
+            driverAllowance = 23000;
+            carAllowance = 48440;
+            conveyanceAllowance = 0;
+        } else if (empGrade == 6 || empGrade == 7) {
+            driverAllowance = 23000;
+            carAllowance = 20000;
+            conveyanceAllowance = 0;
+        } else {
+            driverAllowance = 0;
+            carAllowance = 0;
+            conveyanceAllowance = basicSalary * 0.05;
+        }
+
+        // Update the form fields with calculated values, rounded to 2 decimals
+        $('#house_rent' + prefix).val(houseRent.toFixed(2));
+        $('#medical_allowance' + prefix).val(medicalAllowance.toFixed(2));
+        $('#conveyance_allowance' + prefix).val(conveyanceAllowance.toFixed(2));
+        $('#driver_allowance' + prefix).val(driverAllowance.toFixed(2));
+        $('#car_allowance' + prefix).val(carAllowance.toFixed(2));
+    }
+
+    // Attach event listeners to basic_salary and emp_grade inputs in Edit Payscale Grade form
+    $('#basic_salary, #emp_grade').on('input change', function() {
+        calculatePayscaleAllowances('');
+    });
+
+    // Attach event listeners to basic_salary_add and emp_grade_add inputs in Add Payscale Grade form
+    $('#basic_salary_add, #emp_grade_add').on('input change', function() {
+        calculatePayscaleAllowances('_add');
+    });
+
+    // Also calculate on Edit modal show to initialize values if any
+    $('#EditPayscaleModal').on('shown.bs.modal', function() {
+        calculatePayscaleAllowances('');
+    });
+
+    // Also calculate on Add modal show to initialize values if any
+    $('#AddPayscaleModal').on('shown.bs.modal', function() {
+        calculatePayscaleAllowances('_add');
+    });
     /* Attendance Table Script Start */
     if ( $('#attendance').length > 0 ) {
         var att_table = $('#attendance').DataTable({
@@ -212,36 +281,52 @@ $(document).ready(function() {
         });
 
         // Add Payscale Grade form submission
-        $('#add-payscale-form').on('submit', function(e) {
-            e.preventDefault();
-            var form = $(this);
-            // console.log("Submitting add-payscale-form with data:", form.serialize());
-            $.ajax({
-                type: "POST",
-                url: baseurl + "ajax/index.php?case=InsertPayscaleGrade",
-                data: form.serialize(),
-                dataType: "json",
-                success: function(result) {
-                    if (result.code === 0) {
-                        $.notify({
-                            icon: 'glyphicon glyphicon-ok-circle',
-                            message: result.result,
-                        }, {
-                            allow_dismiss: false,
-                            type: "success",
-                            placement: {
-                                from: "top",
-                                align: "right"
-                            },
-                            z_index: 9999,
-                        });
-                        $('#AddPayscaleModal').modal('hide');
-                        admin_payscale_table.ajax.reload(null, false);
-                        form[0].reset();
-                    } else {
+            $('#add-payscale-form').on('submit', function(e) {
+                e.preventDefault();
+                var form = $(this);
+                // console.log("Submitting add-payscale-form with data:", form.serialize());
+                $.ajax({
+                    type: "POST",
+                    url: baseurl + "ajax/?case=InsertUpdatePayscaleGrade",
+                    data: form.serialize(),
+                    dataType: "json",
+                    success: function(result) {
+                        if (result.code === 0) {
+                            $.notify({
+                                icon: 'glyphicon glyphicon-ok-circle',
+                                message: result.result,
+                            }, {
+                                allow_dismiss: false,
+                                type: "success",
+                                placement: {
+                                    from: "top",
+                                    align: "right"
+                                },
+                                z_index: 9999,
+                            });
+                            $('#AddPayscaleModal').modal('hide');
+                            admin_payscale_table.ajax.reload(null, false);
+                            form[0].reset();
+                        } else {
+                            $.notify({
+                                icon: 'glyphicon glyphicon-remove-circle',
+                                message: result.result,
+                            }, {
+                                allow_dismiss: false,
+                                type: "danger",
+                                placement: {
+                                    from: "top",
+                                    align: "right"
+                                },
+                                z_index: 9999,
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        // console.error("AJAX error:", xhr.responseText);
                         $.notify({
                             icon: 'glyphicon glyphicon-remove-circle',
-                            message: result.result,
+                            message: 'An error occurred while adding the record.',
                         }, {
                             allow_dismiss: false,
                             type: "danger",
@@ -252,24 +337,8 @@ $(document).ready(function() {
                             z_index: 9999,
                         });
                     }
-                },
-                error: function(xhr, status, error) {
-                    // console.error("AJAX error:", xhr.responseText);
-                    $.notify({
-                        icon: 'glyphicon glyphicon-remove-circle',
-                        message: 'An error occurred while adding the record.',
-                    }, {
-                        allow_dismiss: false,
-                        type: "danger",
-                        placement: {
-                            from: "top",
-                            align: "right"
-                        },
-                        z_index: 9999,
-                    });
-                }
+                });
             });
-        });
     }
 
     if ( $('#emp-salary').length > 0 ) {

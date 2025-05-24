@@ -13,7 +13,8 @@ $conn = $db; // Assuming $db is the mysqli connection from config.php
 
 // Function to calculate monthly PF contribution
 function calculatePfContribution($conn, $employee_id) {
-    $sql = "SELECT basic_salary FROM cdbl_payscale_grade AS ps
+    // Fetch basic_salary and employee_type
+    $sql = "SELECT ps.basic_salary, emp.employee_type FROM cdbl_payscale_grade AS ps
             JOIN cdbl_employees AS emp ON emp.emp_grade = ps.emp_grade AND emp.empsal_grade = ps.empsal_grade
             WHERE emp.employee_id = ?";
     $stmt = $conn->prepare($sql);
@@ -23,7 +24,8 @@ function calculatePfContribution($conn, $employee_id) {
     $stmt->bind_param('i', $employee_id);
     $stmt->execute();
     $basic_salary = null;
-    $stmt->bind_result($basic_salary);
+    $employee_type = null;
+    $stmt->bind_result($basic_salary, $employee_type);
     $stmt->fetch();
     $stmt->close();
 
@@ -31,8 +33,19 @@ function calculatePfContribution($conn, $employee_id) {
         return [0, 0];
     }
 
-    // Calculate 10% of basic_salary for both employee and company contributions
-    $employee_contribution = ($basic_salary / 10);
+    // Define contribution rates based on employee_type
+    // Example rates: type A = 10%, type B = 8%, type C = 5%, default = 10%
+    $contribution_rate = 0.10; // default 10%
+    if ($employee_type === 'A') {
+        $contribution_rate = 0.10;
+    } elseif ($employee_type === 'B') {
+        $contribution_rate = 0.08;
+    } elseif ($employee_type === 'C') {
+        $contribution_rate = 0.05;
+    }
+
+    // Calculate contributions based on rate
+    $employee_contribution = $basic_salary * $contribution_rate;
     $company_contribution = $employee_contribution;
 
     return [$employee_contribution, $company_contribution];

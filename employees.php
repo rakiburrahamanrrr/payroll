@@ -246,9 +246,9 @@ if (!isset($_SESSION['Admin_ID']) || $_SESSION['Login_Type'] != 'admin') {
                   <label for="employment_type">Emp. Type</label>
                   <select class="form-control" id="employment_type" name="employment_type">
                     <option value="">Please make a choice</option>
-                    <option value="Provision">Provision</option>
+                    <option value="Provision">Probation</option>
                     <option value="Contractual">Contractual</option>
-                    <option value="Permanent">Permanent position</option>
+                    <option value="Permanent">Permanent</option>
                   </select>
                 </div>
                 <div class="col-sm-4">

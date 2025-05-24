@@ -92,9 +92,84 @@ switch ($case) {
 	case 'RejectLeaveApplication':
 		RejectLeaveApplication();
 		break;
-	default:
+case 'InsertUpdatePayscaleGrade':
+	InsertUpdatePayscaleGrade();
+	break;
+default:
 		echo '404! Page Not Found.';
 		break;
+}
+
+function InsertUpdatePayscaleGrade()
+{
+	$result = array();
+	global $db;
+
+	$id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+	$emp_grade = isset($_POST['emp_grade']) ? trim($_POST['emp_grade']) : '';
+	$empsal_grade = isset($_POST['empsal_grade']) ? trim($_POST['empsal_grade']) : '';
+	$basic_salary = isset($_POST['basic_salary']) ? floatval($_POST['basic_salary']) : 0;
+	$house_rent = isset($_POST['house_rent']) ? floatval($_POST['house_rent']) : 0;
+	$conveyance_allowance = isset($_POST['conveyance_allowance']) ? floatval($_POST['conveyance_allowance']) : 0;
+	$medical_allowance = isset($_POST['medical_allowance']) ? floatval($_POST['medical_allowance']) : 0;
+	$driver_allowance = isset($_POST['driver_allowance']) ? floatval($_POST['driver_allowance']) : 0;
+	$car_allowance = isset($_POST['car_allowance']) ? floatval($_POST['car_allowance']) : 0;
+
+	// Validate required fields
+	if (empty($emp_grade) || empty($empsal_grade)) {
+		$result['code'] = 2;
+		$result['result'] = 'Employee grade and salary grade are required.';
+		echo json_encode($result);
+		return;
+	}
+
+	// Check if updating or inserting
+	if ($id > 0) {
+		// Update existing record
+		$updateSQL = "UPDATE `" . DB_PREFIX . "payscale_grade` SET 
+			`emp_grade` = '" . mysqli_real_escape_string($db, $emp_grade) . "',
+			`empsal_grade` = '" . mysqli_real_escape_string($db, $empsal_grade) . "',
+			`basic_salary` = $basic_salary,
+			`house_rent` = $house_rent,
+			`conveyance_allowance` = $conveyance_allowance,
+			`medical_allowance` = $medical_allowance,
+			`driver_allowance` = $driver_allowance,
+			`car_allowance` = $car_allowance
+			WHERE `id` = $id";
+
+		$updateResult = mysqli_query($db, $updateSQL);
+		if ($updateResult) {
+			$result['code'] = 0;
+			$result['result'] = 'Payscale grade record has been successfully updated.';
+		} else {
+			$result['code'] = 1;
+			$result['result'] = 'Failed to update payscale grade record: ' . mysqli_error($db);
+		}
+	} else {
+		// Insert new record
+		$insertSQL = "INSERT INTO `" . DB_PREFIX . "payscale_grade` 
+			(`emp_grade`, `empsal_grade`, `basic_salary`, `house_rent`, `conveyance_allowance`, `medical_allowance`, `driver_allowance`, `car_allowance`) VALUES (
+			'" . mysqli_real_escape_string($db, $emp_grade) . "',
+			'" . mysqli_real_escape_string($db, $empsal_grade) . "',
+			$basic_salary,
+			$house_rent,
+			$conveyance_allowance,
+			$medical_allowance,
+			$driver_allowance,
+			$car_allowance
+		)";
+
+		$insertResult = mysqli_query($db, $insertSQL);
+		if ($insertResult) {
+			$result['code'] = 0;
+			$result['result'] = 'Payscale grade record has been successfully inserted.';
+		} else {
+			$result['code'] = 1;
+			$result['result'] = 'Failed to insert payscale grade record: ' . mysqli_error($db) . ' | SQL: ' . $insertSQL;
+		}
+	}
+
+	echo json_encode($result);
 }
 
 function LoginProcessHandler()
