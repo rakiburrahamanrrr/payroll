@@ -1,6 +1,10 @@
 <?php
-require_once __DIR__ . '/../vendor/autoload.php';  // This is correct relative to your 'ajax' folder
+/* require_once __DIR__ . '/../vendor/autoload.php';  // This is correct relative to your 'ajax' folder
+include(dirname(dirname(__FILE__)) . '/config.php'); */
+include(dirname(dirname(__FILE__)) . '/../vendor/autoload.php');
+//require_once __DIR__ . '/../vendor/autoload.php';  // This is correct relative to your 'ajax' folder
 include(dirname(dirname(__FILE__)) . '/config.php');
+
 define('DEBUG_MODE', true);
 $case = isset($_GET['case']) ? $_GET['case'] : '';
 switch ($case) {
@@ -177,8 +181,10 @@ function LoginProcessHandler()
 	$result = array();
 	global $db;
 
-	$code = isset($_POST['code']) ? mysqli_real_escape_string($db, $_POST['code']) : '';
-	$password = isset($_POST['password']) ? mysqli_real_escape_string($db, $_POST['password']) : '';
+	/* $code = isset($_POST['code']) ? addslashes($db, $_POST['code']) : '';
+	$password = isset($_POST['password']) ? addslashes($db, $_POST['password']) : ''; */
+	$code = mysqli_real_escape_string($db,$_POST['code']);//isset($_POST['code']) ? $db, trim($_POST['code']) : '';
+	$password = mysqli_real_escape_string($db,$_POST['password']);//isset($_POST['password']) ? $db, trim($_POST['password']) : '';
 	if (!empty($code) && !empty($password)) {
 		$adminCheck = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "admin` WHERE `admin_code` = '$code' AND `admin_password` = '" . sha1($password) . "' LIMIT 0, 1");
 		if ($adminCheck) {
@@ -186,7 +192,7 @@ function LoginProcessHandler()
 				$adminData = mysqli_fetch_assoc($adminCheck);
 				$_SESSION['Admin_ID'] = $adminData['admin_id'];
 				$_SESSION['Login_Type'] = 'admin';
-				$result['result'] = BASE_URL . 'attendance/';
+				$result['result'] = BASE_URL . 'employees/';
 				$result['code'] = 0;
 			} else {
 				$empCheck = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "employees` WHERE `emp_code` = '$code' AND `emp_password` = '" . sha1($password) . "' LIMIT 0, 1");
@@ -218,7 +224,7 @@ function LoginProcessHandler()
 	echo json_encode($result);
 }
 
-function AttendanceProcessHandler()
+/* function AttendanceProcessHandler()
 {
 	global $userData, $db;
 	$result = array();
@@ -257,9 +263,9 @@ function AttendanceProcessHandler()
 	}
 
 	echo json_encode($result);
-}
+} */
 
-function LoadingAttendance()
+/* function LoadingAttendance()
 {
 	global $db;
 	$requestData = $_REQUEST;
@@ -326,7 +332,7 @@ function LoadingAttendance()
 	);
 
 	echo json_encode($json_data);
-}
+} */
 
 function LoadingSalaries()
 {
@@ -349,7 +355,8 @@ function LoadingSalaries()
 		);
 
 		// Initial query to count the total data
-		$sql  = "SELECT * FROM `cdbl_salaries` GROUP BY `emp_code`, `pay_month`"; // Removed DB_PREFIX from table name
+		//$sql  = "SELECT * FROM `cdbl_salaries` GROUP BY `emp_code`, `pay_month`"; // Removed DB_PREFIX from table name
+		$sql  = "SELECT * FROM `cdbl_salaries`"; //
 		$query = mysqli_query($db, $sql);
 
 		// Check for SQL errors
@@ -373,7 +380,7 @@ function LoadingSalaries()
 			$sql .= " OR `salary`.`net_salary` LIKE '" . $requestData['search']['value'] . "%')";
 		}
 
-		$sql .= " GROUP BY `salary`.`emp_code`, `salary`.`pay_month`";
+		//$sql .= " GROUP BY `salary`.`emp_code`, `salary`.`pay_month`";
 
 		$query = mysqli_query($db, $sql);
 
@@ -428,7 +435,8 @@ function LoadingSalaries()
 		);
 
 		// Initial query to count total data for this employee
-		$sql = "SELECT * FROM `cdbl_salaries` WHERE `emp_code` = '$emp_code' GROUP BY `pay_month`";
+		//$sql = "SELECT * FROM `cdbl_salaries` WHERE `emp_code` = '$emp_code' GROUP BY `pay_month`";
+		$sql = "SELECT * FROM `cdbl_salaries` WHERE `emp_code` = '$emp_code'";
 		$query = mysqli_query($db, $sql);
 		if (!$query) {
 			die('Error: ' . mysqli_error($db));
@@ -447,7 +455,7 @@ function LoadingSalaries()
 			$sql .= " OR `salary`.`net_salary` LIKE '" . $requestData['search']['value'] . "%')";
 		}
 
-		$sql .= " GROUP BY `salary`.`pay_month`";
+		//$sql .= " GROUP BY `salary`.`pay_month`";
 
 		$query = mysqli_query($db, $sql);
 		if (!$query) {
@@ -793,7 +801,7 @@ function InsertUpdateHolidays()
 	$holiday_type = stripslashes($_POST['holiday_type']);
 	if (!empty($holiday_title) && !empty($holiday_desc) && !empty($holiday_date) && !empty($holiday_type)) {
 		if (!empty($_POST['holiday_id'])) {
-			$holiday_id = addslashes($_POST['holiday_id']);
+			$holiday_id = mysqli_real_escape_string($db,$_POST['holiday_id']);
 			$updateHoliday = mysqli_query($db, "UPDATE `" . DB_PREFIX . "holidays` SET `holiday_title` = '$holiday_title', `holiday_desc` = '$holiday_desc', `holiday_date` = '$holiday_date', `holiday_type` = '$holiday_type' WHERE `holiday_id` = $holiday_id");
 			if ($updateHoliday) {
 				$result['result'] = 'Holiday record has been successfully updated.';
@@ -929,7 +937,7 @@ function InsertUpdatePayheads()
 	$payhead_type = stripslashes($_POST['payhead_type']);
 	if (!empty($payhead_name) && !empty($payhead_desc) && !empty($payhead_type)) {
 		if (!empty($_POST['payhead_id'])) {
-			$payhead_id = addslashes($_POST['payhead_id']);
+			$payhead_id = mysqli_real_escape_string($db,$_POST['payhead_id']);
 			$updatePayhead = mysqli_query($db, "UPDATE `" . DB_PREFIX . "payheads` SET `payhead_name` = '$payhead_name', `payhead_desc` = '$payhead_desc', `payhead_type` = '$payhead_type' WHERE `payhead_id` = $payhead_id");
 			if ($updatePayhead) {
 				$result['result'] = 'Payhead record has been successfully updated.';
@@ -1477,8 +1485,8 @@ function EditProfileByID()
 
 	if ($_SESSION['Login_Type'] == 'admin') {
 		$admin_id = $_SESSION['Admin_ID'];
-		$admin_name = addslashes($_POST['admin_name']);
-		$admin_email = addslashes($_POST['admin_email']);
+		$admin_name = mysqli_real_escape_string($db,$_POST['admin_name']);
+		$admin_email = mysqli_real_escape_string($db,$_POST['admin_email']);
 		if (!empty($admin_name) && !empty($admin_email)) {
 			$editSQL = mysqli_query($db, "UPDATE `" . DB_PREFIX . "admin` SET `admin_name` = '$admin_name', `admin_email` = '$admin_email' WHERE `admin_id` = $admin_id");
 			if ($editSQL) {
@@ -1536,9 +1544,9 @@ function EditLoginDataByID()
 
 	if ($_SESSION['Login_Type'] == 'admin') {
 		$admin_id = $_SESSION['Admin_ID'];
-		$admin_code = addslashes($_POST['admin_code']);
-		$admin_password = addslashes($_POST['admin_password']);
-		$admin_password_conf = addslashes($_POST['admin_password_conf']);
+		$admin_code = mysqli_real_escape_string($db,$_POST['admin_code']);
+		$admin_password = mysqli_real_escape_string($db,$_POST['admin_password']);
+		$admin_password_conf = mysqli_real_escape_string($db,$_POST['admin_password_conf']);
 		if (!empty($admin_code) && !empty($admin_password) && !empty($admin_password_conf)) {
 			if ($admin_password == $admin_password_conf) {
 				$editSQL = mysqli_query($db, "UPDATE `" . DB_PREFIX . "admin` SET `admin_code` = '$admin_code', `admin_password` = '" . sha1($admin_password) . "' WHERE `admin_id` = $admin_id");
@@ -1559,9 +1567,9 @@ function EditLoginDataByID()
 		}
 	} else {
 		$emp_id = $_SESSION['Admin_ID'];
-		$old_password = addslashes($_POST['old_password']);
-		$new_password = addslashes($_POST['new_password']);
-		$password_conf = addslashes($_POST['password_conf']);
+		$old_password = mysqli_real_escape_string($db,$_POST['old_password']);
+		$new_password = mysqli_real_escape_string($db,$_POST['new_password']);
+		$password_conf = mysqli_real_escape_string($db,$_POST['password_conf']);
 		if (!empty($old_password) && !empty($new_password) && !empty($password_conf)) {
 			$checkPassSQL = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "employees` WHERE `emp_id` = $emp_id");
 			if ($checkPassSQL) {
@@ -1740,10 +1748,10 @@ function ApplyLeaveToAdminApproval()
 	$adminData = GetAdminData(1);
 	$empData   = GetDataByIDAndType($_SESSION['Admin_ID'], $_SESSION['Login_Type']);
 
-	$leave_subject = addslashes($_POST['leave_subject']);
-	$leave_dates   = addslashes($_POST['leave_dates']);
-	$leave_message = addslashes($_POST['leave_message']);
-	$leave_type    = addslashes($_POST['leave_type']);
+	$leave_subject = mysqli_real_escape_string($db,$_POST['leave_subject']);
+	$leave_dates   = mysqli_real_escape_string($db,$_POST['leave_dates']);
+	$leave_message = mysqli_real_escape_string($db,$_POST['leave_message']);
+	$leave_type    = mysqli_real_escape_string($db,$_POST['leave_type']);
 	if (!empty($leave_subject) && !empty($leave_dates) && !empty($leave_message) && !empty($leave_type)) {
 		$AppliedDates = '';
 		$dates = array();

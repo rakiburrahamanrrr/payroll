@@ -1,6 +1,6 @@
 <?php
 
-define('BASE_URL',   'http://localhost/payroll/');
+define('BASE_URL',   'https://www.cdbl.com.bd/payroll/');
 
 define('DB_SERVER', 	'localhost');
 define('DB_USER', 		'root');

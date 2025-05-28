@@ -53,6 +53,7 @@ if ( !isset($_SESSION['Admin_ID']) || !isset($_SESSION['Login_Type']) ) {
 									<table id="allleaves" class="table table-bordered table-stripe">
 										<thead>
 											<tr>
+												<th>Leave ID</th>
 												<th>Employee Name</th>
 												<th>SUBJECT</th>
 												<th>DATES</th>

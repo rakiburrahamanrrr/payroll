@@ -494,6 +494,7 @@ $(document).on('click', '#SalaryMonthModal .salary-month-link', function(e) {
                 success  : function(result) {
                     if ( result.code == 0 ) {
                         $('#employee_id').text(result.result.employee_id);
+			$('#employee_code_display').text(result.result.emp_code);
                         $('#first_name').val(result.result.first_name);
                         $('#last_name').val(result.result.last_name);
                         $('#dob').val(result.result.dob).datepicker('update');
@@ -507,7 +508,7 @@ $(document).on('click', '#SalaryMonthModal .salary-month-link', function(e) {
                         $('#telephone').val(result.result.telephone);
                         $('#national_id').val(result.result.national_id);
                         $('#employment_type').val(result.result.employment_type);
-                        $('#emp_status').val(result.result.emp_status);
+                        $('#employment_status').val(result.result.employment_status);
                         $('#designation').val(result.result.designation);
                         $('#department').val(result.result.department);
                         $('#emp_grade').val(result.result.emp_grade);
@@ -518,7 +519,7 @@ $(document).on('click', '#SalaryMonthModal .salary-month-link', function(e) {
                         $('#account_no').val(result.result.account_no);
                         $('#etin_no').val(result.result.etin_no);
                         $('#EditEmpModal').modal('show');
-                        $('#employee_code_display').text(data.employee_code);
+                        
                 // Populate the modal fields with data returned from the server
     
                     } else {

@@ -165,7 +165,7 @@ if (!isset($_SESSION['Admin_ID']) || $_SESSION['Login_Type'] != 'admin') {
                 <!-- Display Employee ID (hidden) and Employee Code (read-only) -->
                 <div class="col-sm-4">
                   <label for="employee_code_display">Employee Code</label>
-                  <div class="form-control" id="employee_code_display"></div>
+                  <div class="form-control" id="employee_code_display" name="employee_code_display"></div>
                 </div>
                 <div class="col-sm-4">
                   <label for="first_name">First Name</label>
@@ -241,7 +241,7 @@ if (!isset($_SESSION['Admin_ID']) || $_SESSION['Login_Type'] != 'admin') {
             <div class="form-group">
               <div class="row">
                 <!-- Hidden field for employee_id -->
-                <input type="hidden" name="employee_id" id="employee_id" />
+                <!--<input type="hidden" name="employee_id" id="employee_id" />-->
                 <div class="col-sm-4">
                   <label for="employment_type">Emp. Type</label>
                   <select class="form-control" id="employment_type" name="employment_type">
@@ -252,11 +252,11 @@ if (!isset($_SESSION['Admin_ID']) || $_SESSION['Login_Type'] != 'admin') {
                   </select>
                 </div>
                 <div class="col-sm-4">
-                  <label for="emp_status">Emp. Status</label>
-                  <select class="form-control" id="emp_status" name="emp_status">
+                  <label for="employment_status">Emp. Status</label>
+                  <select class="form-control" id="employment_status" name="employment_status">
                     <option value="">Please make a choice</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
                   </select>
                 </div>
               </div>                                    
@@ -375,7 +375,7 @@ $(document).on('click', '.edit-employee', function(e) {
             if (resp.code === 0) {
                 var data = resp.result;
                 // Update the displayed employee code (emp_code is used for display)
-                $('#employee_code_display').text(data.emp_code);
+                $('#employee_code_display').val(data.emp_code);
                 // Populate the modal fields with data returned from the server
                 $('#first_name').val(data.first_name);
                 $('#last_name').val(data.last_name);
@@ -390,7 +390,7 @@ $(document).on('click', '.edit-employee', function(e) {
                 $('#telephone').val(data.telephone);
                 $('#national_id').val(data.national_id);
                 $('#employment_type').val(data.employment_type);
-                $('#emp_status').val(data.employment_status);
+                $('#employment_status').val(data.employment_status);
                 $('#designation').val(data.designation);
                 $('#department').val(data.department);
                 $('#emp_grade').val(data.emp_grade);

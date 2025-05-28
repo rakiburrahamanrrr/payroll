@@ -494,7 +494,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </div>
 
                             <button type="submit" class="btn btn-primary" name="process_loan_slip">Loan Slip Process</button>
-                        <button type="submit" class="btn btn-success" name="generate_loan_slip" style="margin-top: 10px;">Generate Loan Slip</button>
+                        <button type="submit" class="btn btn-success" name="generate_loan_slip">Generate Loan Slip</button>
                     </form>
                     <!-- Removed the separate Generate Loan Slip button that calls generate_loan_slip.php -->
                     <!-- Added Generate Loan Slip button integrated with loan slip process -->

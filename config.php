@@ -1,6 +1,6 @@
 <?php
-define('BASE_URL', 	   'http://localhost/payroll/');
-define('REG_URL', 	   'http://localhost/payroll/registration/');
+define('BASE_URL', 	   'https://cdbl.com.bd/payroll/');
+define('REG_URL', 	   'https://cdbl.com.bd/registration/');
 define('COMPANY_NAME', 'CDBL Payroll Management System');
 
 // MySQL Database Details
