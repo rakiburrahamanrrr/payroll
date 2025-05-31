@@ -495,6 +495,7 @@ $(document).on('click', '#SalaryMonthModal .salary-month-link', function(e) {
                     if ( result.code == 0 ) {
                         $('#employee_id').text(result.result.employee_id);
 			$('#employee_code_display').text(result.result.emp_code);
+                        $('#emp_code').val(result.result.emp_code);
                         $('#first_name').val(result.result.first_name);
                         $('#last_name').val(result.result.last_name);
                         $('#dob').val(result.result.dob).datepicker('update');
@@ -958,25 +959,35 @@ $(document).on('click', '#SalaryMonthModal .salary-month-link', function(e) {
 
     if ( $('#payheads').length > 0 ) {
         /* Payhead Table Script Start */
-        var pay_table = $('#payheads').DataTable({
-            "processing": true,
-            "serverSide": true,
-            "ajax": baseurl + "ajax/?case=LoadingPayheads",
-            "columnDefs": [{
-                "targets": 0,
-                "className": "dt-center"
-            }, {
-                "targets": 3,
-                "className": "dt-center"
-            }, {
-                "targets": -1,
-                "orderable": false,
-                "data": null,
-                "className": "dt-center",
-                "defaultContent": '<button class="btn btn-success btn-xs editPayheads"><i class="fa fa-edit"></i></button> <button class="btn btn-danger btn-xs deletePayheads"><i class="fa fa-trash"></i></button>'
-            }]
-        });
+var pay_table = $('#payheads').DataTable({
+    "processing": true,
+    "serverSide": true,
+    "ajax": baseurl + "ajax/?case=LoadingPayheads",
+    "columnDefs": [{
+        "targets": 0,
+        "className": "dt-center"
+    }, {
+        "targets": 3,
+        "className": "dt-center",
+"render": function(data, type, row) {
+    if (data === 'deductions') {
+        return '<span class="bg-red text-white" style="padding: 2px 6px; border-radius: 4px;">' + data.charAt(0).toUpperCase() + data.slice(1) + '</span>';
+    } else if (data === 'earnings') {
+        return '<span class="bg-green text-white" style="padding: 2px 6px; border-radius: 4px;">' + data.charAt(0).toUpperCase() + data.slice(1) + '</span>';
+    } else {
+        return data;
+    }
+}
+    }, {
+        "targets": -1,
+        "orderable": false,
+        "data": null,
+        "className": "dt-center",
+        "defaultContent": '<button class="btn btn-success btn-xs editPayheads"><i class="fa fa-edit"></i></button> <button class="btn btn-danger btn-xs deletePayheads"><i class="fa fa-trash"></i></button>'
+    }]
+});
 
+        
         $('#payheads tbody').on('click', '.editPayheads', function(e) {
             e.preventDefault();
 
@@ -990,33 +1001,30 @@ $(document).on('click', '#SalaryMonthModal .salary-month-link', function(e) {
                 data     : 'id=' + data[0],
                 success  : function(result) {
                     // console.log(result)
-                    if ( result.code == 0 ) {
-                        if (result.gradeResult!==null) {
-                            $("#payhead_name").val(result.gradeResult.basic_salary); 
-                        }
-                        $("#payhead_id").val(result.result.payhead_id);
-                        $("#payhead_name").val(result.result.payhead_name);
-                        $("#payhead_desc").val(result.result.payhead_desc);
-                        $("#payhead_type").val(result.result.payhead_type);
-                        $("#PayheadsModal").modal('show');
-                    } else {
-                        $.notify({
-                            icon: 'glyphicon glyphicon-remove-circle',
-                            message: result.result,
-                        },{
-                            allow_dismiss: false,
-                            type: "danger",
-                            placement: {
-                                from: "top",
-                                align: "right"
-                            },
-                            z_index: 9999,
-                        });
-                    }
-                }
-            });
-        });
-        /* End of Script */
+if ( result.code == 0 ) {
+    $("#payhead_id").val(result.result.payhead_id);
+    $("#payhead_name").val(result.result.payhead_name);
+    $("#payhead_desc").val(result.result.payhead_desc);
+    $("#payhead_type").val(result.result.payhead_type);
+    $("#PayheadsModal").modal('show');
+} else {
+    $.notify({
+        icon: 'glyphicon glyphicon-remove-circle',
+        message: result.result,
+    },{
+        allow_dismiss: false,
+        type: "danger",
+        placement: {
+            from: "top",
+            align: "right"
+        },
+        z_index: 9999,
+    });
+}
+}
+});
+});
+/* End of Script */
 
         /* Delete Payhead Script Start */
         $('#payheads tbody').on('click', '.deletePayheads', function(e) {

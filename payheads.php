@@ -107,46 +107,6 @@ if ( !isset($_SESSION['Admin_ID']) || $_SESSION['Login_Type'] != 'admin' ) {
 				</div>
 			</div>
 		</div>
-		
-		<!-- Pay head Edit Modal -->
-				<div class="modal fade" id="EditPayheadModal" tabindex="-1" role="dialog" aria-labelledby="EditPayheadModalLabel" aria-hidden="true">
-					<div class="modal-dialog" role="document">
-						<form id="edit-payhead-form">
-							<div class="modal-content">
-								<div class="modal-header">
-									<h5 class="modal-title" id="EditPayheadModalLabel">Edit Pay Head</h5>
-									<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-										<span aria-hidden="true">&times;</span>
-									</button>
-								</div>
-								<div class="modal-body">
-									<input type="hidden" id="payhead_id" name="payhead_id" />
-									<div class="form-group">
-										<label for="payhead_name">Payhead Name</label>
-										<input type="text" class="form-control" id="payhead_name" name="payhead_name" required />
-									</div>
-									<div class="form-group">
-										<label for="payhead_desc">Payhead Desc</label>
-										<input type="text" class="form-control" id="payhead_desc" name="payhead_desc" required />
-									</div>
-									
-									<div class="col-sm-4">
-									  <label for="payhead_type">Payhead Type</label>
-									  <select class="form-control" id="payhead_type" name="payhead_type">
-										<option value="">Please make a choice</option>
-										<option value="earnings">Earnings</option>
-				                	<option value="deductions">Deductions</option>
-									  </select>
-									</div>
-								</div>
-								<div class="modal-footer">
-									<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-									<button type="submit" class="btn btn-primary">Save Payhead</button>
-								</div>
-							</div>
-						</form>
-					</div>
-				</div>
 
 		<footer class="main-footer">
 		<strong> &copy; CDBL Payroll Management System | </strong> Developed By CDBL VAS Team 2025

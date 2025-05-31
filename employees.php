@@ -43,8 +43,81 @@ if (!isset($_SESSION['Admin_ID']) || $_SESSION['Login_Type'] != 'admin') {
           <div class="box">
             <div class="box-header">
               <h3 class="box-title">All Employee List</h3><br>
-              <a href="../registration/newreg.php" class="btn btn-primary btn-sm pull-right" style="margin-top: -25px;">Create Employee</a>
-            </div>
+
+<a href="../registration/newreg.php" class="btn btn-primary btn-sm pull-right" >Create Employee</a>&nbsp;
+<a href="#" class="btn btn-primary btn-sm pull-right" id="bulkEmployeeEntryBtn">Bulk Employee Entry</a>             
+
+<!-- Bulk Employee Entry Modal -->
+<div class="modal fade" id="bulkEmployeeEntryModal" tabindex="-1" role="dialog" aria-labelledby="bulkEmployeeEntryModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <form id="bulkEmployeeUploadForm" enctype="multipart/form-data">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="bulkEmployeeEntryModalLabel">Bulk Employee Entry</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="employeeExcelFile">Upload Excel File</label>
+            <input type="file" class="form-control-file" id="employeeExcelFile" name="employeeExcelFile" accept=".xls,.xlsx" required>
+          </div>
+          <div id="bulkUploadMessage" class="alert" style="display:none;"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Upload</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Open modal on button click
+  document.getElementById('bulkEmployeeEntryBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('bulkUploadMessage').style.display = 'none';
+    document.getElementById('employeeExcelFile').value = '';
+    $('#bulkEmployeeEntryModal').modal('show');
+  });
+
+  // Handle form submission
+  document.getElementById('bulkEmployeeUploadForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var formData = new FormData(this);
+    var bulkUploadMessage = document.getElementById('bulkUploadMessage');
+    bulkUploadMessage.classList.remove('alert-success', 'alert-danger');
+    bulkUploadMessage.style.display = 'none';
+
+    fetch(baseurl + 'ajax/?case=BulkEmployeeUpload', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(response => {
+      if (response.code === 0) {
+        bulkUploadMessage.classList.add('alert-success');
+        bulkUploadMessage.textContent = response.result;
+        bulkUploadMessage.style.display = 'block';
+        // Optionally reload or update employee list here
+      } else {
+        bulkUploadMessage.classList.add('alert-danger');
+        bulkUploadMessage.textContent = response.result;
+        bulkUploadMessage.style.display = 'block';
+      }
+    })
+    .catch(error => {
+      bulkUploadMessage.classList.add('alert-danger');
+      bulkUploadMessage.textContent = 'Upload failed: ' + error;
+      bulkUploadMessage.style.display = 'block';
+    });
+  });
+});
+</script>
+</div>
             <div class="box-body">
               <div class="table-responsiove">
                 <table id="employees" class="table table-bordered table-striped">
@@ -57,7 +130,7 @@ if (!isset($_SESSION['Admin_ID']) || $_SESSION['Login_Type'] != 'admin') {
                       <th>EMAIL</th>
                       <th>CONTACT</th>
                       <th>Employee Grade</th>
-                      <th>Employee Salary Grade</th>
+                      <th>Employee Salary Stage</th>
                       <th>JOINING</th>
                       <th>BLOOD</th>
                       <th>EMP TYPE</th>
@@ -240,8 +313,8 @@ if (!isset($_SESSION['Admin_ID']) || $_SESSION['Login_Type'] != 'admin') {
             
             <div class="form-group">
               <div class="row">
-                <!-- Hidden field for employee_id -->
-                <!--<input type="hidden" name="employee_id" id="employee_id" />-->
+        <!-- Hidden field for emp_code -->
+        <input type="hidden" name="emp_code" id="emp_code" />
                 <div class="col-sm-4">
                   <label for="employment_type">Emp. Type</label>
                   <select class="form-control" id="employment_type" name="employment_type">
@@ -278,8 +351,8 @@ if (!isset($_SESSION['Admin_ID']) || $_SESSION['Login_Type'] != 'admin') {
               </div>
               <div class="row">
                 <div class="col-sm-4">
-                  <label for="empsal_grade">Employee Salary Grade</label>
-                  <input type="text" class="form-control" id="empsal_grade" name="empsal_grade" placeholder="Employee Salary Grade" required />
+                  <label for="empsal_grade">Employee Salary Stage</label>
+                  <input type="text" class="form-control" id="empsal_grade" name="empsal_grade" placeholder="Employee Salary Stage" required />
                 </div>
                 <div class="col-sm-4">
                   <label for="joining_date">Joining Date</label>
@@ -360,9 +433,10 @@ $(document).on('click', '.edit-employee', function(e) {
         return;
     }
     // Set the hidden field (used for subsequent updates) and show a temporary message in the display field
-    $('#employee_id').val(employeeId);
+    $('#emp_code').val(employeeId);
     $('#employee_code_display').text('Loading...');
     $('#employee_id_display').val(employeeId);
+    
     
     // Send AJAX request to fetch employee details
     $.ajax({

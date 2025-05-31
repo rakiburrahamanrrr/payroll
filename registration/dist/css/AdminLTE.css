@@ -4423,7 +4423,7 @@ table.text-center th {
 .alert-error,
 .label-danger,
 .modal-danger .modal-body {
-  background-color: #00d493 !important;
+  background-color: #e73f7c!important;
 }
 .bg-yellow,
 .callout.callout-warning,
@@ -4542,7 +4542,7 @@ table.text-center th {
   filter: alpha(opacity=65);
 }
 .text-red {
-  color: #00d493 !important;
+  color: #e73f7c!important;
 }
 .text-yellow {
   color: #f39c12 !important;
@@ -4714,10 +4714,10 @@ table.text-center th {
   color: #fff;
 }
 .bg-red-gradient {
-  background: #00d493 !important;
+  background: #e73f7c!important;
   background: -webkit-gradient(linear, left bottom, left top, color-stop(0, #00d493), color-stop(1, #e47365)) !important;
   background: -ms-linear-gradient(bottom, #00d493, #e47365) !important;
-  background: -moz-linear-gradient(center bottom, #00d493 0%, #e47365 100%) !important;
+  background: -moz-linear-gradient(center bottom, #e73f7c0%, #e47365 100%) !important;
   background: -o-linear-gradient(#e47365, #00d493) !important;
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#e47365', endColorstr='#00d493', GradientType=0) !important;
   color: #fff;
