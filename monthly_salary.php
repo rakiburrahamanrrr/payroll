@@ -230,11 +230,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['month']) && isset($_PO
         exit;
     }
 
-    if (isset($_POST['generate_salaries'])) {
+if (isset($_POST['generate_salaries'])) {
         // Existing generate salaries logic
         $employees = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "employees`");
 
         $message = '';
+        $alreadyProcessedCount = 0;
         while ($employee = mysqli_fetch_assoc($employees)) {
             $emp_id = $employee['emp_code'];
 
@@ -273,11 +274,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['month']) && isset($_PO
                 if ($result['code'] != 0) {
                     $message .= "Failed to generate payslip for employee $emp_id: " . $result['result'] . "<br>";
                 }
+            } else {
+                $alreadyProcessedCount++;
             }
+        }
+        if ($alreadyProcessedCount > 0) {
+            $message .= "$alreadyProcessedCount employees already have payslips processed for $month_year.<br>";
         }
         if (empty($message)) {
             $message = "Salaries and payslips for $month_year have been successfully generated for all employees.";
         }
+        // Store message in session for flash message
+        session_start();
+        $_SESSION['flash_message'] = $message;
         // Redirect to avoid form resubmission on reload
         header("Location: " . $_SERVER['PHP_SELF']);
         exit;
@@ -513,9 +522,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['month']) && isset($_PO
             <section class="content">
                 <div class="row">
                     <div class="col-xs-12">
-                        <?php if (!empty($message)) { ?>
-                            <div class="alert alert-info"><?php echo $message; ?></div>
-                        <?php } ?>
+                        <?php
+                        if (isset($_SESSION['flash_message'])) {
+                            echo '<script>
+                                window.addEventListener("load", function() {
+                                    if (typeof $ !== "undefined") {
+                                        $.notify({
+                                            icon: "glyphicon glyphicon-info-sign",
+                                            message: "' . addslashes($_SESSION['flash_message']) . '"
+                                        },{
+                                            allow_dismiss: true,
+                                            type: "info",
+                                            placement: {
+                                                from: "top",
+                                                align: "right"
+                                            },
+                                            z_index: 9999,
+                                        });
+                                    } else {
+                                        alert("' . addslashes($_SESSION['flash_message']) . '");
+                                    }
+                                });
+                            </script>';
+                            unset($_SESSION['flash_message']);
+                        }
+                        ?>
                         <form method="POST" action="">
                             <div class="form-group">
                                 <label for="month">Select Month</label>
@@ -554,6 +585,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['month']) && isset($_PO
         </footer>
     </div>
 
+    <script type="text/javascript">
+        var baseurl = '<?php echo BASE_URL; ?>';
+    </script>
     <script src="<?php echo BASE_URL; ?>plugins/jQuery/jquery-2.2.3.min.js"></script>
     <script src="<?php echo BASE_URL; ?>bootstrap/js/bootstrap.min.js"></script>
     <script src="<?php echo BASE_URL; ?>plugins/datatables/jquery.dataTables.min.js"></script>
@@ -561,9 +595,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['month']) && isset($_PO
     <script src="<?php echo BASE_URL; ?>plugins/jquery-validator/validator.min.js"></script>
     <script src="<?php echo BASE_URL; ?>plugins/bootstrap-notify/bootstrap-notify.min.js"></script>
     <script src="<?php echo BASE_URL; ?>dist/js/app.min.js"></script>
-    <script type="text/javascript">
-        var baseurl = '<?php echo BASE_URL; ?>';
-    </script>
     <script src="<?php echo BASE_URL; ?>dist/js/script.js?rand=<?php echo rand(); ?>"></script>
 </body>
 

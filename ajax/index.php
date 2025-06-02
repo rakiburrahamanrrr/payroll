@@ -362,8 +362,11 @@ function BulkEmployeeUpload()
 
     // require_once dirname(dirname(__FILE__)) . '/vendor/autoload.php';
 
+    // Use fully qualified class name
+    $IOFactory = '\PhpOffice\PhpSpreadsheet\IOFactory';
+
     try {
-        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($uploadedFile);
+        $spreadsheet = $IOFactory::load($uploadedFile);
         $worksheet = $spreadsheet->getActiveSheet();
         $rows = $worksheet->toArray();
 
@@ -388,14 +391,43 @@ function BulkEmployeeUpload()
             $blood_group = isset($row[9]) ? trim($row[9]) : '';
             $employment_type = isset($row[10]) ? trim($row[10]) : '';
 
+            // Additional required fields with default values or empty strings
+            $gender = isset($row[11]) ? trim($row[11]) : 'male';
+            $marital_status = isset($row[12]) ? trim($row[12]) : 'Single';
+            $address = isset($row[13]) ? trim($row[13]) : '';
+            $paraddress = isset($row[14]) ? trim($row[14]) : '';
+            $national_id = isset($row[15]) ? trim($row[15]) : '';
+            $verification = isset($row[16]) ? trim($row[16]) : 'Not Verified';
+            $employee_id = isset($row[17]) ? intval($row[17]) : 0;
+            $employment_status = isset($row[18]) ? trim($row[18]) : 'Active';
+            $department = isset($row[19]) ? trim($row[19]) : '';
+            $designation = isset($row[20]) ? trim($row[20]) : '';
+            $photo = isset($row[21]) ? trim($row[21]) : 'default.jpg';
+            $emp_password = isset($row[22]) ? trim($row[22]) : sha1('defaultpassword');
+            $insurance_id = isset($row[23]) ? trim($row[23]) : '';
+            $account_no = isset($row[24]) ? trim($row[24]) : '';
+            $etin_no = isset($row[25]) ? trim($row[25]) : '';
+
             // Validate required fields
-            if (empty($emp_code) || empty($first_name) || empty($last_name)) {
+            if (empty($emp_code) || empty($first_name) || empty($last_name) || empty($email) || empty($mobile) || empty($national_id)) {
                 $failCount++;
                 $failMessages[] = "Row " . ($i + 1) . ": Missing required fields.";
                 continue;
             }
 
-            // Check if employee exists
+            // Check for unique constraints: email, mobile, national_id
+            $email_esc = mysqli_real_escape_string($db, $email);
+            $mobile_esc = mysqli_real_escape_string($db, $mobile);
+            $national_id_esc = mysqli_real_escape_string($db, $national_id);
+
+            $uniqueCheckSQL = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "employees` WHERE `email` = '$email_esc' OR `mobile` = '$mobile_esc' OR `national_id` = '$national_id_esc' LIMIT 1");
+            if ($uniqueCheckSQL && mysqli_num_rows($uniqueCheckSQL) > 0) {
+                $failCount++;
+                $failMessages[] = "Row " . ($i + 1) . ": Duplicate email, mobile, or national ID.";
+                continue;
+            }
+
+            // Check if employee exists by emp_code
             $emp_code_esc = mysqli_real_escape_string($db, $emp_code);
             $checkSQL = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "employees` WHERE `emp_code` = '$emp_code_esc' LIMIT 1");
             if ($checkSQL && mysqli_num_rows($checkSQL) > 0) {
@@ -410,19 +442,34 @@ function BulkEmployeeUpload()
                     `empsal_grade` = '" . mysqli_real_escape_string($db, $empsal_grade) . "',
                     `joining_date` = '" . mysqli_real_escape_string($db, $joining_date) . "',
                     `blood_group` = '" . mysqli_real_escape_string($db, $blood_group) . "',
-                    `employment_type` = '" . mysqli_real_escape_string($db, $employment_type) . "'
+                    `employment_type` = '" . mysqli_real_escape_string($db, $employment_type) . "',
+                    `gender` = '" . mysqli_real_escape_string($db, $gender) . "',
+                    `marital_status` = '" . mysqli_real_escape_string($db, $marital_status) . "',
+                    `address` = '" . mysqli_real_escape_string($db, $address) . "',
+                    `paraddress` = '" . mysqli_real_escape_string($db, $paraddress) . "',
+                    `national_id` = '" . mysqli_real_escape_string($db, $national_id) . "',
+                    `verification` = '" . mysqli_real_escape_string($db, $verification) . "',
+                    `employee_id` = " . intval($employee_id) . ",
+                    `employment_status` = '" . mysqli_real_escape_string($db, $employment_status) . "',
+                    `department` = '" . mysqli_real_escape_string($db, $department) . "',
+                    `designation` = '" . mysqli_real_escape_string($db, $designation) . "',
+                    `photo` = '" . mysqli_real_escape_string($db, $photo) . "',
+                    `emp_password` = '" . mysqli_real_escape_string($db, $emp_password) . "',
+                    `insurance_id` = '" . mysqli_real_escape_string($db, $insurance_id) . "',
+                    `account_no` = '" . mysqli_real_escape_string($db, $account_no) . "',
+                    `etin_no` = '" . mysqli_real_escape_string($db, $etin_no) . "'
                     WHERE `emp_code` = '$emp_code_esc'";
                 $updateResult = mysqli_query($db, $updateSQL);
-                if ($updateResult) {
+if ($updateResult) {
                     $successCount++;
                 } else {
                     $failCount++;
-                    $failMessages[] = "Row " . ($i + 1) . ": Failed to update employee.";
+                    $failMessages[] = "Row " . ($i + 1) . ": Failed to update employee. Error: " . mysqli_error($db);
                 }
             } else {
                 // Insert new employee
                 $insertSQL = "INSERT INTO `" . DB_PREFIX . "employees` 
-                    (`emp_code`, `first_name`, `last_name`, `dob`, `email`, `mobile`, `emp_grade`, `empsal_grade`, `joining_date`, `blood_group`, `employment_type`) VALUES (
+                    (`emp_code`, `first_name`, `last_name`, `dob`, `email`, `mobile`, `emp_grade`, `empsal_grade`, `joining_date`, `blood_group`, `employment_type`, `gender`, `marital_status`, `address`, `paraddress`, `national_id`, `verification`, `employee_id`, `employment_status`, `department`, `designation`, `photo`, `emp_password`, `insurance_id`, `account_no`, `etin_no`) VALUES (
                     '" . mysqli_real_escape_string($db, $emp_code) . "',
                     '" . mysqli_real_escape_string($db, $first_name) . "',
                     '" . mysqli_real_escape_string($db, $last_name) . "',
@@ -433,14 +480,29 @@ function BulkEmployeeUpload()
                     '" . mysqli_real_escape_string($db, $empsal_grade) . "',
                     '" . mysqli_real_escape_string($db, $joining_date) . "',
                     '" . mysqli_real_escape_string($db, $blood_group) . "',
-                    '" . mysqli_real_escape_string($db, $employment_type) . "'
+                    '" . mysqli_real_escape_string($db, $employment_type) . "',
+                    '" . mysqli_real_escape_string($db, $gender) . "',
+                    '" . mysqli_real_escape_string($db, $marital_status) . "',
+                    '" . mysqli_real_escape_string($db, $address) . "',
+                    '" . mysqli_real_escape_string($db, $paraddress) . "',
+                    '" . mysqli_real_escape_string($db, $national_id) . "',
+                    '" . mysqli_real_escape_string($db, $verification) . "',
+                    " . intval($employee_id) . ",
+                    '" . mysqli_real_escape_string($db, $employment_status) . "',
+                    '" . mysqli_real_escape_string($db, $department) . "',
+                    '" . mysqli_real_escape_string($db, $designation) . "',
+                    '" . mysqli_real_escape_string($db, $photo) . "',
+                    '" . mysqli_real_escape_string($db, $emp_password) . "',
+                    '" . mysqli_real_escape_string($db, $insurance_id) . "',
+                    '" . mysqli_real_escape_string($db, $account_no) . "',
+                    '" . mysqli_real_escape_string($db, $etin_no) . "'
                 )";
                 $insertResult = mysqli_query($db, $insertSQL);
                 if ($insertResult) {
                     $successCount++;
                 } else {
                     $failCount++;
-                    $failMessages[] = "Row " . ($i + 1) . ": Failed to insert employee.";
+                    $failMessages[] = "Row " . ($i + 1) . ": Failed to insert employee. Error: " . mysqli_error($db);
                 }
             }
         }
@@ -1490,12 +1552,12 @@ function GeneratePaySlip()
 
 	$pdf->AddPage();
 
-	// Set up the page style
-	$html = '
+    // Set up the page style
+    $html = '
     <style>
         .header { text-align: center; font-size: 20px; font-weight: bold; margin-top: 30px; margin-bottom: 15px; border: none; }
         .company-name { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
-        .payslip-title { font-size: 20px; font-weight: bold; margin-top: 10px; margin-bottom: 20px; }
+        .payslip-title { font-size: 16px; font-weight: bold; margin-top: 10px; margin-bottom: 20px; }
         .logo { width: 80px; padding-right: 20px; margin-top: 10px; margin-bottom: 10px; border: none; }
         .logo2 { width: 240px; padding-left: 20px; margin-bottom: 10px; border: none; }
         .employee-info-table { width: 100%; margin-top: 25px; font-size: 13px; border-collapse: collapse; }
@@ -1506,65 +1568,64 @@ function GeneratePaySlip()
         .footer td { padding: 8px; }
     </style>
     ';
+    
+    // Header Section
+    $html .= '<div class="header">';
+    $html .= '<img class="logo" src="' . dirname(dirname(__FILE__)) . '/dist/img/cdbllogo.png" alt="Logo" style="width: 100px; height: 80px;  margin-right: 10px;" />';  // Use absolute file path for TCPDF
+    $html .= '<img class="logo2" src="' . dirname(dirname(__FILE__)) . '/dist/img/logo-key.jpg" alt="Logo" style="width: 100px; height: 80px; margin-left: 10px;" />';
+    $html .= '<div class="company-name">Central Depository Bangladesh Limited</div>';
+    $html .= '<div class="payslip-title">Payslip for the Month of ' . $pay_month . '</div>';
+    $html .= '</div>';
+    
+    // Employee Info Section
+    $html .= '<table class="employee-info-table">';
+    // Fetch employee details from database
+    $employee_query = "SELECT first_name, last_name, designation, department, joining_date FROM `" . DB_PREFIX . "employees` WHERE emp_code = '$employee_id' LIMIT 1";
+    $employee_result = mysqli_query($db, $employee_query);
+    if (!$employee_result) {
+        $emp_name = 'N/A';
+        $designation = 'N/A';
+        $department = 'N/A';
+        $joining_date = 'N/A';
+    } else {
+        $employee_data = mysqli_fetch_assoc($employee_result);
+        $emp_name = trim(($employee_data['first_name'] ?? '') . ' ' . ($employee_data['last_name'] ?? ''));
+        if ($emp_name === '') {
+            $emp_name = 'N/A';
+        }
+        $designation = $employee_data['designation'] ?? 'N/A';
+        $department = $employee_data['department'] ?? 'N/A';
+        $joining_date = !empty($employee_data['joining_date']) ? date('d-M-Y', strtotime($employee_data['joining_date'])) : 'N/A';
+    }
 
-	// Header Section
-	$html .= '<div class="header">';
-	$html .= '<img class="logo" src="' . dirname(dirname(__FILE__)) . '/dist/img/cdbllogo.png" alt="Logo" style="width: 100px; height: 80px;  margin-right: 10px;" />';  // Use absolute file path for TCPDF
-	$html .= '<img class="logo2" src="' . dirname(dirname(__FILE__)) . '/dist/img/logo-key.jpg" alt="Logo" style="width: 100px; height: 80px; margin-left: 10px;" />';
-	$html .= '<div class="company-name">Central Depository Bangladesh Limited</div>';
-	$html .= '<div class="payslip-title">Payslip for the Month of ' . $pay_month . '</div>';
-	$html .= '</div>';
-
-	// Employee Info Section
-	$html .= '<table class="employee-info-table">';
-	// Fetch employee details from database
-	$employee_query = "SELECT first_name, last_name, designation, department, joining_date FROM `" . DB_PREFIX . "employees` WHERE emp_code = '$employee_id' LIMIT 1";
-	$employee_result = mysqli_query($db, $employee_query);
-	if (!$employee_result) {
-		$emp_name = 'N/A';
-		$designation = 'N/A';
-		$department = 'N/A';
-		$joining_date = 'N/A';
-	} else {
-		$employee_data = mysqli_fetch_assoc($employee_result);
-		$emp_name = trim(($employee_data['first_name'] ?? '') . ' ' . ($employee_data['last_name'] ?? ''));
-		if ($emp_name === '') {
-			$emp_name = 'N/A';
-		}
-		$designation = $employee_data['designation'] ?? 'N/A';
-		$department = $employee_data['department'] ?? 'N/A';
-		$joining_date = !empty($employee_data['joining_date']) ? date('d-M-Y', strtotime($employee_data['joining_date'])) : 'N/A';
-	}
-
-	$html .= '<tr><td>Employee Code</td><td>: ' . strtoupper($employee_id) . '</td></tr>';
-	$html .= '<tr><td>Employee Name</td><td>: ' . htmlspecialchars($emp_name) . '</td></tr>';
-	$html .= '<tr><td>Designation</td><td>: ' . htmlspecialchars($designation) . '</td></tr>';
-	$html .= '<tr><td>Department</td><td>: ' . htmlspecialchars($department) . '</td></tr>';
-	$html .= '<tr><td>Joining Date</td><td>: ' . $joining_date . '</td></tr>';
-	$html .= '</table>';
-
-	// Earnings and Deductions Table
-	$html .= '<table class="salary-table">';
-	$html .= '<thead><tr><th>Particulars</th><th>Amount (BDT)</th><th>Particulars</th><th>Amount (BDT)</th></tr></thead>';
+    $html .= '<tr><td>Employee Code</td><td>: ' . strtoupper($employee_id) . '</td></tr>';
+    $html .= '<tr><td>Employee Name</td><td>: ' . htmlspecialchars($emp_name) . '</td></tr>';
+    $html .= '<tr><td>Designation</td><td>: ' . htmlspecialchars($designation) . '</td></tr>';
+    $html .= '<tr><td>Department</td><td>: ' . htmlspecialchars($department) . '</td></tr>';
+    $html .= '<tr><td>Joining Date</td><td>: ' . $joining_date . '</td></tr><br><>';
+    $html .= '</table>';
+    
+    // Earnings and Deductions Table
+    $html .= '<table class="salary-table">';
+	//$html .= '<thead><tr><th>Earnings and Deductions</th></tr></thead>';
 	$html .= '<tr><td>Basic Salary</td><td>' . number_format($pay_head_values['basic_salary'], 2) . '</td><td>PF</td><td>' . number_format($pay_head_values['employee_provident_fund'], 2) . '</td></tr>';
-	$html .= '<tr><td>House Rent</td><td>' . number_format($pay_head_values['house_rent'], 2) . '</td><td>Income Tax</td><td>' . number_format($pay_head_values['income_tax'], 2) . '</td></tr>';
-	$html .= '<tr><td>Car Allowance</td><td>' . number_format($pay_head_values['car_allowance'], 2) . '</td><td>Loan Repayment</td><td>' . number_format($pay_head_values['loans_repayment'], 2) . '</td></tr>';
-	$html .= '<tr><td>Medical Allowance</td><td>' . number_format($pay_head_values['medical_allowance'], 2) . '</td><td>Other Deductions</td><td>' . number_format($pay_head_values['other_deductions'], 2) . '</td></tr>';
-	$html .= '</table>';
-
-	// Net Salary
-	$html .= '<table class="footer">';
-	$html .= '<tr><td><strong>Net Salary</strong></td><td>: ' . number_format($pay_head_values['net_salary'], 2) . '</td></tr>';
-	$html .= '<tr><td><strong>In Words</strong></td><td>: ' . ucfirst(numberToWords($pay_head_values['net_salary'])) . ' Taka</td></tr>';
-	$html .= '</table>';
-
-	// Footer Section
-	$html .= '<div class="footer">';
-	$html .= '<p>Prepared By: CDBL Payroll Management System</p>';
-	$html .= '<p>Approved By: Raquibul Islam Chowdhury</p>';
-	$html .= '</div>';
-
-
+    $html .= '<tr><td>House Rent</td><td>' . number_format($pay_head_values['house_rent'], 2) . '</td><td>Income Tax</td><td>' . number_format($pay_head_values['income_tax'], 2) . '</td></tr>';
+    $html .= '<tr><td>Car Allowance</td><td>' . number_format($pay_head_values['car_allowance'], 2) . '</td><td>Loan Repayment</td><td>' . number_format($pay_head_values['loans_repayment'], 2) . '</td></tr>';
+    $html .= '<tr><td>Medical Allowance</td><td>' . number_format($pay_head_values['medical_allowance'], 2) . '</td><td>Other Deductions</td><td>' . number_format($pay_head_values['other_deductions'], 2) . '</td></tr>';
+    $html .= '</table>';
+    
+    // Net Salary
+    $html .= '<table class="footer">';
+    $html .= '<tr><td><strong>Net Salary</strong></td><td>: ' . number_format($pay_head_values['net_salary'], 2) . '</td></tr>';
+    $html .= '<tr><td><strong>In Words</strong></td><td>: ' . ucfirst(numberToWords($pay_head_values['net_salary'])) . ' Taka</td></tr>';
+    $html .= '</table>';
+    
+    // Footer Section
+    $html .= '<div class="footer">';
+    $html .= '<p>Prepared By: CDBL Payroll Management System</p>';
+    $html .= '<p>Approved By: CDBL Accounts & Finanace </p>';
+    $html .= '</div>';
+    
 	//   Save the PDF
 	$pdf->WriteHTML($html);
 	$payslip_path = __DIR__ . '/../payslips/' . $employee_id . '/' . $pay_month . '/';  // Using absolute path

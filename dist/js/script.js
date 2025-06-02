@@ -1135,39 +1135,54 @@ if ( result.code == 0 ) {
     /* End of Script */
 
     /* Salary Form Submit Script Start */
-    if ( $('#payslip-form').length > 0 ) {
-        $('#payslip-form').on('submit', function(e) {
-            e.preventDefault();
+if ( $('#payslip-form').length > 0 ) {
+    $('#payslip-form').on('submit', function(e) {
+        e.preventDefault();
 
-            var form = $(this);
-            $.ajax({
-                type     : "POST",
-                dataType : "json",
-                async    : true,
-                cache    : false,
-                url      : baseurl + "ajax/?case=GeneratePaySlip",
-                data     : form.serialize(),
-                success  : function(result) {
-                    if ( result.code == 0 ) {
+        var form = $(this);
+        $.ajax({
+            type     : "POST",
+            dataType : "json",
+            async    : true,
+            cache    : false,
+            url      : baseurl + "ajax/?case=GeneratePaySlip",
+            data     : form.serialize(),
+            success  : function(result) {
+                if ( result.code == 0 ) {
+                    $.notify({
+                        icon: 'glyphicon glyphicon-ok-circle',
+                        message: result.result,
+                    },{
+                        allow_dismiss: false,
+                        type: "success",
+                        placement: {
+                            from: "top",
+                            align: "right"
+                        },
+                        z_index: 9999,
+                    });
+                    // Optionally reload after delay
+                    setTimeout(function() {
                         window.location.reload();
-                    } else {
-                        $.notify({
-                            icon: 'glyphicon glyphicon-remove-circle',
-                            message: result.result,
-                        },{
-                            allow_dismiss: false,
-                            type: "danger",
-                            placement: {
-                                from: "top",
-                                align: "right"
-                            },
-                            z_index: 9999,
-                        });
-                    }
+                    }, 2000);
+                } else {
+                    $.notify({
+                        icon: 'glyphicon glyphicon-remove-circle',
+                        message: result.result,
+                    },{
+                        allow_dismiss: false,
+                        type: "danger",
+                        placement: {
+                            from: "top",
+                            align: "right"
+                        },
+                        z_index: 9999,
+                    });
                 }
-            });
+            }
         });
-    }
+    });
+}
     /* End of Script */
 
     /* Profile Edit Form Submit Script Start */
