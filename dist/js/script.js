@@ -369,7 +369,7 @@ $(document).ready(function() {
                 "orderable": false,
                 "data": null,
                 "className": "dt-center",
-                "defaultContent": '<button class="btn btn-warning btn-xs manageSalary"><i class="fa fa-money"></i></button> <button class="btn btn-primary btn-xs addSalary"><i class="fa fa-gratipay"></i></button> <button class="btn btn-success btn-xs editEmp"><i class="fa fa-edit"></i></button> <button class="btn btn-danger btn-xs deleteEmp"><i class="fa fa-trash"></i></button>'
+                "defaultContent": '<button class="btn btn-warning btn-xs manageSalary" title="Manage Salary"><i class="fa fa-money"></i></button> <button class="btn btn-primary btn-xs addSalary" title="Add Salary"><i class="fa fa-gratipay"></i></button> <button class="btn btn-success btn-xs editEmp" title="Edit Employee Details"><i class="fa fa-edit"></i></button> <button class="btn btn-danger btn-xs deleteEmp" title="Delete Employee"><i class="fa fa-trash"></i></button>'
             }]
         });
         /* End of Script */
@@ -427,15 +427,20 @@ $(document).on('click', '#SalaryMonthModal .salary-month-link', function(e) {
                     $('#all_payheads').html('');
                     if ( result.code == 0 ) {
                         for ( var i in result.result ) {
-                            $('#all_payheads').append($("<option></option>")
-                                .attr({
-                                    "value": result.result[i].payhead_id,
-                                    "alt":result.gradeResult[result.result[i].payhead_name.toLowerCase().replace(/\s+/g, '_')]
-                                })
-                                .text(
-                                    result.result[i].payhead_name + ' (' + jsUcfirst(result.result[i].payhead_type) + ')')
-                                .addClass((result.result[i].payhead_type=='earnings'?'text-success':'text-danger'))
-                            ); 
+                    var payheadKey = result.result[i].payhead_name.toLowerCase().replace(/\s+/g, '_');
+                    var payheadAmount = 0;
+                    if (result.gradeResult && result.gradeResult.hasOwnProperty(payheadKey)) {
+                        payheadAmount = result.gradeResult[payheadKey];
+                    }
+                    $('#all_payheads').append($("<option></option>")
+                        .attr({
+                            "value": result.result[i].payhead_id,
+                            "alt": payheadAmount
+                        })
+                        .text(
+                            result.result[i].payhead_name + ' (' + jsUcfirst(result.result[i].payhead_type) + ')')
+                        .addClass((result.result[i].payhead_type=='earnings'?'text-success':'text-danger'))
+                    ); 
                         }
                     }
                 }
