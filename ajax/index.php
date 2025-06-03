@@ -1312,7 +1312,6 @@ function GetEmployeePayheadsByID()
 	global $db;
 
 	$emp_code = $_POST['emp_code'];
-	//$salarySQL = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "pay_structure` AS `pay`, `" . DB_PREFIX . "payheads` AS `head` WHERE `head`.`payhead_id` = `pay`.`payhead_id` AND `pay`.`emp_code` = '$emp_code'");
 	$salarySQL = mysqli_query($db, "SELECT a.*, c.* FROM cdbl_pay_structure a, cdbl_employees b, cdbl_payheads c WHERE a.emp_code=b.emp_code and a.emp_grade=b.emp_grade and  a.empsal_grade=b.empsal_grade and a.payhead_id=c.payhead_id and a.emp_code ='$emp_code'");
 
 	if ($salarySQL) {
@@ -1322,8 +1321,41 @@ function GetEmployeePayheadsByID()
 			}
 			$result['code'] = 0;
 		} else {
-			$result['result'] = 'Salary record is not found.';
-			$result['code'] = 1;
+			// If no rows found, fetch emp_grade and empsal_grade from cdbl_employees
+			$empGradeSQL = mysqli_query($db, "SELECT emp_grade, empsal_grade FROM cdbl_employees WHERE emp_code = '$emp_code' LIMIT 1");
+			if ($empGradeSQL && mysqli_num_rows($empGradeSQL) == 1) {
+				$gradeRow = mysqli_fetch_assoc($empGradeSQL);
+				$emp_grade = $gradeRow['emp_grade'];
+				$empsal_grade = $gradeRow['empsal_grade'];
+
+				// Fetch all payheads
+				$payheadsSQL = mysqli_query($db, "SELECT * FROM cdbl_payheads");
+				// Fetch payscale grade matching emp_grade and empsal_grade
+				$payscaleSQL = mysqli_query($db, "SELECT * FROM cdbl_payscale_grade WHERE emp_grade = '$emp_grade' AND empsal_grade = '$empsal_grade' LIMIT 1");
+				$payscaleData = null;
+				if ($payscaleSQL && mysqli_num_rows($payscaleSQL) == 1) {
+					$payscaleData = mysqli_fetch_assoc($payscaleSQL);
+				}
+
+				if ($payheadsSQL) {
+					while ($payhead = mysqli_fetch_assoc($payheadsSQL)) {
+						$payhead_name_key = strtolower(str_replace(' ', '_', $payhead['payhead_name']));
+						if ($payscaleData !== null && isset($payscaleData[$payhead_name_key])) {
+							$payhead['default_salary'] = $payscaleData[$payhead_name_key];
+						} else {
+							$payhead['default_salary'] = 0;
+						}
+						$result['result'][] = $payhead;
+					}
+					$result['code'] = 0;
+				} else {
+					$result['result'] = 'No payheads found.';
+					$result['code'] = 1;
+				}
+			} else {
+				$result['result'] = 'Employee grade information not found.';
+				$result['code'] = 1;
+			}
 		}
 	} else {
 		$result['result'] = 'Something went wrong, please try again.';
