@@ -214,6 +214,8 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
           <div class="modal-footer">
             <input type="hidden" name="empcode" id="empcode" />
+            <input type="hidden" name="emp_grade" id="emp_grade_hidden" />
+            <input type="hidden" name="empsal_grade" id="empsal_grade_hidden" />
             <button type="submit" name="submit" class="btn btn-primary">Add Pay Heads to Employee</button>
           </div>
         </form>

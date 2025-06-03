@@ -413,74 +413,101 @@ $(document).on('click', '#SalaryMonthModal .salary-month-link', function(e) {
             e.preventDefault();
 
             var data = emp_table.row($(this).parents('tr')).data();
-            
-            // console.log( data);
+
             $('#empcode').val(data[0]);
+
+            // First fetch latest emp_grade and empsal_grade from server
             $.ajax({
-                type     : "POST",
-                dataType : "json",
-                async    : true,
-                cache    : false,
-                url      : baseurl + "ajax/?case=GetAllPayheadsExceptEmployeeHave",
-                data     : 'emp_code=' + data[0] + '&emp_grade=' + data[6] + '&salary_grade=' + data[7],
-                success  : function(result) {
-                    $('#all_payheads').html('');
-                    if ( result.code == 0 ) {
-                        for ( var i in result.result ) {
-                    var payheadKey = result.result[i].payhead_name.toLowerCase().replace(/\s+/g, '_');
-                    var payheadAmount = 0;
-                    if (result.gradeResult && result.gradeResult.hasOwnProperty(payheadKey)) {
-                        payheadAmount = result.gradeResult[payheadKey];
+                type: "POST",
+                dataType: "json",
+                url: baseurl + "ajax/?case=GetEmployeeByID",
+                data: 'emp_code=' + data[0],
+                success: function(empResult) {
+                    console.log("GetEmployeeByID result:", empResult);
+                    if (empResult.code === 0) {
+                        var empGrade = empResult.result.emp_grade;
+                        var empSalGrade = empResult.result.empsal_grade;
+                        console.log("empGrade:", empGrade, "empSalGrade:", empSalGrade);
+
+                        // Set hidden inputs for emp_grade and empsal_grade in the assign-payhead-form
+                        $('#emp_grade_hidden').val(empGrade);
+                        $('#empsal_grade_hidden').val(empSalGrade);
+
+                        // Now fetch payheads with latest grades
+                        $.ajax({
+                            type: "POST",
+                            dataType: "json",
+                            url: baseurl + "ajax/?case=GetAllPayheadsExceptEmployeeHave",
+                            data: 'emp_code=' + data[0] + '&emp_grade=' + empGrade + '&salary_grade=' + empSalGrade,
+                            success: function(result) {
+                                console.log("GetAllPayheadsExceptEmployeeHave result:", result);
+                                $('#all_payheads').html('');
+                                if (result.code == 0) {
+                                    for (var i in result.result) {
+                                        var payheadKey = result.result[i].payhead_name.toLowerCase().replace(/\s+/g, '_');
+                                        var payheadAmount = 0;
+                                        if (result.gradeResult && result.gradeResult.hasOwnProperty(payheadKey)) {
+                                            payheadAmount = result.gradeResult[payheadKey];
+                                        }
+                                        $('#all_payheads').append($("<option></option>")
+                                            .attr({
+                                                "value": result.result[i].payhead_id,
+                                                "alt": payheadAmount
+                                            })
+                                            .text(
+                                                result.result[i].payhead_name + ' (' + jsUcfirst(result.result[i].payhead_type) + ')')
+                                            .addClass((result.result[i].payhead_type == 'earnings' ? 'text-success' : 'text-danger'))
+                                        );
+                                    }
+                                }
+                            }
+                        });
+
+                        // Fetch assigned payheads and amounts
+                        $.ajax({
+                            type: "POST",
+                            dataType: "json",
+                            url: baseurl + "ajax/?case=GetEmployeePayheadsByID",
+                            data: 'emp_code=' + data[0],
+                            success: function(result) {
+                                console.log("GetEmployeePayheadsByID result:", result);
+                                $('#selected_payheads, #selected_payamount').html('');
+                                if (result.code == 0) {
+                                    for (var i in result.result) {
+                                        $('#selected_payheads').append($("<option></option>")
+                                            .attr({
+                                                "value": result.result[i].payhead_id,
+                                                "selected": "selected"
+                                            })
+                                            .text(
+                                                result.result[i].payhead_name + ' (' + jsUcfirst(result.result[i].payhead_type) + ')'
+                                            )
+                                            .addClass((result.result[i].payhead_type == 'earnings' ? 'text-success' : 'text-danger'))
+                                        );
+                                        $('#selected_payamount').append($("<input />")
+                                            .attr({
+                                                "type": "text",
+                                                "name": "pay_amounts[" + result.result[i].payhead_id + "]",
+                                                "id": "pay_amounts_" + result.result[i].payhead_id,
+                                                "placeholder": result.result[i].payhead_name,
+                                                "value": result.result[i].default_salary
+                                            })
+                                            .addClass('form-control')
+                                        );
+                                    }
+                                }
+                            }
+                        });
+
+                        $('#ManageModal').modal('show');
+                    } else {
+                        alert('Failed to fetch employee details.');
                     }
-                    $('#all_payheads').append($("<option></option>")
-                        .attr({
-                            "value": result.result[i].payhead_id,
-                            "alt": payheadAmount
-                        })
-                        .text(
-                            result.result[i].payhead_name + ' (' + jsUcfirst(result.result[i].payhead_type) + ')')
-                        .addClass((result.result[i].payhead_type=='earnings'?'text-success':'text-danger'))
-                    ); 
-                        }
-                    }
+                },
+                error: function() {
+                    alert('Error fetching employee details.');
                 }
             });
-            $.ajax({
-                type     : "POST",
-                dataType : "json",
-                async    : true,
-                cache    : false,
-                url      : baseurl + "ajax/?case=GetEmployeePayheadsByID",
-                data     : 'emp_code=' + data[0],
-                success  : function(result) {
-                    $('#selected_payheads, #selected_payamount').html('');
-                    if ( result.code == 0 ) {
-                        for ( var i in result.result ) {
-                            $('#selected_payheads').append($("<option></option>")
-                                .attr({
-                                    "value": result.result[i].payhead_id,
-                                    "selected": "selected"
-                                })
-                                .text(
-                                    result.result[i].payhead_name + ' (' + jsUcfirst(result.result[i].payhead_type) + ')'
-                                )
-                                .addClass((result.result[i].payhead_type=='earnings'?'text-success':'text-danger'))
-                            );
-                            $('#selected_payamount').append($("<input />")
-                                .attr({
-                                    "type": "text",
-                                    "name": "pay_amounts[" + result.result[i].payhead_id + "]",
-                                    "id": "pay_amounts_" + result.result[i].payhead_id,
-                                    "placeholder": result.result[i].payhead_name,
-                                    "value": result.result[i].default_salary
-                                })
-                                .addClass('form-control')
-                            );
-                        }
-                    }
-                }
-            });
-            $('#ManageModal').modal('show');
         });
         /* End of Script */
 
@@ -820,6 +847,10 @@ $(document).on('click', '#SalaryMonthModal .salary-month-link', function(e) {
     if ( $('#assign-payhead-form').length > 0 ) {
         $('#assign-payhead-form').on('submit', function(e) {
             e.preventDefault();
+
+            // Debugging logs for hidden inputs
+            console.log("emp_grade_hidden value:", $('#emp_grade_hidden').val());
+            console.log("empsal_grade_hidden value:", $('#empsal_grade_hidden').val());
 
             var form = $(this);
             $.ajax({
