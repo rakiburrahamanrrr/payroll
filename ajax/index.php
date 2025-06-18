@@ -1,18 +1,22 @@
 <?php
-require_once __DIR__ . '/../vendor/autoload.php';  // This is correct relative to your 'ajax' folder
+/* require_once __DIR__ . '/../vendor/autoload.php';  // This is correct relative to your 'ajax' folder
+include(dirname(dirname(__FILE__)) . '/config.php'); */
+include(dirname(dirname(__FILE__)) . '/vendor/autoload.php');
+//require_once __DIR__ . '/../vendor/autoload.php';  // This is correct relative to your 'ajax' folder
 include(dirname(dirname(__FILE__)) . '/config.php');
+
 define('DEBUG_MODE', true);
 $case = isset($_GET['case']) ? $_GET['case'] : '';
 switch ($case) {
 	case 'LoginProcessHandler':
 		LoginProcessHandler();
 		break;
-	case 'AttendanceProcessHandler':
-		AttendanceProcessHandler();
-		break;
-	case 'LoadingAttendance':
-		LoadingAttendance();
-		break;
+	// case 'AttendanceProcessHandler':
+	// 	AttendanceProcessHandler();
+	// 	break;
+	// case 'LoadingAttendance':
+	// 	LoadingAttendance();
+	// 	break;
 	case 'LoadingSalaries':
 		LoadingSalaries();
 		break;
@@ -74,9 +78,9 @@ switch ($case) {
 	case 'EditProfileByID':
 		EditProfileByID();
 		break;
-	case 'EditLoginDataByID':
-		EditLoginDataByID();
-		break;
+	// case 'EditLoginDataByID':
+	// 	EditLoginDataByID();
+	// break;
 	case 'LoadingAllLeaves':
 		LoadingAllLeaves();
 		break;
@@ -92,10 +96,16 @@ switch ($case) {
 	case 'RejectLeaveApplication':
 		RejectLeaveApplication();
 		break;
-case 'InsertUpdatePayscaleGrade':
-	InsertUpdatePayscaleGrade();
-	break;
-default:
+	case 'UpdatePayscaleGrade':
+		InsertUpdatePayscaleGrade();
+		break;
+	case 'InsertUpdatePayscaleGrade':
+		InsertUpdatePayscaleGrade();
+		break;
+	case 'BulkEmployeeUpload':
+		BulkEmployeeUpload();
+		break;
+	default:
 		echo '404! Page Not Found.';
 		break;
 }
@@ -177,8 +187,10 @@ function LoginProcessHandler()
 	$result = array();
 	global $db;
 
-	$code = isset($_POST['code']) ? mysqli_real_escape_string($db, $_POST['code']) : '';
-	$password = isset($_POST['password']) ? mysqli_real_escape_string($db, $_POST['password']) : '';
+	/* $code = isset($_POST['code']) ? addslashes($db, $_POST['code']) : '';
+	$password = isset($_POST['password']) ? addslashes($db, $_POST['password']) : ''; */
+	$code = mysqli_real_escape_string($db, $_POST['code']); //isset($_POST['code']) ? $db, trim($_POST['code']) : '';
+	$password = mysqli_real_escape_string($db, $_POST['password']); //isset($_POST['password']) ? $db, trim($_POST['password']) : '';
 	if (!empty($code) && !empty($password)) {
 		$adminCheck = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "admin` WHERE `admin_code` = '$code' AND `admin_password` = '" . sha1($password) . "' LIMIT 0, 1");
 		if ($adminCheck) {
@@ -186,7 +198,7 @@ function LoginProcessHandler()
 				$adminData = mysqli_fetch_assoc($adminCheck);
 				$_SESSION['Admin_ID'] = $adminData['admin_id'];
 				$_SESSION['Login_Type'] = 'admin';
-				$result['result'] = BASE_URL . 'attendance/';
+				$result['result'] = BASE_URL . 'employees/';
 				$result['code'] = 0;
 			} else {
 				$empCheck = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "employees` WHERE `emp_code` = '$code' AND `emp_password` = '" . sha1($password) . "' LIMIT 0, 1");
@@ -218,7 +230,7 @@ function LoginProcessHandler()
 	echo json_encode($result);
 }
 
-function AttendanceProcessHandler()
+/* function AttendanceProcessHandler()
 {
 	global $userData, $db;
 	$result = array();
@@ -257,9 +269,9 @@ function AttendanceProcessHandler()
 	}
 
 	echo json_encode($result);
-}
+} */
 
-function LoadingAttendance()
+/* function LoadingAttendance()
 {
 	global $db;
 	$requestData = $_REQUEST;
@@ -326,6 +338,186 @@ function LoadingAttendance()
 	);
 
 	echo json_encode($json_data);
+} */
+function BulkEmployeeUpload()
+{
+	$result = array();
+	global $db;
+
+	if (!isset($_FILES['employeeExcelFile']) || $_FILES['employeeExcelFile']['error'] !== UPLOAD_ERR_OK) {
+		$result['code'] = 1;
+		$result['result'] = 'No file uploaded or upload error.';
+		echo json_encode($result);
+		return;
+	}
+
+	$uploadedFile = $_FILES['employeeExcelFile']['tmp_name'];
+	$extension = pathinfo($_FILES['employeeExcelFile']['name'], PATHINFO_EXTENSION);
+	if (!in_array(strtolower($extension), ['xls', 'xlsx'])) {
+		$result['code'] = 2;
+		$result['result'] = 'Invalid file type. Please upload an Excel file (.xls or .xlsx).';
+		echo json_encode($result);
+		return;
+	}
+
+	// require_once dirname(dirname(__FILE__)) . '/vendor/autoload.php';
+
+	// Use fully qualified class name
+	$IOFactory = '\PhpOffice\PhpSpreadsheet\IOFactory';
+
+	try {
+		$spreadsheet = $IOFactory::load($uploadedFile);
+		$worksheet = $spreadsheet->getActiveSheet();
+		$rows = $worksheet->toArray();
+
+		// Assuming first row is header, start from second row
+		$successCount = 0;
+		$failCount = 0;
+		$failMessages = [];
+
+		for ($i = 1; $i < count($rows); $i++) {
+			$row = $rows[$i];
+
+			// Map columns to employee fields - adjust indexes as per your Excel format
+			$emp_code = isset($row[0]) ? trim($row[0]) : '';
+			$first_name = isset($row[1]) ? trim($row[1]) : '';
+			$last_name = isset($row[2]) ? trim($row[2]) : '';
+			$dob = isset($row[3]) ? trim($row[3]) : '';
+			$email = isset($row[4]) ? trim($row[4]) : '';
+			$mobile = isset($row[5]) ? trim($row[5]) : '';
+			$emp_grade = isset($row[6]) ? trim($row[6]) : '';
+			$empsal_grade = isset($row[7]) ? trim($row[7]) : '';
+			$joining_date = isset($row[8]) ? trim($row[8]) : '';
+			$blood_group = isset($row[9]) ? trim($row[9]) : '';
+			$employment_type = isset($row[10]) ? trim($row[10]) : '';
+
+			// Additional required fields with default values or empty strings
+			$gender = isset($row[11]) ? trim($row[11]) : 'male';
+			$marital_status = isset($row[12]) ? trim($row[12]) : 'Single';
+			$address = isset($row[13]) ? trim($row[13]) : '';
+			$paraddress = isset($row[14]) ? trim($row[14]) : '';
+			$national_id = isset($row[15]) ? trim($row[15]) : '';
+			$verification = isset($row[16]) ? trim($row[16]) : 'Not Verified';
+			$employee_id = isset($row[17]) ? intval($row[17]) : 0;
+			$employment_status = isset($row[18]) ? trim($row[18]) : 'Active';
+			$department = isset($row[19]) ? trim($row[19]) : '';
+			$designation = isset($row[20]) ? trim($row[20]) : '';
+			$photo = isset($row[21]) ? trim($row[21]) : 'default.jpg';
+			$emp_password = isset($row[22]) ? trim($row[22]) : sha1('defaultpassword');
+			$insurance_id = isset($row[23]) ? trim($row[23]) : '';
+			$account_no = isset($row[24]) ? trim($row[24]) : '';
+			$etin_no = isset($row[25]) ? trim($row[25]) : '';
+
+			// Validate required fields
+			if (empty($emp_code) || empty($first_name) || empty($last_name) || empty($email) || empty($mobile) || empty($national_id)) {
+				$failCount++;
+				$failMessages[] = "Row " . ($i + 1) . ": Missing required fields.";
+				continue;
+			}
+
+			// Check for unique constraints: email, mobile, national_id
+			$email_esc = mysqli_real_escape_string($db, $email);
+			$mobile_esc = mysqli_real_escape_string($db, $mobile);
+			$national_id_esc = mysqli_real_escape_string($db, $national_id);
+
+			$uniqueCheckSQL = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "employees` WHERE `email` = '$email_esc' OR `mobile` = '$mobile_esc' OR `national_id` = '$national_id_esc' LIMIT 1");
+			if ($uniqueCheckSQL && mysqli_num_rows($uniqueCheckSQL) > 0) {
+				$failCount++;
+				$failMessages[] = "Row " . ($i + 1) . ": Duplicate email, mobile, or national ID.";
+				continue;
+			}
+
+			// Check if employee exists by emp_code
+			$emp_code_esc = mysqli_real_escape_string($db, $emp_code);
+			$checkSQL = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "employees` WHERE `emp_code` = '$emp_code_esc' LIMIT 1");
+			if ($checkSQL && mysqli_num_rows($checkSQL) > 0) {
+				// Update existing employee
+				$updateSQL = "UPDATE `" . DB_PREFIX . "employees` SET 
+                    `first_name` = '" . mysqli_real_escape_string($db, $first_name) . "',
+                    `last_name` = '" . mysqli_real_escape_string($db, $last_name) . "',
+                    `dob` = '" . mysqli_real_escape_string($db, $dob) . "',
+                    `email` = '" . mysqli_real_escape_string($db, $email) . "',
+                    `mobile` = '" . mysqli_real_escape_string($db, $mobile) . "',
+                    `emp_grade` = '" . mysqli_real_escape_string($db, $emp_grade) . "',
+                    `empsal_grade` = '" . mysqli_real_escape_string($db, $empsal_grade) . "',
+                    `joining_date` = '" . mysqli_real_escape_string($db, $joining_date) . "',
+                    `blood_group` = '" . mysqli_real_escape_string($db, $blood_group) . "',
+                    `employment_type` = '" . mysqli_real_escape_string($db, $employment_type) . "',
+                    `gender` = '" . mysqli_real_escape_string($db, $gender) . "',
+                    `marital_status` = '" . mysqli_real_escape_string($db, $marital_status) . "',
+                    `address` = '" . mysqli_real_escape_string($db, $address) . "',
+                    `paraddress` = '" . mysqli_real_escape_string($db, $paraddress) . "',
+                    `national_id` = '" . mysqli_real_escape_string($db, $national_id) . "',
+                    `verification` = '" . mysqli_real_escape_string($db, $verification) . "',
+                    `employee_id` = " . intval($employee_id) . ",
+                    `employment_status` = '" . mysqli_real_escape_string($db, $employment_status) . "',
+                    `department` = '" . mysqli_real_escape_string($db, $department) . "',
+                    `designation` = '" . mysqli_real_escape_string($db, $designation) . "',
+                    `photo` = '" . mysqli_real_escape_string($db, $photo) . "',
+                    `emp_password` = '" . mysqli_real_escape_string($db, $emp_password) . "',
+                    `insurance_id` = '" . mysqli_real_escape_string($db, $insurance_id) . "',
+                    `account_no` = '" . mysqli_real_escape_string($db, $account_no) . "',
+                    `etin_no` = '" . mysqli_real_escape_string($db, $etin_no) . "'
+                    WHERE `emp_code` = '$emp_code_esc'";
+				$updateResult = mysqli_query($db, $updateSQL);
+				if ($updateResult) {
+					$successCount++;
+				} else {
+					$failCount++;
+					$failMessages[] = "Row " . ($i + 1) . ": Failed to update employee. Error: " . mysqli_error($db);
+				}
+			} else {
+				// Insert new employee
+				$insertSQL = "INSERT INTO `" . DB_PREFIX . "employees` 
+                    (`emp_code`, `first_name`, `last_name`, `dob`, `email`, `mobile`, `emp_grade`, `empsal_grade`, `joining_date`, `blood_group`, `employment_type`, `gender`, `marital_status`, `address`, `paraddress`, `national_id`, `verification`, `employee_id`, `employment_status`, `department`, `designation`, `photo`, `emp_password`, `insurance_id`, `account_no`, `etin_no`) VALUES (
+                    '" . mysqli_real_escape_string($db, $emp_code) . "',
+                    '" . mysqli_real_escape_string($db, $first_name) . "',
+                    '" . mysqli_real_escape_string($db, $last_name) . "',
+                    '" . mysqli_real_escape_string($db, $dob) . "',
+                    '" . mysqli_real_escape_string($db, $email) . "',
+                    '" . mysqli_real_escape_string($db, $mobile) . "',
+                    '" . mysqli_real_escape_string($db, $emp_grade) . "',
+                    '" . mysqli_real_escape_string($db, $empsal_grade) . "',
+                    '" . mysqli_real_escape_string($db, $joining_date) . "',
+                    '" . mysqli_real_escape_string($db, $blood_group) . "',
+                    '" . mysqli_real_escape_string($db, $employment_type) . "',
+                    '" . mysqli_real_escape_string($db, $gender) . "',
+                    '" . mysqli_real_escape_string($db, $marital_status) . "',
+                    '" . mysqli_real_escape_string($db, $address) . "',
+                    '" . mysqli_real_escape_string($db, $paraddress) . "',
+                    '" . mysqli_real_escape_string($db, $national_id) . "',
+                    '" . mysqli_real_escape_string($db, $verification) . "',
+                    " . intval($employee_id) . ",
+                    '" . mysqli_real_escape_string($db, $employment_status) . "',
+                    '" . mysqli_real_escape_string($db, $department) . "',
+                    '" . mysqli_real_escape_string($db, $designation) . "',
+                    '" . mysqli_real_escape_string($db, $photo) . "',
+                    '" . mysqli_real_escape_string($db, $emp_password) . "',
+                    '" . mysqli_real_escape_string($db, $insurance_id) . "',
+                    '" . mysqli_real_escape_string($db, $account_no) . "',
+                    '" . mysqli_real_escape_string($db, $etin_no) . "'
+                )";
+				$insertResult = mysqli_query($db, $insertSQL);
+				if ($insertResult) {
+					$successCount++;
+				} else {
+					$failCount++;
+					$failMessages[] = "Row " . ($i + 1) . ": Failed to insert employee. Error: " . mysqli_error($db);
+				}
+			}
+		}
+
+		$result['code'] = 0;
+		$result['result'] = "Bulk upload completed. Success: $successCount, Failures: $failCount.";
+		if ($failCount > 0) {
+			$result['result'] .= " Details: " . implode(' ', $failMessages);
+		}
+	} catch (Exception $e) {
+		$result['code'] = 3;
+		$result['result'] = 'Error reading Excel file: ' . $e->getMessage();
+	}
+
+	echo json_encode($result);
 }
 
 function LoadingSalaries()
@@ -349,7 +541,8 @@ function LoadingSalaries()
 		);
 
 		// Initial query to count the total data
-		$sql  = "SELECT * FROM `cdbl_salaries` GROUP BY `emp_code`, `pay_month`"; // Removed DB_PREFIX from table name
+		//$sql  = "SELECT * FROM `cdbl_salaries` GROUP BY `emp_code`, `pay_month`"; // Removed DB_PREFIX from table name
+		$sql  = "SELECT * FROM `cdbl_salaries`"; //
 		$query = mysqli_query($db, $sql);
 
 		// Check for SQL errors
@@ -373,7 +566,7 @@ function LoadingSalaries()
 			$sql .= " OR `salary`.`net_salary` LIKE '" . $requestData['search']['value'] . "%')";
 		}
 
-		$sql .= " GROUP BY `salary`.`emp_code`, `salary`.`pay_month`";
+		//$sql .= " GROUP BY `salary`.`emp_code`, `salary`.`pay_month`";
 
 		$query = mysqli_query($db, $sql);
 
@@ -400,7 +593,7 @@ function LoadingSalaries()
 			$nestedData[] = number_format($row['net_salary'], 2, '.', ',');  // Net Salary Payable (net_salary)
 			// $nestedData[] = '<button type="button" class="btn btn-success btn-xs" onclick="openInNewTab(\'' . BASE_URL . 'payslips/' . $row['emp_code'] . '/' . str_replace(', ', ',', $pay_month) . '/' . str_replace(', ', ',', $pay_month) . '.pdf\');"><i class="fa fa-download"></i></button> 
 			$nestedData[] = '<button type="button" class="btn btn-success btn-xs" onclick="openInNewTab(\'' . BASE_URL . '/../payslips/' . $row['emp_code'] . '/' . $pay_month . '/' . $pay_month . '.pdf\');"><i class="fa fa-download"></i></button>   
-          // <button type="button" class="btn btn-info btn-xs" onclick="sendPaySlipByMail(\'' . $row['emp_code'] . '\', \'' . $pay_month . '\');"><i class="fa fa-envelope"></i></button>';
+          <button type="button" class="btn btn-info btn-xs" onclick="sendPaySlipByMail(\'' . $row['emp_code'] . '\', \'' . $pay_month . '\');"><i class="fa fa-envelope"></i></button>';
 
 			$data[] = $nestedData;
 			$i++;
@@ -428,7 +621,8 @@ function LoadingSalaries()
 		);
 
 		// Initial query to count total data for this employee
-		$sql = "SELECT * FROM `cdbl_salaries` WHERE `emp_code` = '$emp_code' GROUP BY `pay_month`";
+		//$sql = "SELECT * FROM `cdbl_salaries` WHERE `emp_code` = '$emp_code' GROUP BY `pay_month`";
+		$sql = "SELECT * FROM `cdbl_salaries` WHERE `emp_code` = '$emp_code'";
 		$query = mysqli_query($db, $sql);
 		if (!$query) {
 			die('Error: ' . mysqli_error($db));
@@ -447,7 +641,7 @@ function LoadingSalaries()
 			$sql .= " OR `salary`.`net_salary` LIKE '" . $requestData['search']['value'] . "%')";
 		}
 
-		$sql .= " GROUP BY `salary`.`pay_month`";
+		//$sql .= " GROUP BY `salary`.`pay_month`";
 
 		$query = mysqli_query($db, $sql);
 		if (!$query) {
@@ -753,19 +947,22 @@ function AssignPayheadsToEmployee()
 	$payheads = $_POST['selected_payheads'];
 	$default_salary = $_POST['pay_amounts'];
 	$emp_code = $_POST['empcode'];
+	$emp_grade = $_POST['emp_grade'] ?? null;
+	$empsal_grade = $_POST['empsal_grade'] ?? null;
+
 	$checkSQL = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "pay_structure` WHERE `emp_code` = '$emp_code'");
 	if ($checkSQL) {
 		if (!empty($payheads) && !empty($emp_code)) {
 			if (mysqli_num_rows($checkSQL) == 0) {
 				foreach ($payheads as $payhead) {
-					mysqli_query($db, "INSERT INTO `" . DB_PREFIX . "pay_structure`(`emp_code`, `payhead_id`, `default_salary`) VALUES ('$emp_code', $payhead, " . (!empty($default_salary[$payhead]) ? $default_salary[$payhead] : 0) . ")");
+					mysqli_query($db, "INSERT INTO `" . DB_PREFIX . "pay_structure`(`emp_code`, `payhead_id`, `default_salary`, `emp_grade`, `empsal_grade`) VALUES ('$emp_code', $payhead, " . (!empty($default_salary[$payhead]) ? $default_salary[$payhead] : 0) . ", " . ($emp_grade !== null ? "'$emp_grade'" : "NULL") . ", " . ($empsal_grade !== null ? "'$empsal_grade'" : "NULL") . ")");
 				}
 				$result['result'] = 'Payheads are successfully assigned to employee.';
 				$result['code'] = 0;
 			} else {
 				mysqli_query($db, "DELETE FROM `" . DB_PREFIX . "pay_structure` WHERE `emp_code` = '$emp_code'");
 				foreach ($payheads as $payhead) {
-					mysqli_query($db, "INSERT INTO `" . DB_PREFIX . "pay_structure`(`emp_code`, `payhead_id`, `default_salary`) VALUES ('$emp_code', $payhead, " . (!empty($default_salary[$payhead]) ? $default_salary[$payhead] : 0) . ")");
+					mysqli_query($db, "INSERT INTO `" . DB_PREFIX . "pay_structure`(`emp_code`, `payhead_id`, `default_salary`, `emp_grade`, `empsal_grade`) VALUES ('$emp_code', $payhead, " . (!empty($default_salary[$payhead]) ? $default_salary[$payhead] : 0) . ", " . ($emp_grade !== null ? "'$emp_grade'" : "NULL") . ", " . ($empsal_grade !== null ? "'$empsal_grade'" : "NULL") . ")");
 				}
 				$result['result'] = 'Payheads are successfully re-assigned to employee.';
 				$result['code'] = 0;
@@ -793,7 +990,7 @@ function InsertUpdateHolidays()
 	$holiday_type = stripslashes($_POST['holiday_type']);
 	if (!empty($holiday_title) && !empty($holiday_desc) && !empty($holiday_date) && !empty($holiday_type)) {
 		if (!empty($_POST['holiday_id'])) {
-			$holiday_id = addslashes($_POST['holiday_id']);
+			$holiday_id = mysqli_real_escape_string($db, $_POST['holiday_id']);
 			$updateHoliday = mysqli_query($db, "UPDATE `" . DB_PREFIX . "holidays` SET `holiday_title` = '$holiday_title', `holiday_desc` = '$holiday_desc', `holiday_date` = '$holiday_date', `holiday_type` = '$holiday_type' WHERE `holiday_id` = $holiday_id");
 			if ($updateHoliday) {
 				$result['result'] = 'Holiday record has been successfully updated.';
@@ -929,7 +1126,7 @@ function InsertUpdatePayheads()
 	$payhead_type = stripslashes($_POST['payhead_type']);
 	if (!empty($payhead_name) && !empty($payhead_desc) && !empty($payhead_type)) {
 		if (!empty($_POST['payhead_id'])) {
-			$payhead_id = addslashes($_POST['payhead_id']);
+			$payhead_id = mysqli_real_escape_string($db, $_POST['payhead_id']);
 			$updatePayhead = mysqli_query($db, "UPDATE `" . DB_PREFIX . "payheads` SET `payhead_name` = '$payhead_name', `payhead_desc` = '$payhead_desc', `payhead_type` = '$payhead_type' WHERE `payhead_id` = $payhead_id");
 			if ($updatePayhead) {
 				$result['result'] = 'Payhead record has been successfully updated.';
@@ -1032,7 +1229,7 @@ function LoadingPayheads()
 	$i = 1 + $requestData['start'];
 	while ($row = mysqli_fetch_assoc($query)) {
 		$nestedData = array();
-		$nestedData[] = $arr;
+		$nestedData[] = $row["payhead_id"];
 		$nestedData[] = $row["payhead_name"];
 		$nestedData[] = $row["payhead_desc"];
 		if ($row["payhead_type"] == 'earnings') {
@@ -1063,19 +1260,36 @@ function GetAllPayheadsExceptEmployeeHave()
 	$salGrade = $_POST['salary_grade'];
 	$empGrade = $_POST['emp_grade'];
 
-	$salarySQL = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "payheads` WHERE `payhead_id` NOT IN (SELECT `payhead_id` FROM `" . DB_PREFIX . "pay_structure` WHERE `emp_code` = '$emp_code')");
+	$salarySQL = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "payheads` Where `payhead_id` NOT IN (SELECT `payhead_id` FROM `" . DB_PREFIX . "pay_structure` WHERE `emp_code` = '$emp_code')");
+
 
 	$gradeSalarySQL = mysqli_query($db, "SELECT * 
-        FROM `cdbl_payscale_grade` 
-        WHERE `emp_grade` = '$empGrade' AND `empsal_grade` = '$salGrade'");
+		FROM `cdbl_payscale_grade` 
+		WHERE `emp_grade` = '$empGrade' AND `empsal_grade` = '$salGrade'");
+
+	$gradeData = null;
+	if ($gradeSalarySQL && mysqli_num_rows($gradeSalarySQL) > 0) {
+		$gradeData = mysqli_fetch_assoc($gradeSalarySQL);
+	}
 
 	if ($salarySQL) {
 		if (mysqli_num_rows($salarySQL) > 0) {
 			while ($data = mysqli_fetch_assoc($salarySQL)) {
+				// Add default_salary from gradeData if available
+				if ($gradeData !== null) {
+					$payhead_name_key = strtolower(str_replace(' ', '_', $data['payhead_name']));
+					if (isset($gradeData[$payhead_name_key])) {
+						$data['default_salary'] = $gradeData[$payhead_name_key];
+					} else {
+						$data['default_salary'] = 0;
+					}
+				} else {
+					$data['default_salary'] = 0;
+				}
 				$result['result'][] = $data;
 			}
-			if ($gradeSalarySQL && mysqli_num_rows($gradeSalarySQL) > 0) {
-				$result['gradeResult'] = mysqli_fetch_assoc($gradeSalarySQL);
+			if ($gradeData !== null) {
+				$result['gradeResult'] = $gradeData;
 			} else {
 				$result['gradeResult'] = null;
 			}
@@ -1098,7 +1312,7 @@ function GetEmployeePayheadsByID()
 	global $db;
 
 	$emp_code = $_POST['emp_code'];
-	$salarySQL = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "pay_structure` AS `pay`, `" . DB_PREFIX . "payheads` AS `head` WHERE `head`.`payhead_id` = `pay`.`payhead_id` AND `pay`.`emp_code` = '$emp_code'");
+	$salarySQL = mysqli_query($db, "SELECT a.*, c.* FROM cdbl_pay_structure a, cdbl_employees b, cdbl_payheads c WHERE a.emp_code=b.emp_code and a.emp_grade=b.emp_grade and  a.empsal_grade=b.empsal_grade and a.payhead_id=c.payhead_id and a.emp_code ='$emp_code'");
 
 	if ($salarySQL) {
 		if (mysqli_num_rows($salarySQL) > 0) {
@@ -1107,8 +1321,41 @@ function GetEmployeePayheadsByID()
 			}
 			$result['code'] = 0;
 		} else {
-			$result['result'] = 'Salary record is not found.';
-			$result['code'] = 1;
+			// If no rows found, fetch emp_grade and empsal_grade from cdbl_employees
+			$empGradeSQL = mysqli_query($db, "SELECT emp_grade, empsal_grade FROM cdbl_employees WHERE emp_code = '$emp_code' LIMIT 1");
+			if ($empGradeSQL && mysqli_num_rows($empGradeSQL) == 1) {
+				$gradeRow = mysqli_fetch_assoc($empGradeSQL);
+				$emp_grade = $gradeRow['emp_grade'];
+				$empsal_grade = $gradeRow['empsal_grade'];
+
+				// Fetch all payheads
+				$payheadsSQL = mysqli_query($db, "SELECT * FROM cdbl_payheads");
+				// Fetch payscale grade matching emp_grade and empsal_grade
+				$payscaleSQL = mysqli_query($db, "SELECT * FROM cdbl_payscale_grade WHERE emp_grade = '$emp_grade' AND empsal_grade = '$empsal_grade' LIMIT 1");
+				$payscaleData = null;
+				if ($payscaleSQL && mysqli_num_rows($payscaleSQL) == 1) {
+					$payscaleData = mysqli_fetch_assoc($payscaleSQL);
+				}
+
+				if ($payheadsSQL) {
+					while ($payhead = mysqli_fetch_assoc($payheadsSQL)) {
+						$payhead_name_key = strtolower(str_replace(' ', '_', $payhead['payhead_name']));
+						if ($payscaleData !== null && isset($payscaleData[$payhead_name_key])) {
+							$payhead['default_salary'] = $payscaleData[$payhead_name_key];
+						} else {
+							$payhead['default_salary'] = 0;
+						}
+						$result['result'][] = $payhead;
+					}
+					$result['code'] = 0;
+				} else {
+					$result['result'] = 'No payheads found.';
+					$result['code'] = 1;
+				}
+			} else {
+				$result['result'] = 'Employee grade information not found.';
+				$result['code'] = 1;
+			}
 		}
 	} else {
 		$result['result'] = 'Something went wrong, please try again.';
@@ -1164,48 +1411,74 @@ function EditEmployeeDetailsByID()
 	$result = array();
 	global $db;
 
-	$employee_id = stripslashes($_POST['employee_id']);
-	$first_name = stripslashes($_POST['first_name']);
-	$last_name = stripslashes($_POST['last_name']);
-	$dob = stripslashes($_POST['dob']);
-	$gender = stripslashes($_POST['gender']);
-	$marital_status = stripslashes($_POST['marital_status']);
-	$blood_group = stripslashes($_POST['blood_group']);
-	$address = stripslashes($_POST['address']);
-	$paraddress = stripslashes($_POST['paraddress']);
-	$email = stripslashes($_POST['email']);
-	$mobile = stripslashes($_POST['mobile']);
-	$telephone = stripslashes($_POST['telephone']);
-	$identity_doc = stripslashes($_POST['identity_doc']);
-	$national_id = stripslashes($_POST['national_id']);
-	$employment_type = stripslashes($_POST['employment_type']);
-	$emp_status = stripslashes($_POST['emp_status']);
-	$designation = stripslashes($_POST['designation']);
-	$department = stripslashes($_POST['department']);
-	$emp_grade = stripslashes($_POST['emp_grade']);
-	$empsal_grade = stripslashes($_POST['empsal_grade']);
-	$joining_date = stripslashes($_POST['joining_date']);
-	$confirmation_date = stripslashes($_POST['confirmation_date']);
-	$resign_date = stripslashes($_POST['resign_date']);
-	$account_no = stripslashes($_POST['account_no']);
-	$etin_no = stripslashes($_POST['etin_no']);
+	$emp_code = isset($_POST['emp_code']) ? stripslashes($_POST['emp_code']) : '';
+	$first_name = isset($_POST['first_name']) ? stripslashes($_POST['first_name']) : '';
+	$last_name = isset($_POST['last_name']) ? stripslashes($_POST['last_name']) : '';
+	$dob = isset($_POST['dob']) ? stripslashes($_POST['dob']) : '';
+	$gender = isset($_POST['gender']) ? stripslashes($_POST['gender']) : '';
+	$marital_status = isset($_POST['marital_status']) ? stripslashes($_POST['marital_status']) : '';
+	$blood_group = isset($_POST['blood_group']) ? stripslashes($_POST['blood_group']) : '';
+	$address = isset($_POST['address']) ? stripslashes($_POST['address']) : '';
+	$paraddress = isset($_POST['paraddress']) ? stripslashes($_POST['paraddress']) : '';
+	$email = isset($_POST['email']) ? stripslashes($_POST['email']) : '';
+	$mobile = isset($_POST['mobile']) ? stripslashes($_POST['mobile']) : '';
+	$telephone = isset($_POST['telephone']) ? stripslashes($_POST['telephone']) : '';
+	$national_id = isset($_POST['national_id']) ? stripslashes($_POST['national_id']) : '';
+	$employment_type = isset($_POST['employment_type']) ? stripslashes($_POST['employment_type']) : '';
+	$employment_status = isset($_POST['employment_status']) ? stripslashes($_POST['employment_status']) : '';
+	$designation = isset($_POST['designation']) ? stripslashes($_POST['designation']) : '';
+	$department = isset($_POST['department']) ? stripslashes($_POST['department']) : '';
+	$emp_grade = isset($_POST['emp_grade']) ? stripslashes($_POST['emp_grade']) : '';
+	$empsal_grade = isset($_POST['empsal_grade']) ? stripslashes($_POST['empsal_grade']) : '';
+	$joining_date = isset($_POST['joining_date']) ? stripslashes($_POST['joining_date']) : '';
+	$confirmation_date = isset($_POST['confirmation_date']) ? stripslashes($_POST['confirmation_date']) : '';
+	$resign_date = isset($_POST['resign_date']) ? stripslashes($_POST['resign_date']) : '';
+	$account_no = isset($_POST['account_no']) ? stripslashes($_POST['account_no']) : '';
+	$etin_no = isset($_POST['etin_no']) ? stripslashes($_POST['etin_no']) : '';
 
 
 	// $bank_name = stripslashes($_POST['bank_name']);
 	// $account_no = stripslashes($_POST['account_no']);
 	// $ifsc_code = stripslashes($_POST['ifsc_code']);
 	// $pf_account = stripslashes($_POST['pf_account']);
-	if (!empty($first_name) && !empty($last_name) && !empty($dob) && !empty($gender) && !empty($marital_status) && !empty($address) && !empty($email) && !empty($mobile) && !empty($identity_doc) && !empty($employment_type) && !empty($joining_date) && !empty($blood_group) && !empty($designation) && !empty($department) && !empty($emp_grade) && !empty($empsal_grade)) {
-		$updateEmp = mysqli_query($db, "UPDATE `" . DB_PREFIX . "employees` SET `first_name` = '$first_name', `last_name` = '$last_name', `dob` = '$dob', `gender` = '$gender', `marital_status` = '$marital_status', `address` = '$address', `email` = '$email', `mobile` = '$mobile', `telephone` = '$telephone', `employment_type` = '$employment_type', `joining_date` = '$joining_date', `blood_group` = '$blood_group', `designation` = '$designation', `department` = '$department', `emp_grade`='$emp_grade',`empsal_grade`=$empsal_grade,`account_no` = '$account_no' WHERE `employee_id` = '" . $employee_id . "'");
+	$missing_fields = [];
+	if (empty($first_name)) $missing_fields[] = 'First Name';
+	if (empty($last_name)) $missing_fields[] = 'Last Name';
+	if (empty($dob)) $missing_fields[] = 'Date of Birth';
+	if (empty($gender)) $missing_fields[] = 'Gender';
+	if (empty($marital_status)) $missing_fields[] = 'Marital Status';
+	if (empty($blood_group)) $missing_fields[] = 'Blood Group';
+	if (empty($address)) $missing_fields[] = 'Address';
+	if (empty($paraddress)) $missing_fields[] = 'Parmanent address';
+	if (empty($email)) $missing_fields[] = 'Email';
+	if (empty($mobile)) $missing_fields[] = 'Mobile';
+	if (empty($employment_type)) $missing_fields[] = 'Employment Type';
+	if (empty($employment_status)) $missing_fields[] = 'Emp. status';
+	if (empty($joining_date)) $missing_fields[] = 'Joining Date';
+	if (empty($blood_group)) $missing_fields[] = 'Blood Group';
+	if (empty($designation)) $missing_fields[] = 'Designation';
+	if (empty($national_id)) $missing_fields[] = 'National Id';
+	if (empty($department)) $missing_fields[] = 'Department';
+	if (empty($emp_grade)) $missing_fields[] = 'Employee Grade';
+	if (empty($empsal_grade)) $missing_fields[] = 'Employee Salary Grade';
+
+	if (count($missing_fields) === 0) {
+		$updateSQL = "UPDATE `" . DB_PREFIX . "employees` SET `first_name` = '$first_name', `last_name` = '$last_name', `dob` = '$dob', `gender` = '$gender', 
+		`marital_status` = '$marital_status',`blood_group` = '$blood_group', `address` = '$address', `paraddress` = '$paraddress', `email` = '$email',
+		 `mobile` = '$mobile', `telephone` = '$telephone',`employment_type` = '$employment_type', `joining_date` = '$joining_date', 
+		`employment_status`='$employment_status',`national_id` = '$national_id', `designation` = '$designation', 
+		`department` = '$department', `emp_grade`='$emp_grade',`empsal_grade`=$empsal_grade,`account_no` = '$account_no' WHERE `emp_code` = '" . $emp_code . "'";
+
+		$updateEmp = mysqli_query($db, $updateSQL);
 		if ($updateEmp) {
 			$result['result'] = 'Employee details has been successfully updated.';
 			$result['code'] = 0;
 		} else {
-			$result['result'] = 'Something went wrong, please try again.';
+			$result['result'] = 'Failed to update employee details: ' . mysqli_error($db);
 			$result['code'] = 1;
 		}
 	} else {
-		$result['result'] = 'All fields are mandatory except Telephone.';
+		$result['result'] = 'The following fields are mandatory: ' . implode(', ', $missing_fields) . '.';
 		$result['code'] = 2;
 	}
 
@@ -1339,7 +1612,7 @@ function GeneratePaySlip()
     <style>
         .header { text-align: center; font-size: 20px; font-weight: bold; margin-top: 30px; margin-bottom: 15px; border: none; }
         .company-name { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
-        .payslip-title { font-size: 20px; font-weight: bold; margin-top: 10px; margin-bottom: 20px; }
+        .payslip-title { font-size: 16px; font-weight: bold; margin-top: 10px; margin-bottom: 20px; }
         .logo { width: 80px; padding-right: 20px; margin-top: 10px; margin-bottom: 10px; border: none; }
         .logo2 { width: 240px; padding-left: 20px; margin-bottom: 10px; border: none; }
         .employee-info-table { width: 100%; margin-top: 25px; font-size: 13px; border-collapse: collapse; }
@@ -1384,12 +1657,12 @@ function GeneratePaySlip()
 	$html .= '<tr><td>Employee Name</td><td>: ' . htmlspecialchars($emp_name) . '</td></tr>';
 	$html .= '<tr><td>Designation</td><td>: ' . htmlspecialchars($designation) . '</td></tr>';
 	$html .= '<tr><td>Department</td><td>: ' . htmlspecialchars($department) . '</td></tr>';
-	$html .= '<tr><td>Joining Date</td><td>: ' . $joining_date . '</td></tr>';
+	$html .= '<tr><td>Joining Date</td><td>: ' . $joining_date . '</td></tr><br><>';
 	$html .= '</table>';
 
 	// Earnings and Deductions Table
 	$html .= '<table class="salary-table">';
-	$html .= '<thead><tr><th>Particulars</th><th>Amount (BDT)</th><th>Particulars</th><th>Amount (BDT)</th></tr></thead>';
+	//$html .= '<thead><tr><th>Earnings and Deductions</th></tr></thead>';
 	$html .= '<tr><td>Basic Salary</td><td>' . number_format($pay_head_values['basic_salary'], 2) . '</td><td>PF</td><td>' . number_format($pay_head_values['employee_provident_fund'], 2) . '</td></tr>';
 	$html .= '<tr><td>House Rent</td><td>' . number_format($pay_head_values['house_rent'], 2) . '</td><td>Income Tax</td><td>' . number_format($pay_head_values['income_tax'], 2) . '</td></tr>';
 	$html .= '<tr><td>Car Allowance</td><td>' . number_format($pay_head_values['car_allowance'], 2) . '</td><td>Loan Repayment</td><td>' . number_format($pay_head_values['loans_repayment'], 2) . '</td></tr>';
@@ -1405,9 +1678,8 @@ function GeneratePaySlip()
 	// Footer Section
 	$html .= '<div class="footer">';
 	$html .= '<p>Prepared By: CDBL Payroll Management System</p>';
-	$html .= '<p>Approved By: Raquibul Islam Chowdhury</p>';
+	$html .= '<p>Approved By: CDBL Accounts & Finanace </p>';
 	$html .= '</div>';
-
 
 	//   Save the PDF
 	$pdf->WriteHTML($html);
@@ -1477,8 +1749,8 @@ function EditProfileByID()
 
 	if ($_SESSION['Login_Type'] == 'admin') {
 		$admin_id = $_SESSION['Admin_ID'];
-		$admin_name = addslashes($_POST['admin_name']);
-		$admin_email = addslashes($_POST['admin_email']);
+		$admin_name = mysqli_real_escape_string($db, $_POST['admin_name']);
+		$admin_email = mysqli_real_escape_string($db, $_POST['admin_email']);
 		if (!empty($admin_name) && !empty($admin_email)) {
 			$editSQL = mysqli_query($db, "UPDATE `" . DB_PREFIX . "admin` SET `admin_name` = '$admin_name', `admin_email` = '$admin_email' WHERE `admin_id` = $admin_id");
 			if ($editSQL) {
@@ -1528,80 +1800,6 @@ function EditProfileByID()
 
 	echo json_encode($result);
 }
-
-function EditLoginDataByID()
-{
-	$result = array();
-	global $db;
-
-	if ($_SESSION['Login_Type'] == 'admin') {
-		$admin_id = $_SESSION['Admin_ID'];
-		$admin_code = addslashes($_POST['admin_code']);
-		$admin_password = addslashes($_POST['admin_password']);
-		$admin_password_conf = addslashes($_POST['admin_password_conf']);
-		if (!empty($admin_code) && !empty($admin_password) && !empty($admin_password_conf)) {
-			if ($admin_password == $admin_password_conf) {
-				$editSQL = mysqli_query($db, "UPDATE `" . DB_PREFIX . "admin` SET `admin_code` = '$admin_code', `admin_password` = '" . sha1($admin_password) . "' WHERE `admin_id` = $admin_id");
-				if ($editSQL) {
-					$result['code'] = 0;
-					$result['result'] = 'Login data has been successfully updated.';
-				} else {
-					$result['code'] = 1;
-					$result['result'] = 'Something went wrong, please try again.';
-				}
-			} else {
-				$result['code'] = 2;
-				$result['result'] = 'Confirm password does not match.';
-			}
-		} else {
-			$result['code'] = 3;
-			$result['result'] = 'All fields are mandatory.';
-		}
-	} else {
-		$emp_id = $_SESSION['Admin_ID'];
-		$old_password = addslashes($_POST['old_password']);
-		$new_password = addslashes($_POST['new_password']);
-		$password_conf = addslashes($_POST['password_conf']);
-		if (!empty($old_password) && !empty($new_password) && !empty($password_conf)) {
-			$checkPassSQL = mysqli_query($db, "SELECT * FROM `" . DB_PREFIX . "employees` WHERE `emp_id` = $emp_id");
-			if ($checkPassSQL) {
-				if (mysqli_num_rows($checkPassSQL) == 1) {
-					$passData = mysqli_fetch_assoc($checkPassSQL);
-					if (sha1($old_password) == $passData['emp_password']) {
-						if ($new_password == $password_conf) {
-							$editSQL = mysqli_query($db, "UPDATE `" . DB_PREFIX . "employees` SET `emp_password` = '" . sha1($new_password) . "' WHERE `emp_id` = $emp_id");
-							if ($editSQL) {
-								$result['code'] = 0;
-								$result['result'] = 'Password has been successfully updated.';
-							} else {
-								$result['code'] = 1;
-								$result['result'] = 'Something went wrong, please try again.';
-							}
-						} else {
-							$result['code'] = 2;
-							$result['result'] = 'Confirm password does not match.';
-						}
-					} else {
-						$result['code'] = 3;
-						$result['result'] = 'Entered wrong existing password.';
-					}
-				} else {
-					$result['code'] = 4;
-					$result['result'] = 'No such employee found.';
-				}
-			} else {
-				$result['code'] = 5;
-				$result['result'] = 'Something went wrong, please try again.';
-			}
-		} else {
-			$result['code'] = 6;
-			$result['result'] = 'All fields are mandatory.';
-		}
-	}
-
-	echo json_encode($result);
-}
-
 function LoadingAllLeaves()
 {
 	global $db;
@@ -1740,10 +1938,10 @@ function ApplyLeaveToAdminApproval()
 	$adminData = GetAdminData(1);
 	$empData   = GetDataByIDAndType($_SESSION['Admin_ID'], $_SESSION['Login_Type']);
 
-	$leave_subject = addslashes($_POST['leave_subject']);
-	$leave_dates   = addslashes($_POST['leave_dates']);
-	$leave_message = addslashes($_POST['leave_message']);
-	$leave_type    = addslashes($_POST['leave_type']);
+	$leave_subject = mysqli_real_escape_string($db, $_POST['leave_subject']);
+	$leave_dates   = mysqli_real_escape_string($db, $_POST['leave_dates']);
+	$leave_message = mysqli_real_escape_string($db, $_POST['leave_message']);
+	$leave_type    = mysqli_real_escape_string($db, $_POST['leave_type']);
 	if (!empty($leave_subject) && !empty($leave_dates) && !empty($leave_message) && !empty($leave_type)) {
 		$AppliedDates = '';
 		$dates = array();

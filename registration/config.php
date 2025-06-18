@@ -1,10 +1,10 @@
 <?php
 
-define('BASE_URL',   'http://localhost/payroll/');
+define('BASE_URL',   'https://www.cdbl.com.bd/payroll/');
 
 define('DB_SERVER', 	'localhost');
 define('DB_USER', 		'root');
-define('DB_PASSWORD', '');
+define('DB_PASSWORD', 'rrr@VAS&cdbl#2004');
 define('DB_NAME', 		'payroll_mdb');
 define('DB_PREFIX', 	'cdbl_');
 

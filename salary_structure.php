@@ -57,7 +57,7 @@ if ( !isset($_SESSION['Admin_ID']) || !isset($_SESSION['Login_Type']) ) {
 											<tr>
 												<th>Id</th>
 												<th>Employee Grade</th>
-												<th>Employee Salary Grade</th>
+												<th>Employee Salary Stage</th>
 												<th>Basic Salary</th>
 												<th>House Rent</th>
 												<th>Conveyance Allowance</th>
@@ -100,7 +100,7 @@ if ( !isset($_SESSION['Admin_ID']) || !isset($_SESSION['Login_Type']) ) {
 										<input type="text" class="form-control" id="emp_grade" name="emp_grade" required />
 									</div>
 									<div class="form-group">
-										<label for="empsal_grade">Employee Salary Grade</label>
+										<label for="empsal_grade">Employee Salary Stage</label>
 										<input type="text" class="form-control" id="empsal_grade" name="empsal_grade" required />
 									</div>
 									<div class="form-group">
@@ -154,7 +154,7 @@ if ( !isset($_SESSION['Admin_ID']) || !isset($_SESSION['Login_Type']) ) {
 										<input type="text" class="form-control" id="emp_grade_add" name="emp_grade" required />
 									</div>
 									<div class="form-group">
-										<label for="empsal_grade_add">Employee Salary Grade</label>
+										<label for="empsal_grade_add">Employee Salary Stage</label>
 										<input type="text" class="form-control" id="empsal_grade_add" name="empsal_grade" required />
 									</div>
 									<div class="form-group">

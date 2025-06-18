@@ -4421,7 +4421,7 @@ table.text-center th {
 .alert-error,
 .label-danger,
 .modal-danger .modal-body {
-  background-color: #00d493 !important;
+  background-color: #ff0000 !important;
 }
 .bg-yellow,
 .callout.callout-warning,

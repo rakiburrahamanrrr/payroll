@@ -59,34 +59,39 @@ if (isset($userData['emp_code'])) {
 		<ul class="sidebar-menu">
 			<li class="header">NAVIGATION</li>
 <?php if ( $_SESSION['Login_Type'] == 'admin' ) { ?>
-<li class="<?php echo $page_name == "attendance" ? 'active' : ''; ?>">
+<!--<li class="<?php echo $page_name == "attendance" ? 'active' : ''; ?>">
 	<a href="<?php echo BASE_URL; ?>attendance/">
 		<i class="fa fa-calendar"></i> <span>Project Task Record</span>
 	</a>
-</li>
+</li>-->
+				<li class="<?php echo $page_name == "salary_structure" ? 'active' : ''; ?>">
+					<a href="<?php echo BASE_URL; ?>salary_structure/">
+						<i class="fa fa-money"></i> <span>Pay Structure</span>
+					</a>
+				</li>
+				<li class="<?php echo $page_name == "payheads" ? 'active' : ''; ?>">
+					<a href="<?php echo BASE_URL; ?>payheads/">
+						<i class="fa fa-gratipay"></i> Pay Heads
+					</a>
+				</li>
 				<li class="<?php echo $page_name == "employees" ? 'active' : ''; ?>">
 					<a href="<?php echo BASE_URL; ?>employees/">
 						<i class="fa fa-users"></i> <span>Employees Section</span>
 					</a>
 				</li>
+				<li class="<?php echo $page_name == "loan_slip_assign" ? 'active' : ''; ?>">
+					<a href="<?php echo BASE_URL; ?>loan_slip_assign.php">
+						<i class="fa fa-file-text"></i> <span>Loan Process</span>
+					</a>
+				</li>
 				<li class="<?php echo $page_name == "monthly_salary" ? 'active' : ''; ?>">
 					<a href="<?php echo BASE_URL; ?>monthly_salary.php">
-						<i class="fa fa-briefcase"></i> <span>Salary Assign</span>
+						<i class="fa fa-briefcase"></i> <span>Payslip Process</span>
 					</a>
 				</li>
 				<li class="<?php echo $page_name == "salaries" ? 'active' : ''; ?>">
 					<a href="<?php echo BASE_URL; ?>salaries/">
-						<i class="fa fa-money"></i> <span>Salary Slips</span>
-					</a>
-				</li>
-				<li class="<?php echo $page_name == "salary_structure" ? 'active' : ''; ?>">
-					<a href="<?php echo BASE_URL; ?>salary_structure/">
-						<i class="fa fa-money"></i> <span>Salary Structure</span>
-					</a>
-				</li>
-				<li class="<?php echo $page_name == "leaves" ? 'active' : ''; ?>">
-					<a href="<?php echo BASE_URL; ?>leaves/">
-						<i class="fa fa-sign-out"></i> <span>Leave Management</span>
+						<i class="fa fa-money"></i> <span>Payslips View</span>
 					</a>
 				</li>
 				<li class="<?php echo $page_name == "admin_loan_approval" ? 'active' : ''; ?>">
@@ -94,15 +99,14 @@ if (isset($userData['emp_code'])) {
 						<i class="fa fa-money"></i> <span>Loan Approval</span>
 					</a>
 				</li>
-				<li class="<?php echo $page_name == "loan_slip_assign" ? 'active' : ''; ?>">
-					<a href="<?php echo BASE_URL; ?>loan_slip_assign.php">
-						<i class="fa fa-file-text"></i> <span>Loan Slip Generate</span>
+				
+				<li class="<?php echo $page_name == "leaves" ? 'active' : ''; ?>">
+					<a href="<?php echo BASE_URL; ?>leaves/">
+						<i class="fa fa-sign-out"></i> <span>Leave Management</span>
 					</a>
 				</li>
-				<li class="<?php echo $page_name == "payheads" ? 'active' : ''; ?>">
-					<a href="<?php echo BASE_URL; ?>payheads/">
-						<i class="fa fa-gratipay"></i> Pay Heads
-					</a>
+				
+							
 				<li class="<?php echo $page_name == "pfund" ? 'active' : ''; ?>">
 					<a href="<?php echo BASE_URL; ?>ajax/pfund.php">
 						<i class="fa fa-gratipay"></i> Provident Fund
@@ -116,14 +120,10 @@ if (isset($userData['emp_code'])) {
 			<?php } else { ?>
 				<li class="<?php echo $page_name == "salaries" ? 'active' : ''; ?>">
 					<a href="<?php echo BASE_URL; ?>salaries/">
-						<i class="fa fa-money"></i> <span>Salary Slips</span>
+						<i class="fa fa-money"></i> <span>Pay Slips</span>
 					</a>
 				</li>
-				<li class="<?php echo $page_name == "leaves" ? 'active' : ''; ?>">
-					<a href="<?php echo BASE_URL; ?>leaves/">
-						<i class="fa fa-sign-out"></i> <span>Leaves</span>
-					</a>
-				</li>
+				
 				<li class="<?php echo $page_name == "loan_request" ? 'active' : ''; ?>">
 					<a href="<?php echo BASE_URL; ?>loan_request.php">
 						<i class="fa fa-money"></i> <span>Loan Request</span>
@@ -134,6 +134,12 @@ if (isset($userData['emp_code'])) {
 						<i class="fa fa-money"></i> <span>Loan Balance</span>
 					</a>
 				</li>
+				<li class="<?php echo $page_name == "leaves" ? 'active' : ''; ?>">
+					<a href="<?php echo BASE_URL; ?>leaves/">
+						<i class="fa fa-sign-out"></i> <span>Leave Manage</span>
+					</a>
+				</li>
+				
 				<li class="<?php echo $page_name == "holidays" ? 'active' : ''; ?>">
 					<a href="<?php echo BASE_URL; ?>holidays/">
 						<i class="fa fa-calendar-check-o"></i> <span>Holidays</span>

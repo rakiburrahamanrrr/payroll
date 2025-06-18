@@ -101,7 +101,7 @@ if ( !isset($_SESSION['Admin_ID']) || $_SESSION['Login_Type'] != 'admin' ) {
 						</div>
 						<div class="modal-footer">
 							<input type="hidden" name="payhead_id" id="payhead_id" />
-							<button type="submit" name="submit" class="btn btn-primary">Save Pay Head</button>
+							<button type="submit" name="submit" class="btn btn-primary">Save Payhead</button>
 						</div>
 					</form>
 				</div>

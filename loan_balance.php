@@ -114,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </section> -->
 
     <section class="content">
-      <h3>Loan Summary by Category</h3>
+      <h3>Loan Summary as of Today </h3> <br />
       <?php
       if (isset($_SESSION['Admin_ID'])) {
           $employeeId = $_SESSION['Admin_ID'];
@@ -123,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             SELECT lc.category_name,
                    lr.loan_amount,
                    SUM(lb_sum.total_deduction) AS total_deduction,
-                   SUM(latest_lb.remaining_balance) AS remaining_balance
+                   SUM(latest_lb.remaining_balance) AS remaining_balance,lr.requested_date,lr.approved_date
               FROM loan_requests lr
               JOIN loan_categories lc ON lr.category_id = lc.category_id
               JOIN (
@@ -141,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                   ) lb2 ON lb1.loan_id = lb2.loan_id AND lb1.loan_balance_id = lb2.max_id
               ) latest_lb ON lr.loan_id = latest_lb.loan_id
              WHERE lr.employee_id = ?
-             GROUP BY lc.category_name, lr.loan_amount
+             GROUP BY lc.category_name, lr.loan_amount,lr.requested_date,lr.approved_date
           ";
           $stmt_summary = mysqli_prepare($db, $summaryQuery);
           mysqli_stmt_bind_param($stmt_summary, "i", $employeeId);
@@ -150,13 +150,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
           if ($result_summary && mysqli_num_rows($result_summary) > 0) {
               echo '<table class="table table-bordered">';
-              echo '<thead><tr><th>Category</th><th>Loan Amount</th><th>Total Deduction</th><th>Remaining Balance</th></tr></thead><tbody>';
+              echo '<thead><tr><th>Loan Category</th><th>Loan Requested</th><th>Loan Approved</th><th>Loan Amount</th><th>Total Deduction</th><th>Remaining Balance</th></tr></thead><tbody>';
               while ($row = mysqli_fetch_assoc($result_summary)) {
                   echo '<tr>';                  
                   echo '<td>' . htmlspecialchars($row['category_name']) . '</td>';
+				  echo '<td>' . htmlspecialchars($row['requested_date']) . '</td>';
+				  echo '<td>' . htmlspecialchars($row['approved_date']) . '</td>';
                   echo '<td>' . number_format($row['loan_amount'], 2) . '</td>';
                   echo '<td>' . number_format($row['total_deduction'], 2) . '</td>';
                   echo '<td>' . number_format($row['remaining_balance'], 2) . '</td>';
+				  
                   echo '</tr>';
               }
               echo '</tbody></table>';

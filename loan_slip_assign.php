@@ -1,6 +1,7 @@
 <?php
 require_once(dirname(__FILE__) . '/config.php');
 
+
 if (!isset($_SESSION['Admin_ID']) || $_SESSION['Login_Type'] != 'admin') {
     header('location:' . BASE_URL);
     exit;
@@ -65,9 +66,9 @@ function process_loan_slips($conn, $deduction_month, &$message, &$show_readjust_
                 $installment_amount = (float)$installment_amount;
 
                 $remaining_balance = $loan_amount - $total_deduction - $installment_amount;
-                if ($remaining_balance < 0) {
-                    $remaining_balance = 0;
-                }
+                if ($remaining_balance >= 0) {
+                    //$remaining_balance = 0;
+                
 
                 $sql_insert = "INSERT INTO loan_balance (loan_id, deduction_month, deduction_amount, remaining_balance) VALUES ($loan_id, '$deduction_month', $installment_amount, $remaining_balance)";
                 if ($conn->query($sql_insert) === TRUE) {
@@ -81,6 +82,13 @@ function process_loan_slips($conn, $deduction_month, &$message, &$show_readjust_
                 } else {
                     $message .= "Error inserting loan slip for Loan ID $loan_id: " . $conn->error . "<br>";
                 }
+			}else {
+				$sql_update_balance = "UPDATE loan_requests SET loan_status = 'completed' WHERE loan_id = $loan_id";
+                $conn->query($sql_update_balance);
+
+				$message = "No active loans found to process.";
+				}
+			
             }
         }
 
@@ -210,10 +218,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $count = intval($row_check['count']);
             }
 
-            if ($count == 0) {
+            /* if ($count == 0) {
                 // Process loan slips if not already done
                 process_loan_slips($conn, $deduction_month, $message, $show_readjust_form);
-            }
+            } */
 
             // Now generate the PDF
             // Fetch all employees who have approved loans
@@ -257,6 +265,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             lr.loan_amount,
                             lr.loan_installment_amount,
                             lr.reason AS loan_name,
+							lr.approved_date AS approved_date,
                             lc.category_name AS loan_category
                         FROM loan_requests lr
                         LEFT JOIN loan_categories lc ON lr.category_id = lc.category_id
@@ -316,19 +325,135 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     error_log("Generating PDF for month: $month, year: $year");
 
                     // Formal letter header
-                    $html = '<p style="text-align:right;">' . $date_today . '</p>';
+					$html = '
+					<style>
+						.header-container {
+							display: flex;
+							align-items: center;
+							justify-content: center;
+							margin-top: 10px;
+							margin-bottom: 10px;
+						}
+						.logo {
+							width: 80px;
+							height: 80px;
+							align-items: center;
+							margin: 0 auto;
+						}
+						.header-text {
+							text-align: center;
+							width: 100%;
+							margin-top: 10px;
+							margin-bottom: 10px;
+						}
+						.company-name {
+							font-size: 18px;
+							font-weight: bold;
+							margin-bottom: 5px;
+						}
+						.payslip-title {
+							font-size: 14px;
+							font-weight: bold;
+							margin-top: 0;
+							margin-bottom: 15px;
+						}
+						.employee-info-table {
+							width: 100%;
+							margin-top: 15px;
+							font-size: 13px;
+							border-collapse: collapse;
+						}
+						.employee-info-table td {
+							padding: 6px 8px;
+							vertical-align: middle;
+							border: 1px solid #bbb;
+						}
+						.employee-info-table td.label {
+							width: 30%;
+							font-weight: bold;
+							text-align: left;
+						}
+						.employee-info-table td.separator {
+							width: 5%;
+							text-align: center;
+						}
+						.employee-info-table td.value {
+							width: 65%;
+							text-align: left;
+						}
+						.salary-table {
+							width: 100%;
+							margin-top: 20px;
+							font-size: 13px;
+							border-collapse: collapse;
+						}
+						.salary-table th, .salary-table td {
+							padding: 8px 10px;
+							border: 1px solid #bbb;
+						}
+						.salary-table th {
+							background-color: #f0f0f0;
+							font-weight: bold;
+						}
+						.footer1-table{
+							width: 100%;
+							margin-top: 80px;
+							font-size: 13px;
+							border-collapse: collapse;
+						}    
+						.footer-table {
+							width: 100%;
+							padding-top: 50px;
+							margin-top: 80px;
+							font-size: 13px;
+							border-collapse: collapse;
+						}
+						.footer-table td {
+							padding: 8px;
+						}
+						.footer-left {
+							text-align: left;
+							width: 50%;
+						}
+						.footer-right {
+							padding-right: 10px;
+							padding-top: 50px;    
+							text-align: right;
+							width: 50%;
+						}
+					</style>
+					';
+
+					// Header Section with logos and key icon
+					// 
+					$html .= '
+				<table style="width:100%; margin-top: 10px; margin-bottom: 10px;" align="center">
+				  <tr>
+					<td align="left" style="width:50%;">
+					  <img src="' . dirname(dirname(__FILE__)) . '/dist/img/cdbllogo.png" width="80" height="80" />
+					</td>
+					<td align="right" style="width:50%;">
+					  <img src="' . dirname(dirname(__FILE__)) . '/dist/img/logo-Key.jpg" width="80" height="80" />
+					</td>
+				  </tr>
+				</table>';
+
+    // Company name and payslip title centered below logos
+    
+	
+                    $html .= '<p style="text-align:right;">' . $date_today . '</p>';
                     $html .= '<h3 style="text-align:center;">TO WHOM IT MAY CONCERN</h3>';
-                    $html .= '<p>This is to certify that <b>' . htmlspecialchars($employee_name) . '</b> - ' . htmlspecialchars($designation) . ' has outstanding loans as of <b>' . htmlspecialchars(date('jS F Y', strtotime($deduction_month))) . '</b>.</p>';
+                    $html .= '<p>This is to certify that Mr./Mrs. <b>' . htmlspecialchars($employee_name) . '</b> , ' . htmlspecialchars($designation) . ' has an outstanding loan amount of Tk. <b>' . number_format($total_outstanding, 2) . '</b> as of <b>' . htmlspecialchars(date('jS F Y', strtotime($deduction_month))) . '</b>.</p>';
 
-                    $html .= '<p>The total outstanding loan amount is Tk. <b>' . number_format($total_outstanding, 2) . '</b> and the total repayment for the month of <b>' . htmlspecialchars($month . ', ' . $year) . '</b> is Tk. <b>' . number_format($total_repayment, 2) . '</b>.</p>';
+                    $html .= '<p>The total repayment of your Loan(s) for the month of <b>' . htmlspecialchars($month . ', ' . $year) . '</b> is Tk. <b>' . number_format($total_repayment, 2) . '</b>.</p>';
 
-                    $html .= '<p>Details of the loans are as follows:</p>';
+                    $html .= '<p>Summary of Loan Details are as follows:</p>';
 
                     // Table header
                     $html .= '<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">';
                     $html .= '<thead><tr style="background-color:#f2f2f2;">
                     <th>Loan Category</th>
-                    <th>Loan Name</th>
+                    <th>Loan Approved on</th>
                     <th>Loan Amount (Tk.)</th>
                     <th>Monthly Installment (Tk.)</th>
                     <th>Total Deduction (Tk.)</th>
@@ -341,6 +466,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $installment_amount = floatval($loan['loan_installment_amount']);
                         $loan_category = $loan['loan_category'];
                         $loan_name = $loan['loan_name'];
+						$approved_date = $loan['approved_date'];
 
                         // Total deduction for the selected month (cumulative sum up to selected month)
                         $sql_deduction = "SELECT SUM(deduction_amount) as total_deduction FROM loan_balance WHERE loan_id = ? AND deduction_month <= ?";
@@ -380,7 +506,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                         $html .= '<tr>
                         <td>' . htmlspecialchars($loan_category) . '</td>
-                        <td>' . htmlspecialchars($loan_name) . '</td>
+                        <td>' . htmlspecialchars($approved_date) . '</td>
                         <td style="text-align:right;">' . $loan_amount_fmt . '</td>
                         <td style="text-align:right;">' . $installment_amount_fmt . '</td>
                         <td style="text-align:right;">' . $total_deduction_fmt . '</td>
@@ -494,7 +620,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </div>
 
                             <button type="submit" class="btn btn-primary" name="process_loan_slip">Loan Slip Process</button>
-                        <button type="submit" class="btn btn-success" name="generate_loan_slip" style="margin-top: 10px;">Generate Loan Slip</button>
+                        <button type="submit" class="btn btn-success" name="generate_loan_slip">Generate Loan Slip</button>
                     </form>
                     <!-- Removed the separate Generate Loan Slip button that calls generate_loan_slip.php -->
                     <!-- Added Generate Loan Slip button integrated with loan slip process -->

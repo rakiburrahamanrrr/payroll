@@ -1,10 +1,10 @@
 <?php require_once(dirname(__FILE__) . '/config.php'); 
-if ( isset($_SESSION['Admin_ID']) && $_SESSION['Login_Type'] == 'admin' ) {
+/* if ( isset($_SESSION['Admin_ID']) && $_SESSION['Login_Type'] == 'admin' ) {
     header('location:' . BASE_URL . 'attendance/');
 }
 if ( isset($_SESSION['Admin_ID']) && $_SESSION['Login_Type'] == 'emp' ) {
     header('location:' . BASE_URL . 'profile/');
-} ?>
+} */ ?>
 
 <!DOCTYPE html>
 <html>

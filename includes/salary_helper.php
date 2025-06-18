@@ -3,7 +3,8 @@ require_once(dirname(__FILE__) . '/../config.php');
 require_once(dirname(__FILE__) . '/../functions.php');
 require_once(dirname(__FILE__) . '/../TCPDF/tcpdf.php');
 
-function numberToWords($number) {
+function numberToWords($number)
+{
     $hyphen      = '-';
     $conjunction = ' and ';
     $separator   = ', ';
@@ -114,7 +115,8 @@ function numberToWords($number) {
     return $string;
 }
 
-function generate_salary_slip($employee_id, $pay_month, $earnings_heads, $earnings_amounts, $deductions_heads, $deductions_amounts) {
+function generate_salary_slip($employee_id, $pay_month, $earnings_heads, $earnings_amounts, $deductions_heads, $deductions_amounts)
+{
     global $db;
 
     // Fetch the predefined pay heads from the cdbl_pay_structure table
@@ -163,18 +165,22 @@ function generate_salary_slip($employee_id, $pay_month, $earnings_heads, $earnin
         }
     }
 
-    $gross_salary = array_sum(array_filter($earnings_amounts, function($value) { return $value !== ''; }));
-    $total_deduction = array_sum(array_filter($deductions_amounts, function($value) { return $value !== ''; }));
+    $gross_salary = array_sum(array_filter($earnings_amounts, function ($value) {
+        return $value !== '';
+    }));
+    $total_deduction = array_sum(array_filter($deductions_amounts, function ($value) {
+        return $value !== '';
+    }));
 
     $pay_head_values['gross_salary'] = $gross_salary;
     $pay_head_values['total_deduction'] = $total_deduction;
     $pay_head_values['net_salary'] = $gross_salary - $total_deduction;
 
-    $columns = implode(", ", array_map(function($col) {
+    $columns = implode(", ", array_map(function ($col) {
         return "`" . $col . "`";
     }, array_keys($pay_head_values)));
 
-    $escaped_values = array_map(function($value) use ($db) {
+    $escaped_values = array_map(function ($value) use ($db) {
         if (is_numeric($value)) {
             return $value;
         } elseif (is_null($value)) {
@@ -209,38 +215,134 @@ function generate_salary_slip($employee_id, $pay_month, $earnings_heads, $earnin
     $pdf->SetAuthor('Your Company');
     $pdf->SetTitle('Salary Slip');
     $pdf->SetSubject('Salary Details for ' . $pay_month);
-
+    $pdf->setPrintHeader(false);
+    $pdf->setPrintFooter(false);
     $pdf->AddPage();
-    
+
     // Set up the page style
     $html = '
     <style>
-        .header { text-align: center; font-size: 20px; font-weight: bold; margin-top: 30px; margin-bottom: 15px; border: none; }
-        .company-name { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
-        .payslip-title { font-size: 20px; font-weight: bold; margin-top: 10px; margin-bottom: 20px; }
-        .logo { width: 80px; padding-right: 20px; margin-top: 10px; margin-bottom: 10px; border: none; }
-        .logo2 { width: 240px; padding-left: 20px; margin-bottom: 10px; border: none; }
-        .employee-info-table { width: 100%; margin-top: 25px; font-size: 13px; border-collapse: collapse; }
-        .employee-info-table td { padding: 8px; vertical-align: middle; border: 1px solid #bbb; }
-        .salary-table { width: 100%; margin-top: 25px; font-size: 13px; border-collapse: collapse; }
-        .salary-table th, .salary-table td { padding: 10px; border: 1px solid #bbb; }
-        .footer { margin-top: 50px; font-size: 13px; }
-        .footer td { padding: 8px; }
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            align-items: center;
+            margin: 0 auto;
+        }
+        .header-text {
+            text-align: center;
+            width: 100%;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        .company-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .payslip-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .employee-info-table {
+            width: 100%;
+            margin-top: 15px;
+            font-size: 13px;
+            border-collapse: collapse;
+        }
+        .employee-info-table td {
+            padding: 6px 8px;
+            vertical-align: middle;
+            border: 1px solid #bbb;
+        }
+        .employee-info-table td.label {
+            width: 30%;
+            font-weight: bold;
+            text-align: left;
+        }
+        .employee-info-table td.separator {
+            width: 5%;
+            text-align: center;
+        }
+        .employee-info-table td.value {
+            width: 65%;
+            text-align: left;
+        }
+        .salary-table {
+            width: 100%;
+            margin-top: 20px;
+            font-size: 13px;
+            border-collapse: collapse;
+        }
+        .salary-table th, .salary-table td {
+            padding: 8px 10px;
+            border: 1px solid #bbb;
+        }
+        .salary-table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        .footer1-table{
+            width: 100%;
+            margin-top: 80px;
+            font-size: 13px;
+            border-collapse: collapse;
+        }    
+        .footer-table {
+            width: 100%;
+            padding-top: 50px;
+            margin-top: 80px;
+            font-size: 13px;
+            border-collapse: collapse;
+        }
+        .footer-table td {
+            padding: 8px;
+        }
+        .footer-left {
+            text-align: left;
+            width: 50%;
+        }
+        .footer-right {
+            padding-right: 10px;
+            padding-top: 50px;    
+            text-align: right;
+            width: 50%;
+        }
     </style>
     ';
-    
-    // Header Section
-    $html .= '<div class="header">';
-    $html .= '<img class="logo" src="' . dirname(dirname(__FILE__)) . '/dist/img/cdbllogo.png" alt="Logo" style="width: 100px; height: 80px;  margin-right: 10px;" />';  // Use absolute file path for TCPDF
-    $html .= '<img class="logo2" src="' . dirname(dirname(__FILE__)) . '/dist/img/logo-key.jpg" alt="Logo" style="width: 100px; height: 80px; margin-left: 10px;" />';
+
+    // Header Section with logos and key icon
+    // 
+    $html .= '
+<table style="width:100%; margin-top: 10px; margin-bottom: 10px;" align="center">
+  <tr>
+    <td align="left" style="width:50%;">
+      <img src="' . dirname(dirname(__FILE__)) . '/dist/img/cdbllogo.png" width="80" height="80" />
+    </td>
+    <td align="right" style="width:50%;">
+      <img src="' . dirname(dirname(__FILE__)) . '/dist/img/logo-Key.jpg" width="80" height="80" />
+    </td>
+  </tr>
+</table>';
+
+    // Company name and payslip title centered below logos
+    $html .= '<div class="header-text">';
     $html .= '<div class="company-name">Central Depository Bangladesh Limited</div>';
     $html .= '<div class="payslip-title">Payslip for the Month of ' . $pay_month . '</div>';
     $html .= '</div>';
-    
+
     // Employee Info Section
     $html .= '<table class="employee-info-table">';
     // Fetch employee details from database
-    $employee_query = "SELECT first_name, last_name, designation, department, joining_date FROM `" . DB_PREFIX . "employees` WHERE emp_code = '$employee_id' LIMIT 1";
+    $employee_query = "SELECT first_name, last_name, designation, department, joining_date,employee_id FROM `" . DB_PREFIX . "employees` WHERE emp_code = '$employee_id' LIMIT 1";
     $employee_result = mysqli_query($db, $employee_query);
     if (!$employee_result) {
         $emp_name = 'N/A';
@@ -255,37 +357,49 @@ function generate_salary_slip($employee_id, $pay_month, $earnings_heads, $earnin
         }
         $designation = $employee_data['designation'] ?? 'N/A';
         $department = $employee_data['department'] ?? 'N/A';
+		$emp_id = $employee_data['employee_id'] ?? 'N/A';
         $joining_date = !empty($employee_data['joining_date']) ? date('d-M-Y', strtotime($employee_data['joining_date'])) : 'N/A';
     }
+    //$html .= '<p style="padding-top: 10px;"><strong>Employee Details:</strong></p>';
+    $html .= '<table class="employee-info-table">';
+    $html .= '<tr><td class="label">ID No.</td><td class="separator">:</td><td class="value">' . strtoupper($emp_id) . '</td></tr>';
+    $html .= '<tr><td class="label">Name</td><td class="separator">:</td><td class="value">' . htmlspecialchars($emp_name) . '</td></tr>';
+    $html .= '<tr><td class="label">Designation</td><td class="separator">:</td><td class="value">' . htmlspecialchars($designation) . '</td></tr>';
+    $html .= '<tr><td class="label">Department</td><td class="separator">:</td><td class="value">' . htmlspecialchars($department) . '</td></tr>';
+    //$html .= '<tr><td class="label">Joining Date</td><td class="separator">:</td><td class="value">' . $joining_date . '</td></tr>';
+    $html .= '</table>';
+    $html .= '<br />';
 
-    $html .= '<tr><td>Employee Code</td><td>: ' . strtoupper($employee_id) . '</td></tr>';
-    $html .= '<tr><td>Employee Name</td><td>: ' . htmlspecialchars($emp_name) . '</td></tr>';
-    $html .= '<tr><td>Designation</td><td>: ' . htmlspecialchars($designation) . '</td></tr>';
-    $html .= '<tr><td>Department</td><td>: ' . htmlspecialchars($department) . '</td></tr>';
-    $html .= '<tr><td>Joining Date</td><td>: ' . $joining_date . '</td></tr>';
-    $html .= '</table>';
-    
     // Earnings and Deductions Table
+
+    //$html .= '<p><strong>Earnings and Deductions:</strong></p>';
+	$html .= '<p><strong></strong></p>';
     $html .= '<table class="salary-table">';
-    $html .= '<thead><tr><th>Particulars</th><th>Amount (BDT)</th><th>Particulars</th><th>Amount (BDT)</th></tr></thead>';
-    $html .= '<tr><td>Basic Salary</td><td>' . number_format($pay_head_values['basic_salary'], 2) . '</td><td>PF</td><td>' . number_format($pay_head_values['employee_provident_fund'], 2) . '</td></tr>';
+    $html .= '<thead><tr><th><strong>Earnings</strong></th><th><strong>Amount (BDT)</strong></th><th><strong>Deductions</strong></th><th><strong>Amount (BDT)</strong></th></tr></thead>';
+    $html .= '<tr><td>Basic Salary</td><td>' . number_format($pay_head_values['basic_salary'], 2) . '</td><td>Provident Fund</td><td>' . number_format($pay_head_values['employee_provident_fund'], 2) . '</td></tr>';
     $html .= '<tr><td>House Rent</td><td>' . number_format($pay_head_values['house_rent'], 2) . '</td><td>Income Tax</td><td>' . number_format($pay_head_values['income_tax'], 2) . '</td></tr>';
-    $html .= '<tr><td>Car Allowance</td><td>' . number_format($pay_head_values['car_allowance'], 2) . '</td><td>Loan Repayment</td><td>' . number_format($pay_head_values['loans_repayment'], 2) . '</td></tr>';
-    $html .= '<tr><td>Medical Allowance</td><td>' . number_format($pay_head_values['medical_allowance'], 2) . '</td><td>Other Deductions</td><td>' . number_format($pay_head_values['other_deductions'], 2) . '</td></tr>';
+	$html .= '<tr><td>Medical Allowance</td><td>' . number_format($pay_head_values['medical_allowance'], 2) . '</td><td>Loan Repayment</td><td>' . number_format($pay_head_values['loans_repayment'], 2) . '</td></tr>';
+    $html .= '<tr><td>Conveyance  </td><td>' . number_format($pay_head_values['conveyance_allowance'], 2) . '</td><td>Other Deductions</td><td>' . number_format($pay_head_values['other_deductions'], 2) . '</td></tr>';
+    $html .= '<tr><td>Car Allowance</td><td>' . number_format($pay_head_values['car_allowance'], 2) . '</td><td></td><td></td></tr>';
     $html .= '</table>';
-    
-    // Net Salary
-    $html .= '<table class="footer">';
-    $html .= '<tr><td><strong>Net Salary</strong></td><td>: ' . number_format($pay_head_values['net_salary'], 2) . '</td></tr>';
-    $html .= '<tr><td><strong>In Words</strong></td><td>: ' . ucfirst(numberToWords($pay_head_values['net_salary'])) . ' Taka</td></tr>';
+    $html .= '<br />';
+    // Net Salary and In Words
+	$html .= '<p><strong></strong></p>';
+    $html .= '<table class="footer1-table">';
+    $html .= '<tr><td><strong>Net Salary</strong>: ' . number_format($pay_head_values['net_salary'], 2) . ' (BDT ' . ucfirst(numberToWords($pay_head_values['net_salary'])) . ' only) </td></tr>';
+    //$html .= '<tr><td><strong>In Words</strong></td><td>: ' . ucfirst(numberToWords($pay_head_values['net_salary'])) . ' Taka</td></tr>';
     $html .= '</table>';
-    
-    // Footer Section
-    $html .= '<div class="footer">';
-    $html .= '<p>Prepared By: CDBL Payroll Management System</p>';
-    $html .= '<p>Approved By: Raquibul Islam Chowdhury</p>';
-    $html .= '</div>';
-    
+	$html .= '<br />';
+
+    // Footer Section with prepared by and approved by aligned left and right
+	//$html .= '<p><strong></strong></p>';
+    $html .= '<table class="footer-table">';
+	$html .= '<tr><td class="footer-center"><font size="10" align="center">System generated Payslip. No signature required.</font></td></tr>';
+	//$html .= '<br />';
+	$html .= '<p><strong></strong></p>';
+    $html .= '<tr><td class="footer-center"><font size="8" align="center"><i>Prepared By: CDBL Payroll Management System</i></font></td></tr>';
+    $html .= '</table>';
+
     $pdf->WriteHTML($html);
     $payslip_path = dirname(dirname(__FILE__)) . '/payslips/' . $employee_id . '/' . $pay_month . '/';
     if (!file_exists($payslip_path)) {
@@ -298,4 +412,3 @@ function generate_salary_slip($employee_id, $pay_month, $earnings_heads, $earnin
 
     return ['code' => 0, 'result' => 'Payslip generated successfully.'];
 }
-?>
