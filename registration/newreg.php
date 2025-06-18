@@ -130,7 +130,9 @@ $insertSQL = mysqli_query($db, "INSERT INTO `" . DB_PREFIX . "employees`(
 	<meta charset="utf-8">
   	<meta http-equiv="X-UA-Compatible" content="IE=edge">
   	<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
-
+	<a href="javascript:history.back()" class="btn btn-default btn-sm" style="padding-top: 10px; float: right;">
+				<span class="glyphicon glyphicon-arrow-left"></span> Back
+			</a>
 	<title>Employee Registration - Payroll</title>
 
 	<link rel="stylesheet" href="<?php echo BASE_URL; ?>bootstrap/css/bootstrap.min.css">
@@ -152,6 +154,7 @@ $insertSQL = mysqli_query($db, "INSERT INTO `" . DB_PREFIX . "employees`(
 		  	</div>
 		</div>
 		<div class="box box-primary">
+			
 			<div class="box-header with-border">
 				<h3 class="box-title">Fill the below form</h3>
 				<div class="box-tools pull-right">
@@ -327,9 +330,9 @@ $insertSQL = mysqli_query($db, "INSERT INTO `" . DB_PREFIX . "employees`(
 						</div>
 					</div>
 					<div class="form-group">
-						<label for="empsal_grade" class="col-sm-2 control-label">Employee Salary Grade</label>
+						<label for="empsal_grade" class="col-sm-2 control-label">Employee Salary Stage</label>
 						<div class="col-sm-5">
-							<input type="text" class="form-control" id="empsal_grade" name="empsal_grade" placeholder="Employee Salary Grade" value="<?php echo $_POST['empsal_grade']; ?>" required />
+							<input type="text" class="form-control" id="empsal_grade" name="empsal_grade" placeholder="Employee Salary Stage" value="<?php echo $_POST['empsal_grade']; ?>" required />
 							<?php echo $errors['empsal_grade']; ?>
 						</div>
 					</div>

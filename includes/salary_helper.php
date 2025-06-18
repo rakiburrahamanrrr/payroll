@@ -324,11 +324,19 @@ function generate_salary_slip($employee_id, $pay_month, $earnings_heads, $earnin
     $html .= '
 <table style="width:100%; margin-top: 10px; margin-bottom: 10px;" align="center">
   <tr>
+<<<<<<< HEAD
     <td align="left" style="width:50%;">
       <img src="' . dirname(dirname(__FILE__)) . '/dist/img/cdbllogo.png" width="80" height="80" />
     </td>
     <td align="right" style="width:50%;">
       <img src="' . dirname(dirname(__FILE__)) . '/dist/img/logo-Key.jpg" width="80" height="80" />
+=======
+    <td align="center" style="width:50%;">
+      <img src="' . dirname(dirname(__FILE__)) . '/dist/img/cdbllogo.png" width="80" height="80" />
+    </td>
+    <td align="center" style="width:50%;">
+      <img src="' . dirname(dirname(__FILE__)) . '/dist/img/logo-key.jpg" width="80" height="80" />
+>>>>>>> e936259b58fa3411acbde2f070cd4236de2245e3
     </td>
   </tr>
 </table>';
@@ -360,6 +368,7 @@ function generate_salary_slip($employee_id, $pay_month, $earnings_heads, $earnin
 		$emp_id = $employee_data['employee_id'] ?? 'N/A';
         $joining_date = !empty($employee_data['joining_date']) ? date('d-M-Y', strtotime($employee_data['joining_date'])) : 'N/A';
     }
+<<<<<<< HEAD
     //$html .= '<p style="padding-top: 10px;"><strong>Employee Details:</strong></p>';
     $html .= '<table class="employee-info-table">';
     $html .= '<tr><td class="label">ID No.</td><td class="separator">:</td><td class="value">' . strtoupper($emp_id) . '</td></tr>';
@@ -367,21 +376,38 @@ function generate_salary_slip($employee_id, $pay_month, $earnings_heads, $earnin
     $html .= '<tr><td class="label">Designation</td><td class="separator">:</td><td class="value">' . htmlspecialchars($designation) . '</td></tr>';
     $html .= '<tr><td class="label">Department</td><td class="separator">:</td><td class="value">' . htmlspecialchars($department) . '</td></tr>';
     //$html .= '<tr><td class="label">Joining Date</td><td class="separator">:</td><td class="value">' . $joining_date . '</td></tr>';
+=======
+    $html .= '<p style="padding-top: 10px;"><strong>Employee Details:</strong></p>';
+    $html .= '<table class="employee-info-table">';
+    $html .= '<tr><td class="label">Employee Code</td><td class="separator">:</td><td class="value">' . strtoupper($employee_id) . '</td></tr>';
+    $html .= '<tr><td class="label">Employee Name</td><td class="separator">:</td><td class="value">' . htmlspecialchars($emp_name) . '</td></tr>';
+    $html .= '<tr><td class="label">Designation</td><td class="separator">:</td><td class="value">' . htmlspecialchars($designation) . '</td></tr>';
+    $html .= '<tr><td class="label">Department</td><td class="separator">:</td><td class="value">' . htmlspecialchars($department) . '</td></tr>';
+    $html .= '<tr><td class="label">Joining Date</td><td class="separator">:</td><td class="value">' . $joining_date . '</td></tr>';
+>>>>>>> e936259b58fa3411acbde2f070cd4236de2245e3
     $html .= '</table>';
     $html .= '<br />';
 
     // Earnings and Deductions Table
 
+<<<<<<< HEAD
     //$html .= '<p><strong>Earnings and Deductions:</strong></p>';
 	$html .= '<p><strong></strong></p>';
     $html .= '<table class="salary-table">';
     $html .= '<thead><tr><th><strong>Earnings</strong></th><th><strong>Amount (BDT)</strong></th><th><strong>Deductions</strong></th><th><strong>Amount (BDT)</strong></th></tr></thead>';
     $html .= '<tr><td>Basic Salary</td><td>' . number_format($pay_head_values['basic_salary'], 2) . '</td><td>Provident Fund</td><td>' . number_format($pay_head_values['employee_provident_fund'], 2) . '</td></tr>';
+=======
+    $html .= '<p><strong>Earnings and Deductions:</strong></p>';
+    $html .= '<table class="salary-table">';
+    $html .= '<thead><tr><th><strong>Particulars</strong></th><th><strong>Amount (BDT)</strong></th><th><strong>Particulars</strong></th><th><strong>Amount (BDT)</strong></th></tr></thead>';
+    $html .= '<tr><td>Basic Salary</td><td>' . number_format($pay_head_values['basic_salary'], 2) . '</td><td>PF</td><td>' . number_format($pay_head_values['employee_provident_fund'], 2) . '</td></tr>';
+>>>>>>> e936259b58fa3411acbde2f070cd4236de2245e3
     $html .= '<tr><td>House Rent</td><td>' . number_format($pay_head_values['house_rent'], 2) . '</td><td>Income Tax</td><td>' . number_format($pay_head_values['income_tax'], 2) . '</td></tr>';
 	$html .= '<tr><td>Medical Allowance</td><td>' . number_format($pay_head_values['medical_allowance'], 2) . '</td><td>Loan Repayment</td><td>' . number_format($pay_head_values['loans_repayment'], 2) . '</td></tr>';
     $html .= '<tr><td>Conveyance  </td><td>' . number_format($pay_head_values['conveyance_allowance'], 2) . '</td><td>Other Deductions</td><td>' . number_format($pay_head_values['other_deductions'], 2) . '</td></tr>';
     $html .= '<tr><td>Car Allowance</td><td>' . number_format($pay_head_values['car_allowance'], 2) . '</td><td></td><td></td></tr>';
     $html .= '</table>';
+<<<<<<< HEAD
     $html .= '<br />';
     // Net Salary and In Words
 	$html .= '<p><strong></strong></p>';
@@ -398,6 +424,18 @@ function generate_salary_slip($employee_id, $pay_month, $earnings_heads, $earnin
 	//$html .= '<br />';
 	$html .= '<p><strong></strong></p>';
     $html .= '<tr><td class="footer-center"><font size="8" align="center"><i>Prepared By: CDBL Payroll Management System</i></font></td></tr>';
+=======
+    $html .= '</br>';
+    // Net Salary and In Words
+    $html .= '<table class="footer1-table">';
+    $html .= '<tr><td><strong>Net Salary</strong></td><td>: ' . number_format($pay_head_values['net_salary'], 2) . '</td></tr>';
+    $html .= '<tr><td><strong>In Words</strong></td><td>: ' . ucfirst(numberToWords($pay_head_values['net_salary'])) . ' Taka</td></tr>';
+    $html .= '</table>';
+
+    // Footer Section with prepared by and approved by aligned left and right
+    $html .= '<table class="footer-table">';
+    $html .= '<tr><td class="footer-left">Prepared By: CDBL Payroll Management System</td><td class="footer-right">Approved By: CDBL Accounts & Finance</td></tr>';
+>>>>>>> e936259b58fa3411acbde2f070cd4236de2245e3
     $html .= '</table>';
 
     $pdf->WriteHTML($html);
