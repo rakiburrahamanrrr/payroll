@@ -1,19 +1,15 @@
 <?php
-<<<<<<< HEAD
-define('BASE_URL', 	   'https://cdbl.com.bd/payroll/');
-define('REG_URL', 	   'https://cdbl.com.bd/registration/');
-=======
-define('BASE_URL', 	   'http://localhost/payroll/');
-define('REG_URL', 	   'localhost/registration/');
+define('BASE_URL',   'http://localhost/payroll/');
+define('REG_URL', 	   'http://localhost/payroll/registration/');
 // define('BASE_URL', 	   'https://cdbl.com.bd/payroll/');
 // define('REG_URL', 	   'https://cdbl.com.bd/registration/');
->>>>>>> e936259b58fa3411acbde2f070cd4236de2245e3
 define('COMPANY_NAME', 'CDBL Payroll Management System');
 
 // MySQL Database Details
 define('DB_SERVER', 	'localhost');
 define('DB_USER', 		'root');
-define('DB_PASSWORD', 'rrr@VAS&cdbl#2004');
+define('DB_PASSWORD', '');
+// define('DB_PASSWORD', 'rrr@VAS&cdbl#2004');
 define('DB_NAME', 		'payroll_mdb');
 define('DB_PREFIX', 	'cdbl_');
 

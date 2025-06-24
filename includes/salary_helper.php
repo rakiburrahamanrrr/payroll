@@ -324,19 +324,11 @@ function generate_salary_slip($employee_id, $pay_month, $earnings_heads, $earnin
     $html .= '
 <table style="width:100%; margin-top: 10px; margin-bottom: 10px;" align="center">
   <tr>
-<<<<<<< HEAD
-    <td align="left" style="width:50%;">
-      <img src="' . dirname(dirname(__FILE__)) . '/dist/img/cdbllogo.png" width="80" height="80" />
-    </td>
-    <td align="right" style="width:50%;">
-      <img src="' . dirname(dirname(__FILE__)) . '/dist/img/logo-Key.jpg" width="80" height="80" />
-=======
     <td align="center" style="width:50%;">
       <img src="' . dirname(dirname(__FILE__)) . '/dist/img/cdbllogo.png" width="80" height="80" />
     </td>
     <td align="center" style="width:50%;">
       <img src="' . dirname(dirname(__FILE__)) . '/dist/img/logo-key.jpg" width="80" height="80" />
->>>>>>> e936259b58fa3411acbde2f070cd4236de2245e3
     </td>
   </tr>
 </table>';
@@ -350,7 +342,7 @@ function generate_salary_slip($employee_id, $pay_month, $earnings_heads, $earnin
     // Employee Info Section
     $html .= '<table class="employee-info-table">';
     // Fetch employee details from database
-    $employee_query = "SELECT first_name, last_name, designation, department, joining_date,employee_id FROM `" . DB_PREFIX . "employees` WHERE emp_code = '$employee_id' LIMIT 1";
+    $employee_query = "SELECT first_name, last_name, designation, department, joining_date FROM `" . DB_PREFIX . "employees` WHERE emp_code = '$employee_id' LIMIT 1";
     $employee_result = mysqli_query($db, $employee_query);
     if (!$employee_result) {
         $emp_name = 'N/A';
@@ -365,18 +357,8 @@ function generate_salary_slip($employee_id, $pay_month, $earnings_heads, $earnin
         }
         $designation = $employee_data['designation'] ?? 'N/A';
         $department = $employee_data['department'] ?? 'N/A';
-		$emp_id = $employee_data['employee_id'] ?? 'N/A';
         $joining_date = !empty($employee_data['joining_date']) ? date('d-M-Y', strtotime($employee_data['joining_date'])) : 'N/A';
     }
-<<<<<<< HEAD
-    //$html .= '<p style="padding-top: 10px;"><strong>Employee Details:</strong></p>';
-    $html .= '<table class="employee-info-table">';
-    $html .= '<tr><td class="label">ID No.</td><td class="separator">:</td><td class="value">' . strtoupper($emp_id) . '</td></tr>';
-    $html .= '<tr><td class="label">Name</td><td class="separator">:</td><td class="value">' . htmlspecialchars($emp_name) . '</td></tr>';
-    $html .= '<tr><td class="label">Designation</td><td class="separator">:</td><td class="value">' . htmlspecialchars($designation) . '</td></tr>';
-    $html .= '<tr><td class="label">Department</td><td class="separator">:</td><td class="value">' . htmlspecialchars($department) . '</td></tr>';
-    //$html .= '<tr><td class="label">Joining Date</td><td class="separator">:</td><td class="value">' . $joining_date . '</td></tr>';
-=======
     $html .= '<p style="padding-top: 10px;"><strong>Employee Details:</strong></p>';
     $html .= '<table class="employee-info-table">';
     $html .= '<tr><td class="label">Employee Code</td><td class="separator">:</td><td class="value">' . strtoupper($employee_id) . '</td></tr>';
@@ -384,47 +366,19 @@ function generate_salary_slip($employee_id, $pay_month, $earnings_heads, $earnin
     $html .= '<tr><td class="label">Designation</td><td class="separator">:</td><td class="value">' . htmlspecialchars($designation) . '</td></tr>';
     $html .= '<tr><td class="label">Department</td><td class="separator">:</td><td class="value">' . htmlspecialchars($department) . '</td></tr>';
     $html .= '<tr><td class="label">Joining Date</td><td class="separator">:</td><td class="value">' . $joining_date . '</td></tr>';
->>>>>>> e936259b58fa3411acbde2f070cd4236de2245e3
     $html .= '</table>';
     $html .= '<br />';
 
     // Earnings and Deductions Table
 
-<<<<<<< HEAD
-    //$html .= '<p><strong>Earnings and Deductions:</strong></p>';
-	$html .= '<p><strong></strong></p>';
-    $html .= '<table class="salary-table">';
-    $html .= '<thead><tr><th><strong>Earnings</strong></th><th><strong>Amount (BDT)</strong></th><th><strong>Deductions</strong></th><th><strong>Amount (BDT)</strong></th></tr></thead>';
-    $html .= '<tr><td>Basic Salary</td><td>' . number_format($pay_head_values['basic_salary'], 2) . '</td><td>Provident Fund</td><td>' . number_format($pay_head_values['employee_provident_fund'], 2) . '</td></tr>';
-=======
     $html .= '<p><strong>Earnings and Deductions:</strong></p>';
     $html .= '<table class="salary-table">';
     $html .= '<thead><tr><th><strong>Particulars</strong></th><th><strong>Amount (BDT)</strong></th><th><strong>Particulars</strong></th><th><strong>Amount (BDT)</strong></th></tr></thead>';
     $html .= '<tr><td>Basic Salary</td><td>' . number_format($pay_head_values['basic_salary'], 2) . '</td><td>PF</td><td>' . number_format($pay_head_values['employee_provident_fund'], 2) . '</td></tr>';
->>>>>>> e936259b58fa3411acbde2f070cd4236de2245e3
     $html .= '<tr><td>House Rent</td><td>' . number_format($pay_head_values['house_rent'], 2) . '</td><td>Income Tax</td><td>' . number_format($pay_head_values['income_tax'], 2) . '</td></tr>';
-	$html .= '<tr><td>Medical Allowance</td><td>' . number_format($pay_head_values['medical_allowance'], 2) . '</td><td>Loan Repayment</td><td>' . number_format($pay_head_values['loans_repayment'], 2) . '</td></tr>';
-    $html .= '<tr><td>Conveyance  </td><td>' . number_format($pay_head_values['conveyance_allowance'], 2) . '</td><td>Other Deductions</td><td>' . number_format($pay_head_values['other_deductions'], 2) . '</td></tr>';
-    $html .= '<tr><td>Car Allowance</td><td>' . number_format($pay_head_values['car_allowance'], 2) . '</td><td></td><td></td></tr>';
+    $html .= '<tr><td>Car Allowance</td><td>' . number_format($pay_head_values['car_allowance'], 2) . '</td><td>Loan Repayment</td><td>' . number_format($pay_head_values['loans_repayment'], 2) . '</td></tr>';
+    $html .= '<tr><td>Medical Allowance</td><td>' . number_format($pay_head_values['medical_allowance'], 2) . '</td><td>Other Deductions</td><td>' . number_format($pay_head_values['other_deductions'], 2) . '</td></tr>';
     $html .= '</table>';
-<<<<<<< HEAD
-    $html .= '<br />';
-    // Net Salary and In Words
-	$html .= '<p><strong></strong></p>';
-    $html .= '<table class="footer1-table">';
-    $html .= '<tr><td><strong>Net Salary</strong>: ' . number_format($pay_head_values['net_salary'], 2) . ' (BDT ' . ucfirst(numberToWords($pay_head_values['net_salary'])) . ' only) </td></tr>';
-    //$html .= '<tr><td><strong>In Words</strong></td><td>: ' . ucfirst(numberToWords($pay_head_values['net_salary'])) . ' Taka</td></tr>';
-    $html .= '</table>';
-	$html .= '<br />';
-
-    // Footer Section with prepared by and approved by aligned left and right
-	//$html .= '<p><strong></strong></p>';
-    $html .= '<table class="footer-table">';
-	$html .= '<tr><td class="footer-center"><font size="10" align="center">System generated Payslip. No signature required.</font></td></tr>';
-	//$html .= '<br />';
-	$html .= '<p><strong></strong></p>';
-    $html .= '<tr><td class="footer-center"><font size="8" align="center"><i>Prepared By: CDBL Payroll Management System</i></font></td></tr>';
-=======
     $html .= '</br>';
     // Net Salary and In Words
     $html .= '<table class="footer1-table">';
@@ -435,7 +389,6 @@ function generate_salary_slip($employee_id, $pay_month, $earnings_heads, $earnin
     // Footer Section with prepared by and approved by aligned left and right
     $html .= '<table class="footer-table">';
     $html .= '<tr><td class="footer-left">Prepared By: CDBL Payroll Management System</td><td class="footer-right">Approved By: CDBL Accounts & Finance</td></tr>';
->>>>>>> e936259b58fa3411acbde2f070cd4236de2245e3
     $html .= '</table>';
 
     $pdf->WriteHTML($html);
@@ -449,4 +402,92 @@ function generate_salary_slip($employee_id, $pay_month, $earnings_heads, $earnin
     $pdf->Output($pdf_file_path, 'F');
 
     return ['code' => 0, 'result' => 'Payslip generated successfully.'];
+}
+
+function generate_loan_slip_pdf($employee_id, $deduction_month, $loans, $total_repayment, $total_outstanding)
+{
+    global $db;
+
+    require_once(dirname(__FILE__) . '/../TCPDF/tcpdf.php');
+
+    $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+    $pdf->SetCreator('CDBL Payroll System');
+    $pdf->SetAuthor('CDBL VAS Team');
+    $pdf->SetTitle('Loan Slip Statement');
+    $pdf->SetMargins(15, 20, 15);
+    $pdf->SetAutoPageBreak(TRUE, 20);
+    $pdf->setPrintHeader(false);
+    $pdf->setPrintFooter(false);
+    $pdf->AddPage();
+
+    $date_today = date('jS F Y');
+
+    // Fetch employee details
+    $employee_query = "SELECT first_name, last_name, designation FROM `" . DB_PREFIX . "employees` WHERE emp_code = '$employee_id' LIMIT 1";
+    $employee_result = mysqli_query($db, $employee_query);
+    if (!$employee_result) {
+        $employee_name = 'N/A';
+        $designation = 'N/A';
+    } else {
+        $employee_data = mysqli_fetch_assoc($employee_result);
+        $employee_name = trim(($employee_data['first_name'] ?? '') . ' ' . ($employee_data['last_name'] ?? ''));
+        if ($employee_name === '') {
+            $employee_name = 'N/A';
+        }
+        $designation = $employee_data['designation'] ?? 'N/A';
+    }
+
+    // Formal letter header
+    $html = '<p style="text-align:right;">' . $date_today . '</p>';
+    $html .= '<h3 style="text-align:center;">TO WHOM IT MAY CONCERN</h3>';
+    $html .= '<p>This is to certify that <b>' . htmlspecialchars($employee_name) . '</b> - ' . htmlspecialchars($designation) . ' has outstanding loans as of <b>' . htmlspecialchars(date('jS F Y', strtotime($deduction_month))) . '</b>.</p>';
+
+    $html .= '<p>The total outstanding loan amount is Tk. <b>' . number_format($total_outstanding, 2) . '</b> and the total repayment for the month of <b>' . htmlspecialchars(date('F, Y', strtotime($deduction_month))) . '</b> is Tk. <b>' . number_format($total_repayment, 2) . '</b>.</p>';
+
+    $html .= '<p>Details of the loans are as follows:</p>';
+
+    // Table header
+    $html .= '<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">';
+    $html .= '<thead><tr style="background-color:#f2f2f2;">
+    <th>Loan Category</th>
+    <th>Loan Name</th>
+    <th>Loan Amount (Tk.)</th>
+    <th>Monthly Installment (Tk.)</th>
+    <th>Total Deduction (Tk.)</th>
+    <th>Remaining Outstanding (Tk.)</th>
+    </tr></thead><tbody>';
+
+    foreach ($loans as $loan) {
+        $loan_amount_fmt = number_format($loan['loan_amount'], 2);
+        $installment_amount_fmt = number_format($loan['loan_installment_amount'], 2);
+        $total_deduction_fmt = number_format($loan['total_deduction'], 2);
+        $remaining_balance_fmt = number_format($loan['remaining_balance'], 2);
+
+        $html .= '<tr>
+        <td>' . htmlspecialchars($loan['loan_category']) . '</td>
+        <td>' . htmlspecialchars($loan['loan_name']) . '</td>
+        <td style="text-align:right;">' . $loan_amount_fmt . '</td>
+        <td style="text-align:right;">' . $installment_amount_fmt . '</td>
+        <td style="text-align:right;">' . $total_deduction_fmt . '</td>
+        <td style="text-align:right;">' . $remaining_balance_fmt . '</td>
+        </tr>';
+    }
+
+    $html .= '</tbody></table>';
+
+    $html .= '<br><br><p>Date: ' . $date_today . '</p>';
+    $html .= '<p>Jayanta Biswun Mondal<br>Senior Assistant General Manager<br>Finance & Accounts</p>';
+
+    $pdf->writeHTML($html, true, false, true, false, '');
+
+    $loan_slip_path = dirname(dirname(__FILE__)) . '/loanslips/' . $employee_id . '/' . date('Y-m', strtotime($deduction_month)) . '/';
+    if (!file_exists($loan_slip_path)) {
+        mkdir($loan_slip_path, 0777, true);
+    }
+
+    $pdf_file_path = $loan_slip_path . 'loan_slip_' . date('Y_m', strtotime($deduction_month)) . '.pdf';
+
+    $pdf->Output($pdf_file_path, 'F');
+
+    return ['code' => 0, 'result' => 'Loan slip generated successfully.'];
 }

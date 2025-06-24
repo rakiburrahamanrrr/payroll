@@ -42,16 +42,9 @@ if (!isset($_SESSION['Admin_ID']) || $_SESSION['Login_Type'] != 'admin') {
         <div class="col-xs-12">
           <div class="box">
             <div class="box-header">
-<<<<<<< HEAD
               <h3 class="box-title">All Employee List</h3>
 <a href="../registration/newreg.php" class="btn btn-primary btn-sm pull-right" >+ Create Employee</a>&nbsp;
 <a href="#" class="btn btn-primary btn-sm pull-right" id="bulkEmployeeEntryBtn">++ Bulk Employee Upload</a>             
-=======
-              <h3 class="box-title">All Employee List</h3><br>
-
-<a href="../registration/newreg.php" class="btn btn-primary btn-sm pull-right" >Create Employee</a>&nbsp;
-<a href="#" class="btn btn-primary btn-sm pull-right" id="bulkEmployeeEntryBtn">Bulk Employee Entry</a>             
->>>>>>> e936259b58fa3411acbde2f070cd4236de2245e3
 
 <!-- Bulk Employee Entry Modal -->
 <div class="modal fade" id="bulkEmployeeEntryModal" tabindex="-1" role="dialog" aria-labelledby="bulkEmployeeEntryModalLabel" aria-hidden="true">
